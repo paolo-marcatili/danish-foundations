@@ -1,0 +1,104 @@
+{
+  "version": 1,
+  "grid": {
+    "columns": 5,
+    "rows": 5,
+    "frames": 25
+  },
+  "bottom_padding": 12,
+  "animations": {
+    "walk": {
+      "file": "hero-walk.png",
+      "source": "Leo-walk-v1.png",
+      "frame_rate": 16,
+      "repeat": -1,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "attack1": {
+      "file": "hero-attack-simple.png",
+      "source": "Leo-attack-v1.png",
+      "frame_rate": 20,
+      "repeat": 0,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "attack2": {
+      "file": "hero-attack-swing.png",
+      "source": "Leo-swing-v1.png",
+      "frame_rate": 20,
+      "repeat": 0,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "fall": {
+      "file": "hero-fall.png",
+      "source": "Leo-fall-v1.png",
+      "frame_rate": 16,
+      "repeat": 0,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "energy": {
+      "file": "hero-energy-ball.png",
+      "source": "Leo-energy-v1.png",
+      "frame_rate": 16,
+      "repeat": -1,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "parry": {
+      "file": "hero-parry.png",
+      "source": "Leo-block-v1.png",
+      "frame_rate": 16,
+      "repeat": 0,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "victory": {
+      "file": "hero-victory.png",
+      "source": "Leo-victory-v1.png",
+      "frame_rate": 16,
+      "repeat": 0,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    }
+  },
+  "frame_width": 256,
+  "frame_height": 256
+}

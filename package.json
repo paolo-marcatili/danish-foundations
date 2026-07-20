@@ -1,0 +1,57 @@
+{
+  "name": "hero-language-camp",
+  "version": "0.12.1",
+  "private": true,
+  "type": "module",
+  "description": "Open-source gamified learning prototype for low-resource and community languages.",
+  "license": "MIT",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace @hero-lang/web run dev",
+    "build": "npm --workspace @hero-lang/web run build",
+    "preview": "npm --workspace @hero-lang/web run preview",
+    "typecheck": "npm --workspaces --if-present run typecheck",
+    "validate:content": "node tools/validate-content.mjs content-packs/hy-eastern-it",
+    "check": "npm run validate:content && npm run typecheck",
+    "content:auto-audio": "node tools/generate-automated-audio.mjs content-packs/hy-eastern-it",
+    "content:merge": "node tools/merge-contribution.mjs",
+    "mobile:sync": "npm run build && npx cap sync",
+    "mobile:android": "npm run build && npx cap sync android && npx cap open android",
+    "mobile:ios": "npm run build && npx cap sync ios && npx cap open ios",
+    "assets:generate": "npm run assets:sync",
+    "assets:sync": "node tools/sync-assets.mjs",
+    "assets:generate-placeholders": "npm run assets:generate-parallax",
+    "assets:clean-concept": "python tools/clean-concept-sprite-sheet.py asset-packs/cc0-pixel-v10/sources/hero-adventurer-concept.png asset-packs/cc0-pixel-v10/sources/legacy/hero-adventurer-concept-clean.png",
+    "assets:generate-parallax": "python tools/generate-parallax-assets.py && python tools/generate-guide-assets.py && python tools/import-hero-animation-sheets.py && python tools/import-companion-animation-sheets.py && npm run assets:sync",
+    "assets:generate-realistic": "python tools/generate-realistic-assets.py && python tools/generate-guide-assets.py && python tools/import-hero-animation-sheets.py && python tools/import-companion-animation-sheets.py && npm run assets:sync",
+    "assets:generate-guides": "python tools/generate-guide-assets.py && python tools/import-hero-animation-sheets.py && python tools/import-companion-animation-sheets.py && npm run assets:sync",
+    "assets:generate-hero-poses": "python tools/import-hero-animation-sheets.py && npm run assets:sync",
+    "assets:import-hero": "python tools/import-hero-animation-sheets.py",
+    "assets:import-hero-and-sync": "python tools/import-hero-animation-sheets.py && npm run assets:sync",
+    "assets:generate-legacy-hero-guides": "python tools/generate-hero-pose-guides.py && python tools/render-hero-pose-guide.py",
+    "assets:import-companion": "python tools/import-companion-animation-sheets.py",
+    "assets:import-companion-and-sync": "python tools/import-companion-animation-sheets.py && npm run assets:sync",
+    "assets:generate-labyrinth-placeholders": "python tools/generate-labyrinth-placeholder-assets.py && python tools/generate-low-labyrinth-walls.py && npm run assets:sync",
+    "assets:extract-labyrinth-ai": "python tools/extract-labyrinth-ai-atlas.py asset-packs/cc0-pixel-v10/sources/labyrinth-ai-v0115/labyrinth-ai-atlas.png asset-packs/cc0-pixel-v10/labyrinth --preview asset-packs/cc0-pixel-v10/sources/labyrinth-ai-v0115/labyrinth-ai-assets-preview.png && python tools/generate-low-labyrinth-walls.py && npm run assets:sync",
+    "assets:generate-monsters": "python tools/generate-monster-sprites.py && npm run assets:sync",
+    "assets:generate-labyrinth-walls": "python tools/generate-low-labyrinth-walls.py && npm run assets:sync",
+    "content:extract-docx": "python tools/content-import/extract_docx_material.py content-packs/hy-eastern-it/sources/private-archive-docx content-packs/hy-eastern-it/sources/archive-extracted-redacted.txt",
+    "content:expand": "python tools/content-import/expand_hy_it_pack.py",
+    "dev:lan": "npm --workspace @hero-lang/web run dev:lan",
+    "preview:lan": "npm --workspace @hero-lang/web run preview:lan",
+    "verify:release": "node tools/verify-release.mjs"
+  },
+  "engines": {
+    "node": ">=20.19.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/cli": "^8.0.0",
+    "@capacitor/android": "^8.0.0",
+    "@capacitor/ios": "^8.0.0"
+  }
+}

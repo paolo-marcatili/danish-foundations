@@ -1,0 +1,1185 @@
+import type {
+  ActivityType,
+  AudioReference,
+  GrammarItem,
+  LanguagePack,
+  PackLevel,
+  LearningItem,
+  LetterItem
+} from "@hero-lang/content-schema";
+import { getGrammarTranslation, getItemTranslation, getLetterLabel, getLocalizedText } from "@hero-lang/content-schema";
+
+export type TrainingFocus = "vocabulary" | "comprehension" | "grammar" | "pronunciation";
+
+export type HeroStatKey = "strength" | "defense" | "precision" | "stamina";
+
+export interface HeroStats {
+  strength: number;
+  defense: number;
+  precision: number;
+  stamina: number;
+}
+
+export interface PracticeMemory {
+  seen_count: number;
+  correct_count: number;
+  wrong_count: number;
+  mastery: number;
+  last_result?: "correct" | "incorrect";
+  last_asked_at?: string;
+  last_was_wrong?: boolean;
+  success_streak: number;
+  next_review_at?: string;
+}
+
+export interface ItemMastery extends PracticeMemory {
+  item_id: string;
+}
+
+export interface LetterMastery extends PracticeMemory {
+  letter_id: string;
+}
+
+export interface GrammarMastery extends PracticeMemory {
+  grammar_id: string;
+}
+
+export interface LearnerState {
+  hero_name: string;
+  level: number;
+  xp: number;
+  coins: number;
+  streak: number;
+  max_energy: number;
+  hero_stats: HeroStats;
+  mastery_by_item: Record<string, ItemMastery>;
+  mastery_by_letter: Record<string, LetterMastery>;
+  mastery_by_grammar: Record<string, GrammarMastery>;
+  completed_training_sessions: Partial<Record<TrainingFocus, number>>;
+  completed_training_sessions_by_level?: Record<string, Partial<Record<TrainingFocus, number>>>;
+  completed_labyrinth_sessions?: number;
+  completed_labyrinth_sessions_by_level?: Record<string, number>;
+  inventory: string[];
+  defeated_enemies: string[];
+  path_seed: number;
+  path_distance: number;
+  total_training_sessions?: number;
+}
+
+export interface AnswerOption {
+  id: string;
+  label: string;
+  is_hard_distractor?: boolean;
+}
+
+export type QuestionVariant =
+  | "target_to_base"
+  | "base_to_target"
+  | "target_to_visual"
+  | "visual_to_target"
+  | "audio_to_base"
+  | "letter_sound"
+  | "sentence_choice"
+  | "sentence_translation"
+  | "missing_word"
+  | "sentence_tap_order"
+  | "transliteration_match"
+  | "syllable_match";
+
+export interface TrainingQuestion {
+  id: string;
+  kind: "item" | "letter" | "grammar";
+  activity_type: ActivityType;
+  skill: TrainingFocus;
+  stat: HeroStatKey;
+  variant: QuestionVariant;
+  item?: LearningItem;
+  letter?: LetterItem;
+  grammar?: GrammarItem;
+  prompt: string;
+  prompt_hint: string;
+  options: AnswerOption[];
+  correct_option_id: string;
+  correct_answer_label: string;
+  target_audio_text?: string;
+  target_audio_lang?: string;
+  audio?: AudioReference[];
+}
+
+export interface QuestionSelectionOptions {
+  maxComplexity?: number;
+  tags?: string[];
+  requireHumanAudio?: boolean;
+  /** Require an actual audio reference (human, generated file, or browser TTS). */
+  requirePlayableAudio?: boolean;
+  includeLetters?: boolean;
+}
+
+export interface CombatBreakdown {
+  damage: number;
+  multiplier: number;
+  max_damage: number;
+  absorbed: number;
+  label_key: "weakHit" | "normalHit" | "bigHit" | "preciseHit" | "blockedHit";
+}
+
+export interface AnswerResult {
+  correct: boolean;
+  timed_out: boolean;
+  xp_delta: number;
+  coins_delta: number;
+  damage: number;
+  energy_loss: number;
+  absorbed_damage: number;
+  damage_multiplier: number;
+  combat_label_key?: CombatBreakdown["label_key"] | "monsterHit" | "heroBlocked";
+  stat_gains: Partial<HeroStats>;
+  stat_cap_reached: boolean;
+  message: string;
+  updated_state: LearnerState;
+}
+
+export interface ShopItem {
+  id: string;
+  price: number;
+  stat_bonus?: Partial<HeroStats>;
+}
+
+export const HERO_STAT_KEYS: HeroStatKey[] = ["strength", "defense", "precision", "stamina"];
+
+const REVIEW_INTERVALS_MS = [5 * 60_000, 20 * 60_000, 24 * 60 * 60_000, 3 * 24 * 60 * 60_000, 7 * 24 * 60 * 60_000, 14 * 24 * 60 * 60_000];
+
+export function createInitialLearnerState(pack: LanguagePack, heroName = "Ani"): LearnerState {
+  const baseStats: HeroStats = { strength: 1, defense: 1, precision: 1, stamina: 1 };
+
+  return {
+    hero_name: heroName,
+    level: 1,
+    xp: 0,
+    coins: 0,
+    streak: 0,
+    max_energy: getMaxEnergy(1, baseStats),
+    hero_stats: baseStats,
+    mastery_by_item: Object.fromEntries(pack.items.map((item) => [item.id, createItemMastery(item.id)])),
+    mastery_by_letter: Object.fromEntries((pack.letters ?? []).map((letter) => [letter.id, createLetterMastery(letter.id)])),
+    mastery_by_grammar: Object.fromEntries((pack.grammar_items ?? []).map((grammar) => [grammar.id, createGrammarMastery(grammar.id)])),
+    completed_training_sessions: {},
+    completed_training_sessions_by_level: {},
+    completed_labyrinth_sessions: 0,
+    completed_labyrinth_sessions_by_level: {},
+    inventory: [],
+    defeated_enemies: [],
+    path_seed: Math.floor(Math.random() * 1_000_000),
+    path_distance: 0,
+    total_training_sessions: 0
+  };
+}
+
+export function normalizeLearnerState(pack: LanguagePack, maybeState: unknown, heroName = "Ani"): LearnerState {
+  const fresh = createInitialLearnerState(pack, heroName);
+  if (!isObject(maybeState)) return fresh;
+
+  const level = Math.max(1, Math.floor(numberOr(maybeState.level, 1)));
+  const oldStats = isObject(maybeState.hero_stats) ? maybeState.hero_stats : {};
+  const heroStats: HeroStats = clampStatsToLevel(
+    {
+      strength: numberOr(oldStats.strength, numberOr(oldStats.power, 1)),
+      defense: numberOr(oldStats.defense, numberOr(oldStats.shield, 1)),
+      precision: numberOr(oldStats.precision, numberOr(oldStats.strategy, numberOr(oldStats.accuracy, 1))),
+      stamina: numberOr(oldStats.stamina, numberOr(oldStats.accuracy, numberOr(oldStats.shield, 1)))
+    },
+    level,
+    pack
+  );
+
+  const completed = mergeTrainingCounts(maybeState.completed_training_sessions);
+  const completedLabyrinthSessions = Math.max(0, Math.floor(numberOr(maybeState.completed_labyrinth_sessions, 0)));
+  return {
+    ...fresh,
+    hero_name: typeof maybeState.hero_name === "string" && maybeState.hero_name.trim() ? maybeState.hero_name : fresh.hero_name,
+    level,
+    xp: Math.max(0, Math.floor(numberOr(maybeState.xp, 0))),
+    coins: Math.max(0, Math.floor(numberOr(maybeState.coins, 0))),
+    streak: Math.max(0, Math.floor(numberOr(maybeState.streak, 0))),
+    hero_stats: heroStats,
+    max_energy: getMaxEnergy(level, heroStats),
+    mastery_by_item: mergeItemMastery(fresh.mastery_by_item, maybeState.mastery_by_item),
+    mastery_by_letter: mergeLetterMastery(fresh.mastery_by_letter, maybeState.mastery_by_letter),
+    mastery_by_grammar: mergeGrammarMastery(fresh.mastery_by_grammar, maybeState.mastery_by_grammar),
+    completed_training_sessions: completed,
+    completed_training_sessions_by_level: normalizeLevelTrainingCounts(maybeState.completed_training_sessions_by_level),
+    completed_labyrinth_sessions: completedLabyrinthSessions,
+    completed_labyrinth_sessions_by_level: normalizeLevelLabyrinthCounts(maybeState.completed_labyrinth_sessions_by_level),
+    inventory: stringArray(maybeState.inventory),
+    defeated_enemies: stringArray(maybeState.defeated_enemies),
+    path_seed: Math.floor(numberOr(maybeState.path_seed, fresh.path_seed)),
+    path_distance: Math.max(0, Math.floor(numberOr(maybeState.path_distance, 0))),
+    total_training_sessions: getTotalTrainingSessions(completed, maybeState.total_training_sessions, completedLabyrinthSessions)
+  };
+}
+
+export function getNextQuestion(pack: LanguagePack, state: LearnerState, baseLanguage = "it", focus: TrainingFocus = "vocabulary", selection: QuestionSelectionOptions = {}): TrainingQuestion {
+  if (focus === "vocabulary" && (pack.letters?.length ?? 0) > 0 && shouldUseLetterQuestion(state, selection)) {
+    return getLetterQuestion(pack, state, baseLanguage);
+  }
+
+  if (focus === "grammar" && (pack.grammar_items?.length ?? 0) > 0) {
+    return getGrammarQuestion(pack, state, baseLanguage, selection);
+  }
+
+  return getItemQuestion(pack, state, baseLanguage, focus, selection);
+}
+
+/** Returns whether a focus can produce a valid question under the selection rules. */
+export function hasEligibleQuestion(
+  pack: LanguagePack,
+  focus: TrainingFocus,
+  selection: QuestionSelectionOptions = {}
+): boolean {
+  if (focus === "vocabulary" && selection.includeLetters !== false && (pack.letters?.length ?? 0) > 0) return true;
+  if (focus === "grammar" && (pack.grammar_items?.length ?? 0) > 0) {
+    return getGrammarCandidatesForSelection(pack.grammar_items ?? [], selection).length > 0;
+  }
+  return getItemCandidatesForSelection(pack.items, selection).length > 0;
+}
+
+export function answerQuestion(
+  question: TrainingQuestion,
+  selectedOptionId: string,
+  state: LearnerState,
+  context: { mode?: "training" | "fight"; timedOut?: boolean; enemyRequirements?: Partial<HeroStats>; enemyLevel?: number; statCap?: number; weaknessStats?: HeroStatKey[] } = {}
+): AnswerResult {
+  const correct = selectedOptionId === question.correct_option_id && !context.timedOut;
+  const timedOut = Boolean(context.timedOut);
+  const mode = context.mode ?? "training";
+  const statName = question.stat;
+  const cap = context.statCap ?? getLevelStatCap(state.level);
+  const statAlreadyCapped = state.hero_stats[statName] >= cap;
+  // Training sessions now award exactly one stat point only when the whole
+  // session is completed with few enough mistakes. Individual answers update
+  // item memory, XP, and coins inside the temporary practice state only.
+  const statGains: Partial<HeroStats> = {};
+
+  const streak = correct ? state.streak + 1 : 0;
+  const xp_delta = correct ? (mode === "fight" ? 12 : 10) + Math.min(streak, 5) : 1;
+  const coins_delta = 0;
+  const nextStats = addStatGains(state.hero_stats, statGains, state.level, context.statCap);
+  const masteryUpdate = getMasteryUpdate(question, state, correct);
+  const pathDelta = correct ? (mode === "fight" ? 16 : 8) : 2;
+  const hit = estimateHeroDamage(nextStats, context.enemyRequirements, cap, context.weaknessStats?.includes(statName) ? 1.12 : 1);
+  const incoming = estimateMonsterDamage(state.hero_stats, context.enemyRequirements, cap, timedOut);
+
+  const updated_state: LearnerState = {
+    ...state,
+    xp: state.xp + xp_delta,
+    coins: state.coins + coins_delta,
+    streak,
+    max_energy: getMaxEnergy(state.level, nextStats),
+    hero_stats: nextStats,
+    mastery_by_item: masteryUpdate.mastery_by_item,
+    mastery_by_letter: masteryUpdate.mastery_by_letter,
+    mastery_by_grammar: masteryUpdate.mastery_by_grammar,
+    completed_training_sessions: state.completed_training_sessions,
+    completed_training_sessions_by_level: state.completed_training_sessions_by_level ?? {},
+    completed_labyrinth_sessions: state.completed_labyrinth_sessions ?? 0,
+    completed_labyrinth_sessions_by_level: state.completed_labyrinth_sessions_by_level ?? {},
+    total_training_sessions: state.total_training_sessions ?? getTotalTrainingSessions(state.completed_training_sessions, undefined, state.completed_labyrinth_sessions ?? 0),
+    path_distance: state.path_distance + pathDelta
+  };
+
+  return {
+    correct,
+    timed_out: timedOut,
+    xp_delta,
+    coins_delta,
+    damage: correct ? hit.damage : 0,
+    energy_loss: correct ? 0 : incoming.damage,
+    absorbed_damage: correct ? hit.absorbed : incoming.absorbed,
+    damage_multiplier: correct ? hit.multiplier : incoming.multiplier,
+    combat_label_key: correct ? hit.label_key : incoming.absorbed > 0 ? "heroBlocked" : "monsterHit",
+    stat_gains: statGains,
+    stat_cap_reached: correct && mode === "training" && statAlreadyCapped,
+    message: correct ? `Correct: ${question.correct_answer_label}.` : `Answer: ${question.correct_answer_label}.`,
+    updated_state
+  };
+}
+
+export function markTrainingSessionCompleted(state: LearnerState, focus: TrainingFocus, pack?: LanguagePack): LearnerState {
+  const nextFocusCount = Math.floor(state.completed_training_sessions[focus] ?? 0) + 1;
+  const completed_training_sessions = { ...state.completed_training_sessions, [focus]: nextFocusCount };
+  const levelKey = String(state.level);
+  const previousLevelCounts = state.completed_training_sessions_by_level?.[levelKey] ?? {};
+  const nextLevelCounts = { ...previousLevelCounts, [focus]: Math.floor(previousLevelCounts[focus] ?? 0) + 1 };
+  const completed_training_sessions_by_level = { ...(state.completed_training_sessions_by_level ?? {}), [levelKey]: nextLevelCounts };
+  const stat = focusToStat(focus);
+  const nextStats = addStatGains(state.hero_stats, { [stat]: 1 }, state.level, getLevelStatCap(state.level, pack));
+  return {
+    ...state,
+    completed_training_sessions,
+    completed_training_sessions_by_level,
+    total_training_sessions: getTotalTrainingSessions(completed_training_sessions, undefined, state.completed_labyrinth_sessions ?? 0),
+    coins: state.coins + 2,
+    hero_stats: nextStats,
+    max_energy: getMaxEnergy(state.level, nextStats),
+    path_distance: state.path_distance + 18
+  };
+}
+
+
+export function markLabyrinthCompleted(
+  state: LearnerState,
+  pack?: LanguagePack,
+  attributePointsEach = 1,
+  sessionCredit = 1
+): LearnerState {
+  const levelKey = String(state.level);
+  const completedLabyrinthSessions = Math.max(0, Math.floor(state.completed_labyrinth_sessions ?? 0)) + Math.max(0, Math.floor(sessionCredit));
+  const completedByLevel = {
+    ...(state.completed_labyrinth_sessions_by_level ?? {}),
+    [levelKey]: Math.max(0, Math.floor(state.completed_labyrinth_sessions_by_level?.[levelKey] ?? 0)) + Math.max(0, Math.floor(sessionCredit))
+  };
+  const points = Math.max(0, Math.floor(attributePointsEach));
+  const nextStats = addStatGains(
+    state.hero_stats,
+    { strength: points, defense: points, precision: points, stamina: points },
+    state.level,
+    getLevelStatCap(state.level, pack)
+  );
+
+  return {
+    ...state,
+    hero_stats: nextStats,
+    max_energy: getMaxEnergy(state.level, nextStats),
+    completed_labyrinth_sessions: completedLabyrinthSessions,
+    completed_labyrinth_sessions_by_level: completedByLevel,
+    total_training_sessions: getTotalTrainingSessions(
+      state.completed_training_sessions,
+      undefined,
+      completedLabyrinthSessions
+    ),
+    xp: state.xp + 40,
+    path_distance: state.path_distance + 45
+  };
+}
+
+export function markEnemyDefeated(state: LearnerState, enemyId: string, bonusCoins: number, pack?: LanguagePack): LearnerState {
+  const alreadyDefeated = state.defeated_enemies.includes(enemyId);
+  const nextLevel = alreadyDefeated ? state.level : state.level + 1;
+  const heroStats = clampStatsToLevel(state.hero_stats, nextLevel, pack);
+
+  return {
+    ...state,
+    level: nextLevel,
+    xp: state.xp + (alreadyDefeated ? 10 : 45),
+    coins: state.coins + bonusCoins,
+    max_energy: getMaxEnergy(nextLevel, heroStats),
+    hero_stats: heroStats,
+    defeated_enemies: alreadyDefeated ? state.defeated_enemies : [...state.defeated_enemies, enemyId],
+    path_seed: alreadyDefeated ? state.path_seed : state.path_seed + 137,
+    path_distance: state.path_distance + 40
+  };
+}
+
+export function buyShopItem(state: LearnerState, item: ShopItem): { ok: boolean; state: LearnerState; reason?: "owned" | "coins" } {
+  if (state.inventory.includes(item.id)) return { ok: false, state, reason: "owned" };
+  if (state.coins < item.price) return { ok: false, state, reason: "coins" };
+
+  const heroStats = addStatGains(state.hero_stats, item.stat_bonus ?? {}, state.level);
+  return {
+    ok: true,
+    state: {
+      ...state,
+      coins: state.coins - item.price,
+      inventory: [...state.inventory, item.id],
+      hero_stats: heroStats,
+      max_energy: getMaxEnergy(state.level, heroStats)
+    }
+  };
+}
+
+export function getAverageMastery(state: LearnerState): number {
+  const itemValues = Object.values(state.mastery_by_item).map((item) => item.mastery);
+  const letterValues = Object.values(state.mastery_by_letter).map((letter) => letter.mastery);
+  const grammarValues = Object.values(state.mastery_by_grammar).map((grammar) => grammar.mastery);
+  const values = [...itemValues, ...letterValues, ...grammarValues];
+  if (values.length === 0) return 0;
+  return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+export function getStatValue(stats: HeroStats, statName: HeroStatKey): number {
+  return stats[statName];
+}
+
+export function getLevelConfig(pack: LanguagePack | undefined, level: number): PackLevel | undefined {
+  return pack?.levels?.find((entry) => entry.number === level) ?? pack?.levels?.slice().sort((a, b) => b.number - a.number).find((entry) => entry.number <= level);
+}
+
+export function getLevelStatCap(level: number, pack?: LanguagePack): number {
+  return getLevelConfig(pack, level)?.stat_cap ?? Math.max(1, level) * 5;
+}
+
+export function getMaxComplexityForLevel(level: number, pack?: LanguagePack): number {
+  return getLevelConfig(pack, level)?.max_complexity ?? Math.max(1, Math.min(5, Math.ceil(Math.max(1, level) / 2)));
+}
+
+export function getMaxEnergy(_level: number, stats: HeroStats): number {
+  return Math.max(20, Math.max(1, stats.stamina) * 20);
+}
+
+export function focusToActivityType(focus: TrainingFocus): ActivityType {
+  if (focus === "comprehension") return "listen_and_choose";
+  if (focus === "pronunciation") return "transliteration_match";
+  if (focus === "grammar") return "sentence_order";
+  return "select_translation";
+}
+
+export function focusToStat(focus: TrainingFocus): HeroStatKey {
+  if (focus === "vocabulary") return "strength";
+  if (focus === "comprehension") return "defense";
+  if (focus === "grammar") return "precision";
+  return "stamina";
+}
+
+export function estimateHeroDamage(stats: HeroStats, enemyStats: Partial<HeroStats> | undefined, statCap: number, weaknessBoost = 1): CombatBreakdown {
+  const maxDamage = Math.max(1, stats.strength);
+  const enemyDefense = enemyStats?.defense ?? Math.max(1, Math.round(statCap * 0.5));
+  const multiplier = sigmoidMultiplier(stats.precision, enemyDefense, statCap);
+  const raw = maxDamage * multiplier * weaknessBoost;
+  const damage = Math.max(1, Math.min(maxDamage, Math.round(raw)));
+  const absorbed = Math.max(0, Math.round(maxDamage - damage));
+  return { damage, multiplier, max_damage: maxDamage, absorbed, label_key: hitLabel(multiplier) };
+}
+
+export function estimateMonsterDamage(heroStats: HeroStats, enemyStats: Partial<HeroStats> | undefined, statCap: number, timedOut = false): CombatBreakdown {
+  const monsterStrength = enemyStats?.strength ?? Math.max(2, Math.round(statCap * 0.45));
+  const monsterPrecision = enemyStats?.precision ?? Math.max(2, Math.round(statCap * 0.45));
+  const multiplier = sigmoidMultiplier(monsterPrecision, heroStats.defense, statCap) * (timedOut ? 1.18 : 1);
+  const raw = monsterStrength * multiplier;
+  const damage = Math.max(1, Math.round(raw));
+  const absorbed = Math.max(0, Math.round(monsterStrength - damage));
+  return { damage, multiplier: Math.min(1, multiplier), max_damage: monsterStrength, absorbed, label_key: hitLabel(multiplier) };
+}
+
+export function sigmoidMultiplier(attackerPrecision: number, defenderDefense: number, statCap: number, k = 2.2): number {
+  const window = Math.max(1, statCap * 0.25);
+  const x = k * ((attackerPrecision - defenderDefense) / window);
+  return 1 / (1 + Math.exp(-x));
+}
+
+function getItemQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: string, focus: TrainingFocus, selection: QuestionSelectionOptions): TrainingQuestion {
+  const activityType = focusToActivityType(focus);
+  const item = chooseWeakestItem(pack, state, selection);
+  const distractors = chooseItemDistractors(pack, item, 3);
+  const variant = getItemQuestionVariant(item, focus);
+  const options = buildItemOptions(pack, item, distractors, baseLanguage, variant);
+  const correctLabel = getCorrectItemOptionLabel(item, baseLanguage, variant);
+
+  return {
+    id: `${activityType}:${variant}:${item.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
+    kind: "item",
+    activity_type: activityType,
+    skill: focus,
+    stat: focusToStat(focus),
+    variant,
+    item,
+    prompt: getItemPrompt(item, baseLanguage, focus, variant),
+    prompt_hint: getItemPromptHint(item, baseLanguage, focus, variant),
+    options,
+    correct_option_id: item.id,
+    correct_answer_label: correctLabel,
+    target_audio_text: focus === "comprehension" ? item.target : undefined,
+    target_audio_lang: focus === "comprehension" ? pack.language.bcp47 : undefined,
+    audio: focus === "comprehension" ? item.audio : undefined
+  };
+}
+
+function getLetterQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: string): TrainingQuestion {
+  const letters = pack.letters ?? [];
+  const letter = chooseWeakestLetter(letters, state);
+  const distractors = chooseLetterDistractors(letters, letter, 3, baseLanguage);
+  const options = shuffle([
+    { id: letter.id, label: getLetterAnswerLabel(letter, baseLanguage) },
+    ...distractors.map((candidate, index) => ({
+      id: candidate.id,
+      label: getLetterAnswerLabel(candidate, baseLanguage),
+      is_hard_distractor: index === 0
+    }))
+  ]);
+
+  return {
+    id: `letter_recognition:${letter.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
+    kind: "letter",
+    activity_type: "letter_recognition",
+    skill: "vocabulary",
+    stat: "strength",
+    variant: "letter_sound",
+    letter,
+    prompt: letter.character,
+    prompt_hint: baseLanguage === "it" ? "Scegli il suono della lettera armena." : "Choose the Armenian letter sound.",
+    options,
+    correct_option_id: letter.id,
+    correct_answer_label: getLetterAnswerLabel(letter, baseLanguage),
+    target_audio_text: undefined,
+    target_audio_lang: undefined,
+    audio: undefined
+  };
+}
+
+function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: string, selection: QuestionSelectionOptions): TrainingQuestion {
+  const grammarItems = pack.grammar_items ?? [];
+  const grammar = chooseWeakestGrammar(grammarItems, state, selection);
+  const variant = chooseGrammarVariant(grammar);
+
+  if (variant === "missing_word") {
+    const words = splitSentenceWords(grammar.target_sentence);
+    const missingIndex = chooseMissingWordIndex(words);
+    const missingWord = words[missingIndex] ?? words[0] ?? grammar.target_sentence;
+    const promptWords = words.map((word, index) => (index === missingIndex ? "____" : word));
+    const distractors = chooseMissingWordDistractors(pack, grammar, missingWord, 3);
+    const options = shuffle([
+      { id: missingWord, label: missingWord },
+      ...distractors.map((word, index) => ({ id: word, label: word, is_hard_distractor: index === 0 }))
+    ]);
+    return {
+      id: `missing_word:${grammar.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
+      kind: "grammar",
+      activity_type: "sentence_order",
+      skill: "grammar",
+      stat: "precision",
+      variant,
+      grammar,
+      prompt: promptWords.join(" "),
+      prompt_hint: baseLanguage === "it" ? "Scegli la parola armena che manca." : "Choose the missing Armenian word.",
+      options,
+      correct_option_id: missingWord,
+      correct_answer_label: grammar.target_sentence,
+      target_audio_text: undefined,
+      target_audio_lang: undefined,
+      audio: undefined
+    };
+  }
+
+  if (variant === "sentence_tap_order") {
+    const words = splitSentenceWords(grammar.target_sentence);
+    const options = shuffle(words.map((word, index) => ({ id: `chip:${index}:${word}`, label: word })));
+    return {
+      id: `sentence_tap_order:${grammar.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
+      kind: "grammar",
+      activity_type: "sentence_order",
+      skill: "grammar",
+      stat: "precision",
+      variant,
+      grammar,
+      prompt: getGrammarTranslation(grammar, baseLanguage),
+      prompt_hint: baseLanguage === "it" ? "Tocca le parole nell'ordine giusto." : "Tap the words in the right order.",
+      options,
+      correct_option_id: grammar.target_sentence,
+      correct_answer_label: grammar.target_sentence,
+      target_audio_text: undefined,
+      target_audio_lang: undefined,
+      audio: undefined
+    };
+  }
+
+  if (variant === "sentence_translation") {
+    const distractors = chooseGrammarTranslationDistractors(grammarItems, grammar, baseLanguage, 3);
+    const options = shuffle([
+      { id: grammar.id, label: getGrammarTranslation(grammar, baseLanguage) },
+      ...distractors.map((candidate, index) => ({
+        id: candidate.id,
+        label: getGrammarTranslation(candidate, baseLanguage),
+        is_hard_distractor: index === 0
+      }))
+    ]);
+    return {
+      id: `sentence_translation:${grammar.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
+      kind: "grammar",
+      activity_type: "select_translation",
+      skill: "grammar",
+      stat: "precision",
+      variant,
+      grammar,
+      prompt: grammar.target_sentence,
+      prompt_hint: baseLanguage === "it" ? "Scegli il significato della frase." : "Choose the sentence meaning.",
+      options,
+      correct_option_id: grammar.id,
+      correct_answer_label: getGrammarTranslation(grammar, baseLanguage),
+      target_audio_text: undefined,
+      target_audio_lang: undefined,
+      audio: undefined
+    };
+  }
+
+  const hardDistractor = chooseHardSentenceDistractor(grammar);
+  const rest = shuffle(grammar.distractors.filter((answer) => answer !== hardDistractor)).slice(0, 2);
+  const options = shuffle([
+    { id: grammar.target_sentence, label: grammar.target_sentence },
+    ...[hardDistractor, ...rest].filter(isDefinedString).map((answer, index) => ({
+      id: answer,
+      label: answer,
+      is_hard_distractor: index === 0
+    }))
+  ]);
+
+  return {
+    id: `sentence_choice:${grammar.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
+    kind: "grammar",
+    activity_type: "sentence_order",
+    skill: "grammar",
+    stat: "precision",
+    variant: "sentence_choice",
+    grammar,
+    prompt: getLocalizedText(grammar.prompt, baseLanguage, getGrammarTranslation(grammar, baseLanguage)),
+    prompt_hint: baseLanguage === "it" ? "Scegli la frase armena giusta." : "Choose the right Armenian sentence.",
+    options,
+    correct_option_id: grammar.target_sentence,
+    correct_answer_label: grammar.target_sentence,
+    target_audio_text: undefined,
+    target_audio_lang: undefined,
+    audio: undefined
+  };
+}
+
+function shouldUseLetterQuestion(state: LearnerState, selection: QuestionSelectionOptions): boolean {
+  if (selection.includeLetters === false) return false;
+  if (selection.includeLetters === true) return true;
+  const maxComplexity = selection.maxComplexity ?? 1;
+  if (maxComplexity > 1) return false;
+  const letterSeen = Object.values(state.mastery_by_letter).reduce((sum, entry) => sum + entry.seen_count, 0);
+  if (letterSeen < 12) return true;
+  return Math.random() < 0.25;
+}
+
+function getItemQuestionVariant(item: LearningItem, focus: TrainingFocus): QuestionVariant {
+  if (focus === "comprehension") return "audio_to_base";
+  if (focus === "pronunciation") return item.syllables?.length ? "syllable_match" : "transliteration_match";
+  if (focus === "grammar") return "target_to_base";
+  if (item.emoji && (item.complexity ?? item.difficulty ?? 1) <= 1) {
+    return Math.random() < 0.5 ? "target_to_visual" : "visual_to_target";
+  }
+  return Math.random() < 0.35 ? "base_to_target" : "target_to_base";
+}
+
+function buildItemOptions(pack: LanguagePack, item: LearningItem, distractors: LearningItem[], baseLanguage: string, variant: QuestionVariant): AnswerOption[] {
+  const all = [item, ...distractors];
+  return shuffle(all.map((candidate, index) => ({
+    id: candidate.id,
+    label: getCorrectItemOptionLabel(candidate, baseLanguage, variant, pack),
+    is_hard_distractor: index === 1
+  })));
+}
+
+function getItemPrompt(item: LearningItem, baseLanguage: string, focus: TrainingFocus, variant: QuestionVariant): string {
+  if (variant === "audio_to_base") return "🔊";
+  if (variant === "visual_to_target") return item.emoji || getItemTranslation(item, baseLanguage);
+  if (variant === "base_to_target") return item.emoji || getItemTranslation(item, baseLanguage);
+  if (variant === "transliteration_match" || variant === "syllable_match") return item.target;
+  return item.target;
+}
+
+function getItemPromptHint(item: LearningItem, baseLanguage: string, focus: TrainingFocus, variant: QuestionVariant): string {
+  void item;
+  if (focus === "comprehension") return baseLanguage === "it" ? "Ascolta l'armeno e scegli il significato." : "Hear Armenian and choose the meaning.";
+  if (focus === "pronunciation") return variant === "syllable_match"
+    ? (baseLanguage === "it" ? "Scegli le sillabe/suoni giusti." : "Choose the matching syllables/sounds.")
+    : (baseLanguage === "it" ? "Scegli come si legge." : "Choose how it sounds.");
+  if (variant === "base_to_target" || variant === "visual_to_target") return baseLanguage === "it" ? "Scegli la parola armena." : "Choose the Armenian word.";
+  if (variant === "target_to_visual") return baseLanguage === "it" ? "Scegli l'immagine o significato." : "Choose the picture or meaning.";
+  return baseLanguage === "it" ? "Scegli il significato." : "Choose the meaning.";
+}
+
+function getCorrectItemOptionLabel(item: LearningItem, baseLanguage: string, variant: QuestionVariant, pack?: LanguagePack): string {
+  if (variant === "base_to_target" || variant === "visual_to_target") return item.target;
+  if (variant === "target_to_visual") return item.emoji || getItemTranslation(item, baseLanguage);
+  if (variant === "transliteration_match") return item.transliteration || item.ipa || item.target;
+  if (variant === "syllable_match") return item.syllables?.join(" · ") || item.transliteration || item.target;
+  if (variant === "audio_to_base") return item.emoji || getItemTranslation(item, baseLanguage);
+  void pack;
+  return getItemTranslation(item, baseLanguage);
+}
+
+function getMasteryUpdate(question: TrainingQuestion, state: LearnerState, correct: boolean): Pick<LearnerState, "mastery_by_item" | "mastery_by_letter" | "mastery_by_grammar"> {
+  const delta = correct ? 0.14 : -0.12;
+
+  if (question.kind === "letter" && question.letter) {
+    const previous = state.mastery_by_letter[question.letter.id] ?? createLetterMastery(question.letter.id);
+    return {
+      mastery_by_item: state.mastery_by_item,
+      mastery_by_letter: { ...state.mastery_by_letter, [question.letter.id]: updateLetterMastery(previous, correct, delta) },
+      mastery_by_grammar: state.mastery_by_grammar
+    };
+  }
+
+  if (question.kind === "grammar" && question.grammar) {
+    const previous = state.mastery_by_grammar[question.grammar.id] ?? createGrammarMastery(question.grammar.id);
+    return {
+      mastery_by_item: state.mastery_by_item,
+      mastery_by_letter: state.mastery_by_letter,
+      mastery_by_grammar: { ...state.mastery_by_grammar, [question.grammar.id]: updateGrammarMastery(previous, correct, delta) }
+    };
+  }
+
+  if (!question.item) {
+    return { mastery_by_item: state.mastery_by_item, mastery_by_letter: state.mastery_by_letter, mastery_by_grammar: state.mastery_by_grammar };
+  }
+
+  const previous = state.mastery_by_item[question.item.id] ?? createItemMastery(question.item.id);
+  return {
+    mastery_by_item: { ...state.mastery_by_item, [question.item.id]: updateItemMastery(previous, correct, delta) },
+    mastery_by_letter: state.mastery_by_letter,
+    mastery_by_grammar: state.mastery_by_grammar
+  };
+}
+
+function chooseWeakestItem(pack: LanguagePack, state: LearnerState, selection: QuestionSelectionOptions): LearningItem {
+  const source = getItemCandidatesForSelection(pack.items, selection);
+  if (source.length === 0) {
+    throw new Error("No eligible learning item for the requested question selection.");
+  }
+  const sorted = [...source].sort((a, b) => compareMemoryScore(state.mastery_by_item[a.id], state.mastery_by_item[b.id]));
+  const pool = sorted.slice(0, Math.min(10, sorted.length));
+  return pool[Math.floor(Math.random() * pool.length)] ?? source[0];
+}
+
+function chooseWeakestLetter(letters: LetterItem[], state: LearnerState): LetterItem {
+  const sorted = [...letters].sort((a, b) => compareMemoryScore(state.mastery_by_letter[a.id], state.mastery_by_letter[b.id]));
+  const pool = sorted.slice(0, Math.min(8, sorted.length));
+  return pool[Math.floor(Math.random() * pool.length)] ?? letters[0];
+}
+
+function chooseWeakestGrammar(grammarItems: GrammarItem[], state: LearnerState, selection: QuestionSelectionOptions): GrammarItem {
+  const source = getGrammarCandidatesForSelection(grammarItems, selection);
+  if (source.length === 0) throw new Error("No eligible grammar item for the requested question selection.");
+  const sorted = [...source].sort((a, b) => compareMemoryScore(state.mastery_by_grammar[a.id], state.mastery_by_grammar[b.id]));
+  const pool = sorted.slice(0, Math.min(10, sorted.length));
+  return pool[Math.floor(Math.random() * pool.length)] ?? source[0];
+}
+
+function getItemCandidatesForSelection(items: LearningItem[], selection: QuestionSelectionOptions): LearningItem[] {
+  const strict = filterItemsForSelection(items, selection);
+  if (strict.length > 0) return strict;
+
+  // Semantic tags are a preference, not a reason to fall back to an invalid
+  // silent question. Relax only the tag filter while retaining complexity and
+  // audio requirements.
+  if ((selection.tags?.length ?? 0) > 0) {
+    return filterItemsForSelection(items, { ...selection, tags: [] });
+  }
+
+  return strict;
+}
+
+function filterItemsForSelection(items: LearningItem[], selection: QuestionSelectionOptions): LearningItem[] {
+  const maxComplexity = selection.maxComplexity ?? Number.POSITIVE_INFINITY;
+  const tags = new Set((selection.tags ?? []).filter(Boolean));
+  return items.filter((item) => {
+    if (getComplexity(item) > maxComplexity) return false;
+    if (selection.requireHumanAudio && !hasHumanAudio(item.audio)) return false;
+    if (selection.requirePlayableAudio && !hasPlayableAudio(item.audio)) return false;
+    if (tags.size === 0) return true;
+    return item.tags.some((tag) => tags.has(tag));
+  });
+}
+
+function getGrammarCandidatesForSelection(items: GrammarItem[], selection: QuestionSelectionOptions): GrammarItem[] {
+  const strict = filterGrammarForSelection(items, selection);
+  if (strict.length > 0) return strict;
+  if ((selection.tags?.length ?? 0) > 0) return filterGrammarForSelection(items, { ...selection, tags: [] });
+  return strict;
+}
+
+function filterGrammarForSelection(items: GrammarItem[], selection: QuestionSelectionOptions): GrammarItem[] {
+  const maxComplexity = selection.maxComplexity ?? Number.POSITIVE_INFINITY;
+  const tags = new Set((selection.tags ?? []).filter(Boolean));
+  return items.filter((item) => {
+    if (getComplexity(item) > maxComplexity) return false;
+    if (tags.size === 0) return true;
+    return item.tags.some((tag) => tags.has(tag));
+  });
+}
+
+function getComplexity(item: LearningItem | GrammarItem): number {
+  return item.complexity ?? item.difficulty ?? 1;
+}
+
+function hasHumanAudio(audio: AudioReference[] | undefined): boolean {
+  return Boolean(audio?.some((entry) => entry.source_type === "human" && entry.review_status !== "draft" && Boolean(entry.url)));
+}
+
+function hasPlayableAudio(audio: AudioReference[] | undefined): boolean {
+  return Boolean(audio?.some((entry) => entry.review_status !== "draft" && Boolean(entry.url?.trim())));
+}
+
+function compareMemoryScore(a?: PracticeMemory, b?: PracticeMemory): number {
+  return memoryPriorityScore(a) - memoryPriorityScore(b);
+}
+
+function memoryPriorityScore(memory?: PracticeMemory): number {
+  if (!memory) return -4 + Math.random();
+  const now = Date.now();
+  const lastAsked = memory.last_asked_at ? Date.parse(memory.last_asked_at) : 0;
+  const nextReview = memory.next_review_at ? Date.parse(memory.next_review_at) : 0;
+  const daysSinceAsked = lastAsked ? Math.min(14, (now - lastAsked) / 86_400_000) : 14;
+  let score = memory.mastery * 8 + memory.seen_count * 0.12;
+  if (memory.last_was_wrong) score -= 6;
+  if (nextReview && now >= nextReview) score -= 4;
+  if (memory.seen_count === 0) score -= 3;
+  score -= daysSinceAsked * 0.18;
+  return score + Math.random() * 0.35;
+}
+
+function chooseGrammarVariant(grammar: GrammarItem): QuestionVariant {
+  const words = splitSentenceWords(grammar.target_sentence);
+  const variants: QuestionVariant[] = ["sentence_choice", "sentence_translation"];
+  if (words.length >= 3) variants.push("sentence_tap_order");
+  if (grammar.distractors.length < 2) return "sentence_translation";
+  return variants[Math.floor(Math.random() * variants.length)] ?? "sentence_choice";
+}
+
+function splitSentenceWords(sentence: string): string[] {
+  return sentence.trim().split(/\s+/).filter(Boolean);
+}
+
+function chooseMissingWordIndex(words: string[]): number {
+  if (words.length <= 1) return 0;
+  const inner = words.map((_, index) => index).filter((index) => index > 0 && index < words.length - 1);
+  const candidates = inner.length > 0 ? inner : words.map((_, index) => index);
+  return candidates[Math.floor(Math.random() * candidates.length)] ?? 0;
+}
+
+function chooseMissingWordDistractors(pack: LanguagePack, grammar: GrammarItem, missingWord: string, count: number): string[] {
+  const sentenceWords = grammar.distractors.flatMap(splitSentenceWords).filter((word) => word !== missingWord);
+  const itemWords = pack.items.map((item) => item.target).filter((word) => word !== missingWord);
+  const sameTagWords = pack.items.filter((item) => item.tags.some((tag) => grammar.tags.includes(tag))).map((item) => item.target).filter((word) => word !== missingWord);
+  const pool = uniqueStrings([...sameTagWords, ...sentenceWords, ...itemWords]);
+  return shuffle(pool).slice(0, count);
+}
+
+function chooseGrammarTranslationDistractors(grammarItems: GrammarItem[], grammar: GrammarItem, baseLanguage: string, count: number): GrammarItem[] {
+  const sameTag = grammarItems.filter((candidate) => candidate.id !== grammar.id && candidate.tags.some((tag) => grammar.tags.includes(tag)));
+  const others = grammarItems.filter((candidate) => candidate.id !== grammar.id && !sameTag.includes(candidate));
+  const selected = uniqueGrammarItems([...shuffle(sameTag), ...shuffle(others)]).filter((candidate) => getGrammarTranslation(candidate, baseLanguage) !== getGrammarTranslation(grammar, baseLanguage));
+  return selected.slice(0, count);
+}
+
+function chooseHardSentenceDistractor(grammar: GrammarItem): string {
+  const reversed = grammar.target_sentence.split(/\s+/).reverse().join(" ");
+  if (grammar.distractors.includes(reversed)) return reversed;
+  const sameStart = grammar.distractors.find((candidate) => candidate.split(/\s+/)[0] === grammar.target_sentence.split(/\s+/)[0]);
+  return sameStart ?? shuffle(grammar.distractors)[0] ?? reversed;
+}
+
+function chooseItemDistractors(pack: LanguagePack, item: LearningItem, count: number): LearningItem[] {
+  const candidates = pack.items.filter((candidate) => candidate.id !== item.id);
+  const byId = new Map(candidates.map((candidate) => [candidate.id, candidate]));
+  const explicitHard = shuffle((item.hard_distractor_ids ?? []).map((id) => byId.get(id)).filter(isDefined));
+  const sameTag = shuffle(candidates.filter((candidate) => candidate.tags.some((tag) => item.tags.includes(tag))));
+  const similar = shuffle([...candidates]).sort((a, b) => similarityScore(item, a) - similarityScore(item, b)).slice(0, Math.min(8, candidates.length));
+  const hardPool = uniqueItems([...explicitHard, ...sameTag, ...similar]);
+  const hard = hardPool[Math.floor(Math.random() * Math.max(1, hardPool.length))] ?? candidates[0];
+  const restPool = candidates.filter((candidate) => candidate.id !== hard?.id);
+  const rest = shuffle(restPool).slice(0, Math.max(0, count - 1));
+  return uniqueItems([hard, ...rest].filter(isDefined)).slice(0, count);
+}
+
+function getLetterAnswerLabel(letter: LetterItem, baseLanguage: string): string {
+  const sound = letter.sound?.trim() || letter.transliteration?.trim();
+  if (sound) return baseLanguage === "it" ? `suono ${sound}` : `sound ${sound}`;
+  // Legacy packs may not have an explicit sound. Strip Armenian-script names
+  // from the localized label rather than revealing an example word/glyph.
+  const fallback = getLetterLabel(letter, baseLanguage)
+    .split(/[·|,]/)
+    .map((part) => part.trim())
+    .find((part) => /[A-Za-z]/.test(part));
+  return fallback || (baseLanguage === "it" ? "suono" : "sound");
+}
+
+function chooseLetterDistractors(letters: LetterItem[], letter: LetterItem, count: number, baseLanguage: string): LetterItem[] {
+  const correctLabel = getLetterAnswerLabel(letter, baseLanguage);
+  const candidates = letters.filter((candidate) => candidate.id !== letter.id && candidate.character !== letter.character && getLetterAnswerLabel(candidate, baseLanguage) !== correctLabel);
+  const byId = new Map(candidates.map((candidate) => [candidate.id, candidate]));
+  const explicitHard = shuffle((letter.similar_letter_ids ?? []).map((id) => byId.get(id)).filter(isDefined));
+  const similar = shuffle([...candidates]).sort((a, b) => levenshtein(letter.sound, a.sound) - levenshtein(letter.sound, b.sound)).slice(0, Math.min(8, candidates.length));
+  const hardPool = uniqueLetters([...explicitHard, ...similar]);
+  const hard = hardPool[Math.floor(Math.random() * Math.max(1, hardPool.length))] ?? candidates[0];
+  const rest = shuffle(candidates.filter((candidate) => candidate.id !== hard?.id)).slice(0, Math.max(0, count - 1));
+  return uniqueLetters([hard, ...rest].filter(isDefined)).slice(0, count);
+}
+
+function similarityScore(a: LearningItem, b: LearningItem): number {
+  const aText = a.transliteration ?? a.target;
+  const bText = b.transliteration ?? b.target;
+  const tagBonus = a.tags.some((tag) => b.tags.includes(tag)) ? -2 : 0;
+  const visualBonus = a.emoji && a.emoji === b.emoji ? -1 : 0;
+  return levenshtein(aText, bText) + Math.abs(a.difficulty - b.difficulty) + tagBonus + visualBonus;
+}
+
+function hitLabel(multiplier: number): CombatBreakdown["label_key"] {
+  if (multiplier < 0.25) return "blockedHit";
+  if (multiplier < 0.45) return "weakHit";
+  if (multiplier < 0.72) return "normalHit";
+  if (multiplier < 0.9) return "bigHit";
+  return "preciseHit";
+}
+
+function addStatGains(stats: HeroStats, gains: Partial<HeroStats>, level: number, statCap?: number): HeroStats {
+  const cap = statCap ?? getLevelStatCap(level);
+  return {
+    strength: clamp(stats.strength + (gains.strength ?? 0), 1, cap),
+    defense: clamp(stats.defense + (gains.defense ?? 0), 1, cap),
+    precision: clamp(stats.precision + (gains.precision ?? 0), 1, cap),
+    stamina: clamp(stats.stamina + (gains.stamina ?? 0), 1, cap)
+  };
+}
+
+function clampStatsToLevel(stats: HeroStats, level: number, pack?: LanguagePack): HeroStats {
+  return addStatGains(
+    { strength: 1, defense: 1, precision: 1, stamina: 1 },
+    { strength: stats.strength - 1, defense: stats.defense - 1, precision: stats.precision - 1, stamina: stats.stamina - 1 },
+    level,
+    getLevelStatCap(level, pack)
+  );
+}
+
+function createItemMastery(itemId: string): ItemMastery {
+  return { item_id: itemId, ...baseMemory() };
+}
+
+function createLetterMastery(letterId: string): LetterMastery {
+  return { letter_id: letterId, ...baseMemory() };
+}
+
+function createGrammarMastery(grammarId: string): GrammarMastery {
+  return { grammar_id: grammarId, ...baseMemory() };
+}
+
+function baseMemory(): PracticeMemory {
+  return { seen_count: 0, correct_count: 0, wrong_count: 0, mastery: 0, success_streak: 0 };
+}
+
+function updateItemMastery(previous: ItemMastery, correct: boolean, delta: number): ItemMastery {
+  return { item_id: previous.item_id, ...updateMemory(previous, correct, delta) };
+}
+
+function updateLetterMastery(previous: LetterMastery, correct: boolean, delta: number): LetterMastery {
+  return { letter_id: previous.letter_id, ...updateMemory(previous, correct, delta) };
+}
+
+function updateGrammarMastery(previous: GrammarMastery, correct: boolean, delta: number): GrammarMastery {
+  return { grammar_id: previous.grammar_id, ...updateMemory(previous, correct, delta) };
+}
+
+function updateMemory(previous: PracticeMemory, correct: boolean, delta: number): PracticeMemory {
+  const now = Date.now();
+  const successStreak = correct ? previous.success_streak + 1 : 0;
+  const box = Math.min(REVIEW_INTERVALS_MS.length - 1, Math.max(0, successStreak));
+  const nextDelay = correct ? REVIEW_INTERVALS_MS[box] : REVIEW_INTERVALS_MS[0];
+  return {
+    seen_count: previous.seen_count + 1,
+    correct_count: previous.correct_count + (correct ? 1 : 0),
+    wrong_count: previous.wrong_count + (correct ? 0 : 1),
+    mastery: clamp(previous.mastery + delta, 0, 1),
+    last_result: correct ? "correct" : "incorrect",
+    last_asked_at: new Date(now).toISOString(),
+    last_was_wrong: !correct,
+    success_streak: successStreak,
+    next_review_at: new Date(now + nextDelay).toISOString()
+  };
+}
+
+function mergeItemMastery(fresh: Record<string, ItemMastery>, stored: unknown): Record<string, ItemMastery> {
+  if (!isObject(stored)) return fresh;
+  const result = { ...fresh };
+  for (const id of Object.keys(result)) {
+    const value = stored[id];
+    if (!isObject(value)) continue;
+    result[id] = { item_id: id, ...normalizeMemory(value) };
+  }
+  return result;
+}
+
+function mergeLetterMastery(fresh: Record<string, LetterMastery>, stored: unknown): Record<string, LetterMastery> {
+  if (!isObject(stored)) return fresh;
+  const result = { ...fresh };
+  for (const id of Object.keys(result)) {
+    const value = stored[id];
+    if (!isObject(value)) continue;
+    result[id] = { letter_id: id, ...normalizeMemory(value) };
+  }
+  return result;
+}
+
+function mergeGrammarMastery(fresh: Record<string, GrammarMastery>, stored: unknown): Record<string, GrammarMastery> {
+  if (!isObject(stored)) return fresh;
+  const result = { ...fresh };
+  for (const id of Object.keys(result)) {
+    const value = stored[id];
+    if (!isObject(value)) continue;
+    result[id] = { grammar_id: id, ...normalizeMemory(value) };
+  }
+  return result;
+}
+
+function normalizeMemory(value: Record<string, unknown>): PracticeMemory {
+  const seen = Math.max(0, Math.floor(numberOr(value.seen_count, 0)));
+  const correct = Math.max(0, Math.floor(numberOr(value.correct_count, 0)));
+  const wrong = Math.max(0, Math.floor(numberOr(value.wrong_count, Math.max(0, seen - correct))));
+  return {
+    seen_count: seen,
+    correct_count: correct,
+    wrong_count: wrong,
+    mastery: clamp(numberOr(value.mastery, 0), 0, 1),
+    last_result: toLastResult(value.last_result),
+    last_asked_at: stringOr(value.last_asked_at),
+    last_was_wrong: typeof value.last_was_wrong === "boolean" ? value.last_was_wrong : value.last_result === "incorrect",
+    success_streak: Math.max(0, Math.floor(numberOr(value.success_streak, 0))),
+    next_review_at: stringOr(value.next_review_at)
+  };
+}
+
+function mergeTrainingCounts(stored: unknown): Partial<Record<TrainingFocus, number>> {
+  if (!isObject(stored)) return {};
+  const vocabulary = Math.max(0, Math.floor(numberOr(stored.vocabulary, 0))) + Math.max(0, Math.floor(numberOr(stored.letters, 0)));
+  return {
+    vocabulary,
+    comprehension: Math.max(0, Math.floor(numberOr(stored.comprehension, numberOr(stored.listening, 0)))),
+    grammar: Math.max(0, Math.floor(numberOr(stored.grammar, 0))),
+    pronunciation: Math.max(0, Math.floor(numberOr(stored.pronunciation, 0)))
+  };
+}
+
+function normalizeLevelTrainingCounts(stored: unknown): Record<string, Partial<Record<TrainingFocus, number>>> {
+  if (!isObject(stored)) return {};
+  const result: Record<string, Partial<Record<TrainingFocus, number>>> = {};
+  for (const [level, counts] of Object.entries(stored)) {
+    if (!isObject(counts)) continue;
+    result[String(level)] = mergeTrainingCounts(counts);
+  }
+  return result;
+}
+
+
+function normalizeLevelLabyrinthCounts(stored: unknown): Record<string, number> {
+  if (!isObject(stored)) return {};
+  const result: Record<string, number> = {};
+  for (const [level, count] of Object.entries(stored)) {
+    result[String(level)] = Math.max(0, Math.floor(numberOr(count, 0)));
+  }
+  return result;
+}
+
+export function getTotalTrainingSessions(
+  completed: Partial<Record<TrainingFocus, number>>,
+  stored?: unknown,
+  labyrinthSessions = 0
+): number {
+  const focusTotal = Object.values(completed).reduce(
+    (sum, value) => sum + Math.max(0, Math.floor(value ?? 0)),
+    0
+  );
+  const calculated = focusTotal + Math.max(0, Math.floor(labyrinthSessions));
+  return Math.max(calculated, Math.floor(numberOr(stored, calculated)));
+}
+
+export function getLevelTrainingSessions(state: {
+  level: number;
+  completed_training_sessions_by_level?: Record<string, Partial<Record<TrainingFocus, number>>>;
+  completed_labyrinth_sessions_by_level?: Record<string, number>;
+}): number {
+  const levelKey = String(state.level);
+  const counts = state.completed_training_sessions_by_level?.[levelKey] ?? {};
+  const focusTotal = Object.values(counts).reduce(
+    (sum, value) => sum + Math.max(0, Math.floor(value ?? 0)),
+    0
+  );
+  const labyrinthTotal = Math.max(
+    0,
+    Math.floor(state.completed_labyrinth_sessions_by_level?.[levelKey] ?? 0)
+  );
+  return focusTotal + labyrinthTotal;
+}
+
+function toLastResult(value: unknown): "correct" | "incorrect" | undefined {
+  return value === "correct" || value === "incorrect" ? value : undefined;
+}
+
+function shuffle<T>(values: T[]): T[] {
+  return [...values].map((value) => ({ value, sort: Math.random() })).sort((a, b) => a.sort - b.sort).map(({ value }) => value);
+}
+
+function uniqueItems(items: LearningItem[]): LearningItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function uniqueLetters(letters: LetterItem[]): LetterItem[] {
+  const seen = new Set<string>();
+  return letters.filter((letter) => {
+    if (seen.has(letter.id)) return false;
+    seen.add(letter.id);
+    return true;
+  });
+}
+
+function uniqueGrammarItems(items: GrammarItem[]): GrammarItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function uniqueStrings(values: string[]): string[] {
+  const seen = new Set<string>();
+  return values.filter((value) => {
+    const key = value.trim();
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function levenshtein(a: string, b: string): number {
+  const matrix = Array.from({ length: a.length + 1 }, (_, row) => [row]);
+  for (let column = 1; column <= b.length; column += 1) matrix[0][column] = column;
+  for (let row = 1; row <= a.length; row += 1) {
+    for (let column = 1; column <= b.length; column += 1) {
+      const cost = a[row - 1] === b[column - 1] ? 0 : 1;
+      matrix[row][column] = Math.min(matrix[row - 1][column] + 1, matrix[row][column - 1] + 1, matrix[row - 1][column - 1] + cost);
+    }
+  }
+  return matrix[a.length][b.length];
+}
+
+function numberOr(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function stringOr(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value : undefined;
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function stringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((id): id is string => typeof id === "string") : [];
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isDefined<T>(value: T | undefined): value is T {
+  return value !== undefined;
+}
+
+function isDefinedString(value: string | undefined): value is string {
+  return typeof value === "string" && value.length > 0;
+}

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "grid": {
+    "columns": 5,
+    "rows": 5,
+    "frames": 25
+  },
+  "bottom_padding": 10,
+  "animations": {
+    "walk": {
+      "file": "companion-dragon-walk.png",
+      "source": "dragon-walk.png",
+      "frame_rate": 14,
+      "repeat": -1,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    },
+    "victory": {
+      "file": "companion-dragon-victory.png",
+      "source": "dragon-victory.png",
+      "frame_rate": 14,
+      "repeat": 0,
+      "width": 1280,
+      "height": 1280,
+      "frame_width": 256,
+      "frame_height": 256,
+      "columns": 5,
+      "rows": 5,
+      "frames": 25
+    }
+  },
+  "frame_width": 256,
+  "frame_height": 256
+}

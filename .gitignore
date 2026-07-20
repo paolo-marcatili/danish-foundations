@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Local backend/data folders
+.pocketbase/
+.supabase/
+.local-data/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Capacitor native projects are generated locally for family-device testing.
+# Remove these lines later if you decide to maintain native code in Git.
+android/
+ios/
+
+# Original family lesson documents may contain personal details.
+content-packs/hy-eastern-it/sources/private-archive-docx/

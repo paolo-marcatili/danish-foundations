@@ -1,0 +1,7 @@
+{
+  "asset_pack_id": "starter-camp",
+  "version": "0.8.1",
+  "style": "deprecated placeholder",
+  "renderer": "legacy-css-react-pixel-world",
+  "notes": "Kept only for history. The active Phaser sprite pack is asset-packs/cc0-pixel-v08 and apps/web/public/assets/pixel."
+}

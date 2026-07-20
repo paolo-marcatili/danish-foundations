@@ -1,0 +1,59 @@
+{
+  "source": "https://gist.github.com/anoukipa/8c3cb560afe3de33c2f3a9f783978c2e",
+  "note": "User-provided Quizzario vocabulary; Armenian spellings are normalized draft forms and require native-speaker review.",
+  "categories": {
+    "greetings": [
+      ["բարև", "barev", "ciao"], ["ողջույն", "voghjuyn", "ciao (saluto)"], ["բարև ձեզ", "barev dzez", "salve"],
+      ["ոնց ես", "vonts es", "come stai"], ["ոնց եք", "vonts ek", "come state"], ["լավ եմ", "lav em", "sto bene"],
+      ["վատ եմ", "vat em", "sto male"], ["նորմալ", "normal", "normale"], ["շնորհակալություն", "shnorhakalutyun", "grazie"],
+      ["մերսի", "mersi", "grazie (informale)"], ["հաճելի է", "hacheli e", "piacere"], ["ցտեսություն", "tstesutyun", "arrivederci"],
+      ["հաջողություն", "hajoghutyun", "buona fortuna / arrivederci"]
+    ],
+    "introductions": [
+      ["Ի՞նչ է քո անունը։", "inch e ko anuny", "come ti chiami?"], ["Իմ անունը Անի է։", "im anuny Ani e", "il mio nome è Ani"],
+      ["Քանի՞ տարեկան ես։", "kani tarekan es", "quanti anni hai?"], ["Ես ութ տարեկան եմ։", "yes ut tarekan em", "ho otto anni"],
+      ["Որտեղի՞ց ես։", "vorteghits es", "di dove sei?"], ["Ես Իտալիայից եմ։", "yes Italiayits em", "sono dell'Italia"],
+      ["Ես Դանիայից եմ։", "yes Daniayits em", "sono della Danimarca"], ["Ես Հայաստանից եմ։", "yes Hayastanits em", "sono dell'Armenia"],
+      ["Սա ի՞նչ է։", "sa inch e", "cos'è?"], ["Ո՞ւր ես գնում։", "ur es gnum", "dove vai?"], ["Ո՞վ կա։", "ov ka", "chi c'è?"]
+    ],
+    "countries": [
+      ["Հայաստան", "Hayastan", "Armenia"], ["Իտալիա", "Italia", "Italia"], ["Դանիա", "Dania", "Danimarca"],
+      ["հայ", "hay", "armeno (persona)"], ["հայերեն", "hayeren", "armeno (lingua)"], ["իտալերեն", "italeren", "italiano (lingua)"],
+      ["այո", "ayo", "sì"], ["հա", "ha", "sì (informale)"], ["ոչ", "voch", "no"], ["չէ", "che", "no / non è"]
+    ],
+    "family": [
+      ["ընտանիք", "yntanik", "famiglia"], ["մամա", "mama", "mamma"], ["մայրիկ", "mayrik", "mamma"],
+      ["պապա", "papa", "papà"], ["հայրիկ", "hayrik", "papà"], ["ախպեր", "akhper", "fratello (informale)"],
+      ["եղբայր", "yeghbayr", "fratello"], ["քույր", "kuyr", "sorella"], ["պապիկ", "papik", "nonno"],
+      ["տատիկ", "tatik", "nonna"], ["ընկեր", "ynker", "amico"]
+    ],
+    "places": [
+      ["տուն", "tun", "casa"], ["դպրոց", "dprots", "scuola"], ["սար", "sar", "montagna"], ["մատիտ", "matit", "matita"],
+      ["խնձոր", "khndzor", "mela"], ["հաց", "hats", "pane"], ["գիրք", "girk", "libro"], ["պայուսակ", "payusak", "zaino"],
+      ["ջուր", "jur", "acqua"], ["արև", "arev", "sole"], ["խոտ", "khot", "erba"]
+    ],
+    "people_animals": [["տղա", "tgha", "ragazzo"], ["աղջիկ", "aghjik", "ragazza"], ["կատու", "katu", "gatto"], ["շուն", "shun", "cane"]],
+    "colors": [
+      ["գույն", "guyn", "colore"], ["կարմիր", "karmir", "rosso"], ["նարնջագույն", "narnjaguyn", "arancione"], ["դեղին", "deghin", "giallo"],
+      ["կապույտ", "kapuyt", "blu"], ["կանաչ", "kanach", "verde"], ["մանուշակագույն", "manushakaguyn", "viola"], ["վարդագույն", "vardaguyn", "rosa"],
+      ["սպիտակ", "spitak", "bianco"], ["մոխրագույն", "mokhraguyn", "grigio"], ["սև", "sev", "nero"], ["շագանակագույն", "shaganakaguyn", "marrone"]
+    ],
+    "adjectives": [["մեծ", "mets", "grande"], ["փոքր", "pokr", "piccolo"], ["լավ", "lav", "buono / bene"], ["սիրուն", "sirun", "bello / carino"]],
+    "verbs": [
+      ["խոսել", "khosel", "parlare"], ["ուտել", "utel", "mangiare"], ["սովորել", "sovorel", "studiare"], ["քնել", "knel", "dormire"],
+      ["գնալ", "gnal", "andare"], ["ունենալ", "unenal", "avere"], ["ուզենալ", "uzenal", "volere"], ["սիրել", "sirel", "amare / piacere"],
+      ["նկարել", "nkarel", "disegnare"], ["ապրել", "aprel", "vivere"], ["անել", "anel", "fare"], ["խմել", "khmel", "bere"],
+      ["դուրս գալ", "durs gal", "uscire"], ["անցկացնել", "antskatsnel", "passare il tempo"], ["տալիս է", "talis e", "lui / lei dà"]
+    ],
+    "time_body": [
+      ["մազեր", "mazer", "capelli"], ["աչքեր", "achker", "occhi"], ["օր", "or", "giorno"], ["ամեն", "amen", "ogni"],
+      ["ամեն օր", "amen or", "ogni giorno"], ["այսօր", "aysor", "oggi"], ["իրար հետ", "irar het", "insieme"], ["ժամանակ", "zhamanak", "tempo"],
+      ["մենակ", "menak", "da solo"], ["քո հետ", "ko het", "con te"]
+    ],
+    "pronouns": [
+      ["ես", "yes", "io"], ["դու", "du", "tu"], ["նա", "na", "lui / lei"], ["մենք", "menk", "noi"], ["դուք", "duk", "voi"], ["նրանք", "nrank", "loro"],
+      ["ես ունեմ", "yes unem", "io ho"], ["դու ունես", "du unes", "tu hai"], ["նա ունի", "na uni", "lui / lei ha"],
+      ["մենք ունենք", "menk unenk", "noi abbiamo"], ["դուք ունեք", "duk unek", "voi avete"], ["նրանք ունեն", "nrank unen", "loro hanno"]
+    ]
+  }
+}

@@ -1,0 +1,121 @@
+levels:
+  - number: 1
+    title: "Livello 1"
+    stat_cap: 5
+    max_complexity: 1
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 2
+    title: "Livello 2"
+    stat_cap: 10
+    max_complexity: 2
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 3
+    title: "Livello 3"
+    stat_cap: 15
+    max_complexity: 2
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 4
+    title: "Livello 4"
+    stat_cap: 20
+    max_complexity: 3
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 5
+    title: "Livello 5"
+    stat_cap: 25
+    max_complexity: 3
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 6
+    title: "Livello 6"
+    stat_cap: 30
+    max_complexity: 4
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 7
+    title: "Livello 7"
+    stat_cap: 35
+    max_complexity: 4
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2
+  - number: 8
+    title: "Livello 8"
+    stat_cap: 40
+    max_complexity: 5
+    unlock_requires:
+      completed_training_sessions: 5
+      answered_fight_questions: 10
+      min_coins: 0
+      min_stats: {}
+    fight:
+      min_questions: 10
+      at_min_questions: 24
+      max_questions: 30
+      timer_seconds: 10
+      sigmoid_k: 2.2

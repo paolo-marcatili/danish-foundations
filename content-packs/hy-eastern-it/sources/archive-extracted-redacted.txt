@@ -1,0 +1,391 @@
+===== barev_1.docx =====
+P012	Barev/Voxjuyn---Ciao Բարև/ Ողջույն
+P013	Barev Dzez--- Salve Բարև Ձեզ
+P014	Vonc es---Come stai Ոնց ես
+P015	Vonc eq---Come siete Ոնց եք
+P016	Lav em—sto bene Լավ եմ yes em--- I am
+P017	Vat em--- sto male վատ եմ
+P018	Normal---normale
+P019	Shnorhakalutyun/mersi --- grazie շնորհակալություն
+P020	Hacheli e --- piacere (e bello) հաճելի
+P021	Ctesutyun---arrivederci ցտեսություն
+P027	Inch a qo anuny? --- come ti chiami?
+P028	Qani tarekan es?--- Quanti anni hai?
+P029	Vortexic es ?---Di dove sei?
+P032	Im anuny …..e ---Il mio nome e ….
+P033	Im anuny Aram e.
+P034	Im anuny Mariam e.
+P035	Yes… ut . tarekan em --- Ho …… anni
+P036	Es … Daniayic /Italiayic em--- Sono di…
+P037	Hayastan---Armenia
+P038	Sono di Armenia---- Es Hayastanic em.
+P046	Dialogue
+P047	---Barev. Inch a qo anuny?
+P048	--- Barev. Im anuny Aram e. Ba qony?
+P049	--- Hacheli e. Im anuny Mariam e. Qani tarekan es, Aram?
+P050	--- Es ut tarekan em.
+P051	--- Isk vortexic es?
+P052	---Es Daniayic em. Ba du?
+P053	---Es Hayastanic em. (Ic---di)
+P054	---Lav, ctesutyun/ hajoxutyun.
+P064	IL---Y N
+P065	Bambinon, Mariamn
+P066	Armeny
+P068	Fredericon, Nareky, Anin
+P069	Papiky—il nonno
+P070	Tatiky—la nonna
+P079	Vocabulary
+P081	Hayastan---Armenia
+P082	Hay---Armenian (people)
+P083	Hayeren---Armenian( language)
+P085	Ayo (formal)---yes
+P086	Ha(informal)---yes
+P087	Voch(formal)---no
+P088	Che(informal)---no
+P091	Family
+P092	Yntaniq---familia
+P093	Mayrik /mama---mamma
+P094	Hayrik/papa---papa
+P095	Exbayr/axpery --- il fratello
+P096	Quyr---sorella
+P097	Papik---grandfather tatik---grandmother
+P099	Unes---tu hai
+P100	Unem---io ho
+P101	Du unes axper kam quyr? ( tu hai fratello o sorella)
+P102	Ayo, es unem axper.
+P106	Լեո (Aram)
+P107	Արամ (Bambino)
+P108	Սար (sar’)
+P109	Հայաստան (Hayastan) --- Armenia
+P110	Իտալիա (Italia)
+P111	Ախպեր
+
+===== das3L.docx =====
+P004	Nuove parole
+P005	տղա (txa)---ragazzo
+P006	աղջիկ( axjik) ---ragazza
+P007	մատիտ (matit)--- matita
+P008	խնձոր(khndzor)---mela
+P009	հաց(hats)--- pane
+P010	գիրք (girq)---libro
+P012	girq matit
+P016	Axjik txa
+P019	Girqy, xndzory, matity, hacy, axjiky, txan
+P026	Na sovorum e Italeren.
+P027	Lei studia italiano.
+P028	(italeren---italiano)
+P029	Axjiky gnum e tun.
+P030	( La ragazza va a casa.)
+P031	Maman hac e utum.
+P032	( Mama sta mangiando pane)
+P034	Txan xosum e hayeren.
+P035	( Il ragazzo parla armeno) ( hayeren---armeno)
+P036	Es xosum em hayeren.
+P037	( Io parlo armeno)
+P039	Txan utum e xndzor .
+P045	+ +
+P047	Axjiky utum e xndzor. Utel--- utum e
+P048	+ sovorel---sovorum e
+P049	Txan sovorum e.
+P052	+ + gnal--- gnum e
+P053	Im axpery gnum e dproc.
+P054	++
+P055	Txan xosum e italeren.
+P057	+ +
+P058	Im quyry gnum e tnic.
+P059	+ +
+P061	Im papiky sirum e xndzor.
+P063	+ +
+P065	Na sovorum e hayeren.
+P067	Es sovorum em hayeren.
+
+===== das4L.docx =====
+P001	10/12
+P003	Ynker---amico
+P004	Yntaniq---famiglia
+P005	Axper---fratello
+P007	Talis e ---lei /lui da
+P008	Na uni--- lei ha
+P012	Տղան գնում է տուն: Տանը մի աղջիկ կա: Աղջկա անունը Անի է: Անին կարմիր մատիտ ու խնձոր ունի: Տղան սիրում է խնձոր ուտել: Անին տալիս է խնձորը տղային:
+P013	Txan gnum e tun:Tany mi axjik ka: A casa c’e una ragazza. Axjka anuny Ani e: Anin karmir matit u xndzor uni: Txan sirum e xndzor utel: Anin talis e xndzory txayin:
+P014	Il ragazzo va a scuola. A casa c’e una ragazza. La ragazza si chiama Ani. Ani ha una matita rossa e mela. Il ragazzo le piace mangiare mela. Ani da la mela al ragazzo.
+P017	Chisht e te sxal? ( vero o falso)
+P018	Txan gnum e dproc.
+P019	Sxal e, txan gnum e tun.
+P021	Tany mi txa ka. ( C’e un ragazzo a casa)
+P022	Sxal e, tany mi axjik ka.
+P024	Axjka anuny Mary e.
+P025	Sxal e, axjka anuny Ani e.
+P027	Anin uni girq u hats.
+P028	Sxal e, Anin uni karmir matit u xndzor.
+P029	Txan sirum e xndzor utel.
+P030	Chisht e.
+P031	Anin talis e xndzory txayin.
+P032	Chisht e.
+P034	Ov e gnum tun?
+P035	Tany ov ka?
+P036	Inch e axjka anuny?
+P037	Inch uni axjiky?
+P038	Inch e sirum utel txan?
+P039	Axjiky talis e xndzory txayin?
+P041	Lav ---buono
+P042	Es lav em Menq lav enq
+P043	Du lav es Duq lav eq
+P044	Na lav e Nranq lav en
+P046	Lui ama--- Na sirum e
+P047	Io amo--- Es sirum em
+P048	Es sirum em italereny.
+P049	Es sirum em im yntaniqy.
+P050	Du sirum es nkarel.
+P051	( Ti piace disegnare ( Tu ami disegnare)
+P052	Ur es gnum ? --- Dove vai?
+P053	Es gnum em tun. ( Io vado a casa)
+P054	Es xosum em hayeren. ( Io parlo armeno)
+
+===== das5L.docx =====
+P000	Avere---unenal
+P002	Io ho--- Es unem Noi abbiamo- menq unenq
+P003	Tu hai--- Du unes Voi avete- Duq uneq
+P004	Lui/lei ha---Na uni Loro hanno- Nranq unen
+P006	Du unes axper kam quyr?
+P007	Ayo, es unem axper.
+P013	Volere---uzenal
+P014	Io voglio---Es uzum em Noi vogliamo--- menq uzum enq
+P015	Tu vuoi---Du uzum es Voi volete--- Duq uzum eq
+P016	Lu/lei vuole--- Na uzum e Loro vogliono—Nranq uzum en
+P018	payusak jur’ arev
+P020	kapuyt payusak sirun arev
+P022	Arevy inch guyni e?
+P023	Arevy deghin e.
+P025	Sev e.
+P026	Imy moxraguyn e.
+P033	Guyn---colore
+P038	Sa karmir matit e.
+P039	Sa narnjaguyn matit e.
+P040	Sa dexin matit e.
+P041	Sa kapuyt matit e.
+P042	Sa kanach matit e.
+P050	kapuyt payusak karmir matit deghin arev
+P051	sev shun spitak hac kanach xndzor
+P052	Shuny sev e.
+P053	Xndzory kanach e.
+P054	Payusaky kapuyt e.
+P055	Arevy dexin e.
+P057	---Isk du unes shun kam katu ? ( katu-gatto)
+P058	---Es unem katu.
+P059	---Qo katun inch guyni e?
+P060	--- Im katun spitak u shaganakaguyn e.
+P061	---Isk inch e qo katvi anuny?
+P062	---Im katvi anuny Micio e.
+P063	---Qo katun qani tarekan e?
+P064	---Im katun tas tarekan e.
+P065	--- Qo katun inch e sirum?
+P066	---Sirum e durs gal. ( durs gal---uscire)
+P067	--- Sirum e durs gal qo het te menak? ( qo het---con te, menak---da solo)
+P068	---Sirum e durs gal menak.
+P069	--- Inch e sirum utel kam xmel qo katun?
+P070	---Im katun sirum e xot utel u sirum e jur xmel.
+P071	--- Isk qo katun uni ynkerner?
+P072	--- Voch, im katun chuni ynkerner.
+P073	--- Du u qo axpery shat eq jamanak anc kacnum Micioi het? ( jamanak---tempo, anc kacnel- pasare)
+P074	---Ayo , shat jamanak anckacnum enq Micioi het.
+P075	--- Isk uzum es shun unenal?( Vuoi avere un cane?)
+P076	---Voch, es chem uzum shun unenal.
+P077	---
+P081	Dexin arevy chka.
+P082	Kapuyt payusaky chka.
+P083	Sev shuny chka.
+P086	Anckacnel---pasare
+P087	Xosel--- parlare
+P089	Io parlo--- Es xosum em
+P090	Noi parliamo--- Menq xosum enq
+P092	Io paso--- es anckacnum em
+P093	Noi pasiamo--- menq anckacnum enq
+
+===== das6L.docx =====
+P001	Inch a anum hima Micioy?
+P002	(Cosa sta facendo Micio ora?)
+P003	---Chgitem
+P005	Parole nuove
+P006	Ամեն ( amen)---ogni Amen or gnum em tun.
+P007	Ամեն օր (Amen or) ---ogni giorno
+P008	Այսօր/էսօր (Aysor/esor) --- oggi Aysor arev e.
+P009	Իրար հետ (Irar het) --- insieme
+P010	Ապրել (aprel) ---vivere
+P011	Անել(anel)---fare
+P012	Մազեր(mazer)---- capelli
+P013	Աչքեր(achqer) ---occhi
+P015	Es u Micioy sirum enq xaxal irar het.
+P016	Es aprum em Daniaum.
+P017	Qo tatiky u papiky aprum en Hayastanum?
+P018	Im tatiky u papiky aprum en Hayastanum.
+P019	Inch es anum?
+P020	Es unem sev mazer u achqer.
+P022	Io ho--- es unem Noi abbiamo---menq unenq
+P023	Tu hai--- du unes Voi avete--- Duq uneq
+P024	Lui ha---na uni Loro hanno --- Nranq unen
+P028	La forma plurale
+P029	Hognaki tiv
+P030	Se la parola ha una sola sillaba, aggiungi “ER” alla fine
+P031	(quyr---quyrer, tun---tner, shun---shner)
+P032	Se la parola ha piu di una sillaba, aggiungi “NER” alla fine
+P033	( axper—axperner, axjik---axjikner, txa---txaner)
+P037	Quyr---quyrer axper---axperner
+P038	Tun--- tner tatik---tatikner
+P039	Shun---shner axjik---axjikner
+P041	Menq unenq shun.
+P042	(Noi abbiamo un cane)
+P044	Nranq unen ereq axjik.
+P045	Loro hanno tre ragazze.
+P047	Du unes katuner.
+P048	Tu hai gatti.
+
+===== das7L.docx =====
+P000	Inch a qo anuny?
+P001	Inch---cosa, che
+P002	Anel---fare
+P003	Inch es anum?
+P004	Qo katun inch a anum hima?
+P005	( Cosa sta facendo il tuo gatto)
+P006	---Chgitem. ( non lo so)
+P007	--- Micioi achqery inch guyni en?
+P008	--- Kapuyt en.
+P019	Txan u axjiky xaxum en irenc shan het. Shuny shaganakaguyn e. Maman u papan xaxum en badminton . Axjiky u txan quyr u axper en . Sa yntaniq e.
+P024	Sa quyr u axper en . Nranq xaxum en irenc katvi het. Axpery mec e u quyry poqr e. Katun poqr u sirun e. Katun utum e . Axjka mazery shaganakaguyn en . Axjka shory manushakaguyn e.
+P027	Io+voglio+
+P028	Es uzum em utem/utel.
+P029	Noi+ vogliamo+ +
+P030	Menq uzum enq xosel hayeren.
+P031	+ ha+
+P032	Axjiky uni mi katu.
+P033	Io+ voglio+ +
+P034	Es uzum em sovorel hayeren.
+P036	Il mio+ + + giocare
+P037	Im shuny sirum e xaxal.
+P040	Qualcosa di qualcuno
+P041	In armeno devi mettere ‘’i’’ alla fine della parola
+P043	La mela di Anna--- Annai xndzory
+P044	La borsa di mamma--- mamayi payusaky
+P046	Il gatto di Aram--- Arami katun
+P047	Il cane di Mariam--- Mariamyi shuny
+P048	La sorella di Maria--- Mariayi quyry
+P049	Il fratello di Eliot--- Elioti axpery
+P050	La borsa della nonna--- tatiki payusaky
+P051	Il nome di papa--- papayi anuny
+P053	Arami katun sirun e.
+P054	(Il gatto di Aram e bello).
+P056	Elioti axpery Bambinon e.
+P057	Il fratello di Eliot e Bambino.
+P059	Inch a qo papayi anuny? ( Com’e il nome del tuo padre)
+P060	Im papayi anuny Genitore e. ( il nome del mio padre e Genitore)
+P074	Տա---իկ , կա---ու, շու---, այս---ր, ամե---, մա---եր
+P075	Tatik, katu, shun, aysor, amen , mazer
+P076	Սո---որել, ան—լ, խոս---լ, ապ—ել, սի---ել
+P077	Sovorel,anel , xosel, aprel, sirel
+P079	Es sovorum em Menq sovorum enq
+P080	Du sovorum es Duq sovorum eq
+P081	Na sovorum e Nranq sovorum en
+P084	Vardavar----jroci
+
+===== das9L.docx =====
+P000	Ynker---amico
+P001	Ynkeruhi---amica
+P006	Sa um payusakn e? (um ---di chi)
+P007	Sa txayi payusakn e.
+P010	Sa um tunn e? ( um---di chi)
+P011	Tatiki tunn e.
+P013	Ynker--- amico
+P014	Im ynkery--- il mio amico
+P015	Il amico di Artur--- Arturi ynkery
+P017	Il gatto del nonno--- papiki katun
+P018	Il gatto del mio nonno--- im papiki katun
+P035	Arami ynkery
+P036	Aramy tas tarekan e. Na aprum e Ispaniayum, bayc hay e. Aramy sovorum e dprocum. Na amen or gnum e ayntex. Arami dprocy poqr e. Ayntex na uni shat ynkerner. Arami amenamot ynkeroj anuny Artur e. Arturn el e tas tarekan. Nranq sovorum en nuyn dprocum. Artury uni sev mazer u kanach achqer. Na shat bari e. Artury sirum e football xaxal, isk Aramy volleyball. Nranq amen shabat miasin football en xaxum.
+P037	( Aram ha dieci anni. Lui vive in Spagna, ma e armeno. Aram studia a scuola. Lui va la ogni giorno.La scuola di Aram e piccolo. La lui ha molti amici. Il migliore amico di Aram si chiama Artur. Artur anche ha dieci anni. Loro studiano nella stessa scuola. Artur ha dei capelli I occhi marroni.Lui e molto gentile. Ad Artur piace giocare football e Aram volleyball. Loro giocano a football insieme ogni settimana.)
+P039	Parole nuove
+P041	Ayntex--- la’ amenamot---migliore (per amico)
+P042	Nuyn---stessa bari---gentile
+P043	Shabat--- settimana/sabato
+P044	Miasin--- insieme
+P046	Es u du sovorum enq hayeren miasin.
+P047	(Io e te studiamo armeno insieme.)
+P052	7/7
+P054	Im amenamot ynkeruhu anuny Anna e. Na 19 tarekan e. Menq sovorel enq nuyn dprocum. Na uni shaganakaguyn mazer u shaganakaguyn achqer . Na shat bari e. Na aprum e Yerevanum . Na sirum e nkarel. Menq sirum enq miasin xosel u surch xmel.
+P058	--- Inch a qo amenamot ynkeroj anuny?
+P059	---Im amenamot ynkeroj anuny Aramn e.
+P060	---Isk na qani tarekan e?
+P061	---Na inny tarekan e.
+P062	---Duq sovorum eq nuyn dprocum?
+P063	--- Ayo, menq sovorum enq nuyn dprocum.
+P064	--- Inch guyni en nra mazery u achqery?
+P065	--- Aramni mazery shaganakaguyn en , achqern el shaganakaguyn
+P066	--- Inch eq sirum anel miasin?
+P067	--- Menq sirum enq xaxal miasin.
+
+===== das_2.docx =====
+P000	Vortexic es? ---di dove sei
+P001	Qani tarekan es?
+P002	Es ut tarekan em.
+P006	---Barev, inch a qo anuny?
+P007	--- Es Bambinon em.
+P008	---Es Mariamn em, du vortexic es Aram?
+P009	---Es Italiaic em.
+P010	---Du qani tarekan es?
+P011	---Es ut tarekan em.
+P014	Axper/ exbayr
+P015	axpery
+P016	mama/mayrik mayriky/ maman
+P017	papa/hayrik hayriky/ papan
+P018	quyr quyry
+P019	papiky tatiky
+P029	Ընտանիք ( Yntaniq)--- famiglia
+P030	Ka papik, tatik , papa, mama, quyr u axper
+P033	Ov ka ?
+P034	Ov---chi ka—c’e
+P039	I Verbi
+P041	Xosel---parlare
+P043	Lei/lui parla ---Na xosum e
+P045	Utel---mangiare
+P046	Na Utum e
+P048	Sovorel---studiare
+P049	Na sovorum e
+P050	Dormire---qnel
+P051	Qnum e
+P054	Utel---mangiare andare---gnal dprots—scuola
+P055	Studiare---sovorel qnel---dormire
+P056	Na utum e , na gnum e dprots, na sovorum e, na utum e, na qnum e.
+P057	Lui mangia, lui va a scuola, lui studia, lui mangia, lui dorme
+P059	Parole nuove
+P060	Տուն (Tun)--- casa
+P061	Դպրոց (Dprots)--- scuola
+P062	Ընտանիք (yntaniq)--- famiglia
+P063	Ընկեր (Ynker)--- amico
+P064	Մեծ (Mets)--- grande
+P065	Փոքր (Poqr)--- piccolo
+P066	Elioty qo poqr axpern e te mec?
+P067	(Eliot e il tuo piccolo fratello o grande?)
+P068	Elioty im poqr axpern e)
+P069	Eliot e il mio fratello piccolo)
+P073	Անիի ընտանիքը մեծ է: Նա ունի մեծ եղբայր, փոքր քույր, մամա, պապա, տատիկ ու պապիկ: Անին Իտալիայից է: Նա գնում է դպրոց:
+P074	(Anii yntaniqy mets e. Na uni mets exbayr , poqr quyr, mama, papa, tatik u papik. Anin Italiayic e. Na gnum e dprots)
+P075	La famiglia di Ani e grande. Lei ha un grande fratello, sorella piccolo, mama, papa, nonna, nonno. Ani e di Italia. Lei va a la scuola.
+P077	Anii yntaniqy mec e te poqr?
+P078	Anii yntaniqy mec e.
+P080	Anin uni axper kam quyr?
+P081	Anin uni mec axper u poqr quyr.
+P083	Anin Ispaniayic e te Italiayic?
+P084	Anin Italiayic e.
+P086	Anin gnum e dproc te tun?
+P087	Anin gnum e dproc.
+P089	Papik, utum e. ( papik—nonno, mangia)
+P090	Papiky utum e.
+P091	( Il nonno mangia)
+P093	Ani, dprocic, gnum e.
+P094	Anin gnum e dprocic.
+P095	(Ani va di scuola)
+P096	Im axpery, sovorel, dprocum.
+P097	Im exbayry/axpery sovorum e dprocum.
+P098	( Il mio fratello studia nella scuola)
+P100	Na gnal, tun. ( Lui, andare, casa)
+P101	Na gnum e tun.
+P102	Lui va a casa.

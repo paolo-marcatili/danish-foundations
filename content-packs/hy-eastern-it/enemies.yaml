@@ -1,0 +1,109 @@
+enemies:
+  - id: "mist_goblin"
+    level: 1
+    name_key: "mistGoblin"
+    max_energy: 50
+    reward_coins: 35
+    preferred_focus: "vocabulary"
+    sprite: "goblin"
+    semantic_tags:
+      - "greeting"
+      - "basic"
+      - "family"
+    skill_weaknesses:
+      - "strength"
+  - id: "echo_bat"
+    level: 2
+    name_key: "echoBat"
+    max_energy: 100
+    reward_coins: 45
+    preferred_focus: "comprehension"
+    sprite: "bat"
+    semantic_tags:
+      - "animal"
+      - "home"
+      - "school"
+    skill_weaknesses:
+      - "defense"
+  - id: "puzzle_troll"
+    level: 3
+    name_key: "puzzleTroll"
+    max_energy: 150
+    reward_coins: 60
+    preferred_focus: "grammar"
+    sprite: "troll"
+    semantic_tags:
+      - "family"
+      - "home"
+      - "sentence_order"
+    skill_weaknesses:
+      - "precision"
+  - id: "mumble_blob"
+    level: 4
+    name_key: "mumbleBlob"
+    max_energy: 200
+    reward_coins: 78
+    preferred_focus: "pronunciation"
+    sprite: "blob"
+    semantic_tags:
+      - "food"
+      - "body"
+      - "color"
+    skill_weaknesses:
+      - "stamina"
+  - id: "moon_wizard"
+    level: 5
+    name_key: "moonWizard"
+    max_energy: 250
+    reward_coins: 95
+    preferred_focus: "vocabulary"
+    sprite: "wizard"
+    semantic_tags:
+      - "number"
+      - "school"
+      - "letter"
+    skill_weaknesses:
+      - "strength"
+      - "precision"
+  - id: "tiny_dragon"
+    level: 6
+    name_key: "tinyDragon"
+    max_energy: 300
+    reward_coins: 125
+    preferred_focus: "vocabulary"
+    sprite: "dragon"
+    semantic_tags:
+      - "food"
+      - "animal"
+      - "holiday"
+      - "travel"
+    skill_weaknesses:
+      - "strength"
+      - "defense"
+  - id: "cave_ogre"
+    level: 7
+    name_key: "caveOgre"
+    max_energy: 350
+    reward_coins: 150
+    preferred_focus: "grammar"
+    sprite: "troll"
+    semantic_tags:
+      - "travel"
+      - "nature"
+      - "weather"
+    skill_weaknesses:
+      - "precision"
+  - id: "rainbow_imp"
+    level: 8
+    name_key: "rainbowImp"
+    max_energy: 400
+    reward_coins: 180
+    preferred_focus: "comprehension"
+    sprite: "goblin"
+    semantic_tags:
+      - "color"
+      - "food"
+      - "holiday"
+    skill_weaknesses:
+      - "defense"
+      - "stamina"

@@ -1,0 +1,230 @@
+{
+  "style": "semi-realistic hand-painted enchanted forest ruins, image-model-derived v0.11.5",
+  "runtimeRoot": "/assets/pixel/labyrinth/",
+  "files": {
+    "floor-01.png": [
+      256,
+      128
+    ],
+    "floor-02.png": [
+      256,
+      128
+    ],
+    "floor-03.png": [
+      256,
+      128
+    ],
+    "path-00.png": [
+      256,
+      128
+    ],
+    "path-01.png": [
+      256,
+      128
+    ],
+    "path-02.png": [
+      256,
+      128
+    ],
+    "path-03.png": [
+      256,
+      128
+    ],
+    "path-04.png": [
+      256,
+      128
+    ],
+    "path-05.png": [
+      256,
+      128
+    ],
+    "path-06.png": [
+      256,
+      128
+    ],
+    "path-07.png": [
+      256,
+      128
+    ],
+    "path-08.png": [
+      256,
+      128
+    ],
+    "path-09.png": [
+      256,
+      128
+    ],
+    "path-10.png": [
+      256,
+      128
+    ],
+    "path-11.png": [
+      256,
+      128
+    ],
+    "path-12.png": [
+      256,
+      128
+    ],
+    "path-13.png": [
+      256,
+      128
+    ],
+    "path-14.png": [
+      256,
+      128
+    ],
+    "path-15.png": [
+      256,
+      128
+    ],
+    "fog.png": [
+      256,
+      128
+    ],
+    "wall-northwest.png": [
+      256,
+      192
+    ],
+    "wall-northeast.png": [
+      256,
+      192
+    ],
+    "wall-southwest.png": [
+      256,
+      192
+    ],
+    "wall-southeast.png": [
+      256,
+      192
+    ],
+    "hero.png": [
+      128,
+      128
+    ],
+    "dragon.png": [
+      96,
+      96
+    ],
+    "entrance.png": [
+      128,
+      128
+    ],
+    "rune-vocabulary.png": [
+      128,
+      128
+    ],
+    "rune-comprehension.png": [
+      128,
+      128
+    ],
+    "rune-grammar.png": [
+      128,
+      128
+    ],
+    "rune-pronunciation.png": [
+      128,
+      128
+    ],
+    "monster-01.png": [
+      192,
+      192
+    ],
+    "monster-02.png": [
+      192,
+      192
+    ],
+    "monster-03.png": [
+      192,
+      192
+    ],
+    "guardian.png": [
+      256,
+      256
+    ],
+    "trap-01.png": [
+      128,
+      128
+    ],
+    "trap-02.png": [
+      128,
+      128
+    ],
+    "trap-03.png": [
+      128,
+      128
+    ],
+    "trap-04.png": [
+      128,
+      128
+    ],
+    "decoration-01.png": [
+      96,
+      96
+    ],
+    "decoration-02.png": [
+      96,
+      96
+    ],
+    "decoration-03.png": [
+      96,
+      96
+    ],
+    "decoration-04.png": [
+      96,
+      96
+    ],
+    "decoration-05.png": [
+      96,
+      96
+    ],
+    "decoration-06.png": [
+      96,
+      96
+    ],
+    "cache-closed.png": [
+      128,
+      128
+    ],
+    "cache-open.png": [
+      128,
+      128
+    ],
+    "healing-fountain.png": [
+      128,
+      128
+    ],
+    "reveal-obelisk.png": [
+      128,
+      128
+    ],
+    "treasure-locked.png": [
+      128,
+      128
+    ],
+    "treasure-open.png": [
+      128,
+      128
+    ],
+    "map-backdrop.png": [
+      1280,
+      720
+    ],
+    "encounter-backdrop.png": [
+      1024,
+      360
+    ]
+  },
+  "notes": [
+    "Preserve exact canvas dimensions when processing with an image model.",
+    "Preserve transparency for all files except the two backdrops.",
+    "Keep floor, path and fog assets as 2:1 isometric diamonds.",
+    "Path files use bit masks: north=1, east=2, south=4, west=8.",
+    "Keep tokens centered and clear of every canvas edge.",
+    "The six decoration files are optional path-cell accents and should remain visually light.",
+    "Assets were extracted from an image-model-generated atlas and normalized to the exact runtime canvas sizes.",
+    "Preserve transparency for all files except map-backdrop.png and encounter-backdrop.png.",
+    "Path files retain the north=1, east=2, south=4, west=8 naming convention; review connection geometry before final art lock.",
+    "The source atlas and extraction script are stored under asset-packs/cc0-pixel-v10/sources/labyrinth-ai-v0115 and tools/."
+  ]
+}

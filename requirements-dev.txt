@@ -1,0 +1,5 @@
+# Optional development dependencies for pixel-asset helper scripts.
+# Install with: python -m pip install -r requirements-dev.txt
+Pillow>=10.0.0
+opencv-python>=4.8.0
+numpy>=1.26.0

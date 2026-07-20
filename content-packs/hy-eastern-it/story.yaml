@@ -1,0 +1,161 @@
+title: 
+  it: "Il Sentiero delle Scintille"
+  en: "The Spark Path"
+opening: 
+  it: "Le lettere del villaggio hanno perso le loro scintille. Cammina sul sentiero, allena ogni abilita e sconfiggi i mostri che bloccano i campi successivi."
+  en: "The village letters have lost their sparks. Walk the path, train each skill, and defeat the monsters blocking the next camps."
+milestones: 
+  - id: "story_strength_5"
+    title: 
+      it: "Accendi la lanterna delle parole"
+      en: "Light the word lantern"
+    description: 
+      it: "Riconosci parole armene per dare forza all eroe."
+      en: "Recognize Armenian words to give the hero strength."
+    task_label: 
+      it: "Porta Forza a 5 con Vocabolario"
+      en: "Raise Strength to 5 with Vocabulary"
+    kind: "train"
+    focus: "vocabulary"
+    target_stat: "strength"
+    target_value: 5
+    reward_coins: 10
+  - id: "story_defense_5"
+    title: 
+      it: "Trova la parata eco"
+      en: "Find the echo guard"
+    description: 
+      it: "Comprendi parole armene per creare una difesa sonora."
+      en: "Understand Armenian words to build a sound defense."
+    task_label: 
+      it: "Porta Difesa a 5 con Comprensione"
+      en: "Raise Defense to 5 with Comprehension"
+    kind: "train"
+    focus: "comprehension"
+    target_stat: "defense"
+    target_value: 5
+    reward_coins: 10
+  - id: "story_stamina_5"
+    title: 
+      it: "Accendi il cristallo eco"
+      en: "Light the echo crystal"
+    description: 
+      it: "Allena suoni e sillabe per aumentare la resistenza."
+      en: "Train sounds and syllables to increase stamina."
+    task_label: 
+      it: "Porta Resistenza a 5 con Pronuncia"
+      en: "Raise Stamina to 5 with Pronunciation"
+    kind: "train"
+    focus: "pronunciation"
+    target_stat: "stamina"
+    target_value: 5
+    reward_coins: 10
+  - id: "story_shop_1"
+    title: 
+      it: "Prepara lo zaino magico"
+      en: "Prepare the magic backpack"
+    description: 
+      it: "Compra un oggetto per rendere l eroe piu buffo e forte."
+      en: "Buy an item to make the hero sillier and stronger."
+    task_label: 
+      it: "Compra almeno un oggetto"
+      en: "Buy at least one item"
+    kind: "shop"
+    target_value: 1
+    reward_coins: 0
+  - id: "story_mist_goblin"
+    title: 
+      it: "Sfida il Folletto della Nebbia"
+      en: "Challenge the Mist Goblin"
+    description: 
+      it: "Il primo mostro blocca il sentiero. Solo una vittoria apre il livello 2."
+      en: "The first monster blocks the path. Only victory opens level 2."
+    task_label: 
+      it: "Sconfiggi il Folletto della Nebbia"
+      en: "Defeat the Mist Goblin"
+    kind: "fight"
+    target_enemy_id: "mist_goblin"
+    reward_coins: 28
+  - id: "story_level_2"
+    title: 
+      it: "Apri il Campo Eco"
+      en: "Open the Echo Camp"
+    description: 
+      it: "Dopo il mostro, nuovi oggetti appaiono nello zaino magico."
+      en: "After the monster, new items appear in the magic backpack."
+    task_label: 
+      it: "Raggiungi il livello 2 battendo un mostro"
+      en: "Reach level 2 by defeating a monster"
+    kind: "level"
+    target_value: 2
+    reward_coins: 0
+  - id: "story_precision_6"
+    title: 
+      it: "Allinea la porta delle rune"
+      en: "Align the rune gate"
+    description: 
+      it: "Le frasi e le scelte grammaticali danno precisione ai colpi."
+      en: "Sentence and grammar choices give the hero precision."
+    task_label: 
+      it: "Porta Precisione a 6 con Grammatica"
+      en: "Raise Precision to 6 with Grammar"
+    kind: "train"
+    focus: "grammar"
+    target_stat: "precision"
+    target_value: 6
+    reward_coins: 10
+  - id: "story_echo_bat"
+    title: 
+      it: "Batti il Pipistrello Eco"
+      en: "Beat the Echo Bat"
+    description: 
+      it: "Il secondo mostro ama confondere suoni e parole."
+      en: "The second monster loves confusing sounds and words."
+    task_label: 
+      it: "Sconfiggi il Pipistrello Eco"
+      en: "Defeat the Echo Bat"
+    kind: "fight"
+    target_enemy_id: "echo_bat"
+    reward_coins: 36
+chapters:
+  - id: "chapter_01_sparks"
+    minimum_level: 1
+    title:
+      it: "Le scintille perdute"
+      en: "The lost sparks"
+    body:
+      it: "Nel villaggio delle parole, le lettere armene hanno perso la loro luce. L'eroe segue il sentiero con spada e scudo, cercando quattro scintille: Forza, Difesa, Precisione e Resistenza.\n\nOgni allenamento riaccende una parte della lanterna. Quando cinque sessioni sono complete, il mostro del livello accetta la sfida."
+      en: "In the village of words, the Armenian letters have lost their light. The hero follows the path with sword and shield, searching for four sparks: Strength, Defense, Precision, and Stamina.\n\nEvery training session relights part of the lantern. When five sessions are complete, the level monster accepts the challenge."
+  - id: "chapter_02_ruins"
+    minimum_level: 1
+    title:
+      it: "Le rovine incantate"
+      en: "The enchanted ruins"
+    body:
+      it: "Dietro una porta coperta di muschio si nasconde un labirinto. Quattro rune proteggono il tesoro. Tra le stanze ci sono trappole, fonti, casse e guardiani. Il diario dell'avventura ricorda ogni scoperta."
+      en: "Behind a moss-covered gate lies a labyrinth. Four runes protect the treasure. Its rooms contain traps, fountains, caches, and guardians. The adventure log remembers every discovery."
+  - id: "chapter_03_echo"
+    minimum_level: 2
+    title:
+      it: "Il campo dell'eco"
+      en: "The echo camp"
+    body:
+      it: "Dopo il primo mostro, il sentiero raggiunge un campo dove le parole rimbalzano tra alberi e rocce. Nuove frasi e nuovi suoni aiutano l'eroe a capire messaggi più lunghi."
+      en: "After the first monster, the path reaches a camp where words echo between trees and rocks. New sentences and sounds help the hero understand longer messages."
+
+  - id: "chapter_04_a_day"
+    minimum_level: 2
+    title:
+      it: "Lettura · una giornata"
+      en: "Reading · a day"
+    body:
+      it: "Հայերեն · Անիի օրը սկսվում է առավոտյան։ Նա նախաճաշում է, գնում է դպրոց, սովորում է և խաղում ընկերների հետ։ Երեկոյան նա վերադառնում է տուն ու գիրք է կարդում։\n\nItaliano · La giornata di Ani comincia al mattino. Fa colazione, va a scuola, studia e gioca con gli amici. La sera torna a casa e legge un libro."
+      en: "Armenian · Ani's day begins in the morning. She has breakfast, goes to school, studies and plays with friends. In the evening she returns home and reads a book."
+  - id: "chapter_05_friends"
+    minimum_level: 3
+    title:
+      it: "Lettura · due amici"
+      en: "Reading · two friends"
+    body:
+      it: "Հայերեն · Արամը և Դավիթը ընկերներ են։ Նրանք միասին դպրոց են գնում, ֆուտբոլ են խաղում և օգնում են իրար։ Մի օր նրանք այգում փոքրիկ կատու են գտնում և ջուր են տալիս նրան։\n\nItaliano · Aram e Davit sono amici. Vanno a scuola insieme, giocano a calcio e si aiutano. Un giorno trovano un piccolo gatto nel parco e gli danno dell'acqua."
+      en: "Aram and Davit are friends. They go to school together, play football and help each other. One day they find a small cat in the park and give it water."

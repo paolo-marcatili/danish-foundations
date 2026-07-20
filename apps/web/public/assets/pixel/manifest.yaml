@@ -1,0 +1,99 @@
+asset_pack_id: cc0-pixel-v10
+version: 0.11.7
+license: mixed-see-LICENSE-PIXEL-ASSETS.md
+renderer: phaser-2d
+style: hand-painted-fantasy-rpg-side-scroller
+assets:
+  hero_frame_size: 256
+  hero_columns: 5
+  hero_rows: 5
+  hero_frames_per_animation: 25
+  hero_bottom_padding: 12
+  monster_frame_size: 96
+  station_frame_size: 96
+  companion_frame_size: 48
+  hero:
+    format: separate-spritesheets
+    provenance: contributor-supplied
+    license: verify-contributor-rights-before-redistribution
+    includes:
+      - sword
+      - shield
+      - light armor
+      - green cape
+    standing:
+      source: hero-walk.png
+      frame: 0
+    animations:
+      walking: hero-walk.png
+      attack_simple: hero-attack-simple.png
+      attack_swing: hero-attack-swing.png
+      fall: hero-fall.png
+      energy_ball: hero-energy-ball.png
+      parry: hero-parry.png
+      victory: hero-victory.png
+    training_mapping:
+      strength: attack_swing
+      defense: parry
+      precision: attack_simple
+      stamina: energy_ball
+    manifest: hero-animation-manifest.json
+  companion: companion-dragon.png
+  monsters: monsters.png
+  monster_art:
+    frame_size: 96
+    columns: 4
+    rows: 6
+    states:
+      - idle
+      - hurt
+      - attack
+      - defeated
+    row_order:
+      - goblin
+      - bat
+      - troll
+      - dragon
+      - wizard
+      - blob
+    generator: tools/generate-monster-sprites.py
+    source_directory: sources/monster-art/cutouts
+    provenance: image-model-derived-and-script-normalized
+  training_stations: training-stations.png
+  object_sheets:
+    small:
+      file: objects-small.png
+      frame_size: 64
+    large:
+      file: objects-large.png
+      frame_size: 256
+    foreground:
+      file: objects-front.png
+      frame_size: 96
+  labyrinth:
+    directory: labyrinth
+    generator: tools/extract-labyrinth-ai-atlas.py
+    wall_generator: tools/generate-low-labyrinth-walls.py
+    perspective: isometric
+    theme: enchanted-forest-ruins
+    notes: semi-realistic hand-painted image-model-derived enchanted forest ruins assets
+  parallax_layers:
+    - file: layer-00-sky.png
+      role: fixed sky
+    - file: layer-01-far-mountains.png
+      role: distant mountains
+    - file: layer-02-far-hills.png
+      role: far hills
+    - file: layer-03-mid-hills.png
+      role: mid hills
+    - file: layer-04-sparse-forest.png
+      role: sparse forest silhouettes
+    - file: layer-05-village-back.png
+      role: village/background structures
+    - file: layer-06-path-ground.png
+      role: broad walkable path and ground
+notes: >-
+  v0.11.0 replaced the old monolithic hero atlas with seven independent 5-by-5,
+  25-frame animation sheets. v0.11.6 merged contributor-supplied side-scroller
+  scenery and upgraded the monster rows. v0.11.7 adds canonical single-edge maze
+  walls, a camera-following isometric viewport, a minimap, and keyboard navigation.

@@ -1,0 +1,869 @@
+export type ReviewStatus = "draft" | "needs_native_speaker_review" | "approved";
+
+export type LearningSubject = "language" | "mental_math" | "other";
+
+export type ActivityType =
+  | "select_translation"
+  | "listen_and_choose"
+  | "image_match"
+  | "repeat_after_me"
+  | "letter_recognition"
+  | "sentence_order"
+  | "select_target"
+  | "visual_match"
+  | "transliteration_match"
+  | "syllable_order"
+  | "minimal_pair";
+
+export type LocalizedText = Record<string, string>;
+
+export interface BaseLanguage {
+  code: string;
+  name_english: string;
+  name_native: string;
+  is_default?: boolean;
+}
+
+export interface LanguageMetadata {
+  name_english: string;
+  name_native: string;
+  bcp47: string;
+  variety?: string;
+  script?: string;
+  direction: "ltr" | "rtl";
+  orthography?: string;
+}
+
+export interface PackCapabilities {
+  human_audio: boolean;
+  tts: "none" | "optional" | "available";
+  asr: "none" | "experimental" | "available";
+  pronunciation_scoring: "none" | "experimental" | "available";
+  ipa: "none" | "partial" | "available";
+  transliteration: boolean;
+  morphology: "none" | "partial" | "available";
+}
+
+export type AudioSourceType = "human" | "automated" | "browser_tts";
+
+export interface AudioReference {
+  id: string;
+  url: string;
+  speaker_label?: string;
+  source_type?: AudioSourceType;
+  engine?: string;
+  voice?: string;
+  text?: string;
+  mime_type?: string;
+  license: string;
+  review_status: ReviewStatus;
+}
+
+export interface LearningItem {
+  id: string;
+  concept: string;
+  target: string;
+  translation: string;
+  translations?: LocalizedText;
+  emoji?: string;
+  transliteration?: string;
+  ipa?: string;
+  part_of_speech?: string;
+  difficulty: number;
+  complexity?: number;
+  tags: string[];
+  audio: AudioReference[];
+  hard_distractor_ids?: string[];
+  phonetic_distractors?: string[];
+  syllables?: string[];
+  aliases?: string[];
+  transliterations?: string[];
+  meanings?: string[];
+  source?: string;
+  source_location?: string;
+  notes?: string;
+  review_status: ReviewStatus;
+}
+
+export interface LetterItem {
+  id: string;
+  character: string;
+  names: LocalizedText;
+  sound: string;
+  transliteration?: string;
+  audio?: AudioReference[];
+  similar_letter_ids?: string[];
+  example_item_ids?: string[];
+  uppercase?: string;
+  lowercase?: string;
+  example_word?: string;
+  source?: string;
+  source_location?: string;
+  review_status: ReviewStatus;
+}
+
+export interface GrammarItem {
+  id: string;
+  prompt: LocalizedText;
+  target_sentence: string;
+  translation: string;
+  translations?: LocalizedText;
+  distractors: string[];
+  difficulty: number;
+  complexity?: number;
+  tags: string[];
+  audio: AudioReference[];
+  source?: string;
+  source_location?: string;
+  notes?: string;
+  review_status: ReviewStatus;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  titles?: LocalizedText;
+  item_ids: string[];
+  letter_ids?: string[];
+  grammar_ids?: string[];
+  activity_types: ActivityType[];
+  unlock_after?: string[];
+}
+
+export interface StoryMilestone {
+  id: string;
+  title: LocalizedText;
+  description: LocalizedText;
+  task_label: LocalizedText;
+  kind: "train" | "fight" | "level" | "coins" | "shop";
+  focus?: "vocabulary" | "comprehension" | "pronunciation" | "grammar";
+  target_stat?: string;
+  target_value?: number;
+  target_enemy_id?: string;
+  reward_coins?: number;
+}
+
+export interface StoryChapter {
+  id: string;
+  title: LocalizedText;
+  body: LocalizedText;
+  minimum_level?: number;
+}
+
+export interface StoryArc {
+  title: LocalizedText;
+  opening: LocalizedText;
+  milestones: StoryMilestone[];
+  chapters?: StoryChapter[];
+}
+
+export type PackTrainingFocus = "vocabulary" | "comprehension" | "pronunciation" | "grammar";
+export type PackHeroStatKey = "strength" | "defense" | "precision" | "stamina";
+
+export interface ControlledTag {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+export interface PackTrainingCompletionConfig {
+  max_mistakes?: number;
+}
+
+export interface PackTaskConfig {
+  questions_per_training?: number;
+  timer_seconds?: number;
+  training_completion?: PackTrainingCompletionConfig;
+  max_mistakes_for_training_completion?: number;
+}
+
+export interface PackTrainingOption {
+  focus: PackTrainingFocus;
+  stat: PackHeroStatKey;
+  title_key: string;
+  short_key: string;
+  body_key: string;
+  encounter: "training_dummy" | "shield_drill" | "rune_gate" | "echo_crystal" | "stone_lift" | "target_throw" | "puzzle_gate" | "letter_gate";
+  encounter_label_key: string;
+  icon: string;
+}
+
+export interface PackLevelRequirements {
+  completed_training_sessions: number;
+  answered_fight_questions: number;
+  min_coins?: number;
+  min_stats: Partial<Record<PackHeroStatKey, number>>;
+}
+
+export interface PackFightRules {
+  min_questions: number;
+  at_min_questions: number;
+  timer_seconds: number;
+  max_questions?: number;
+  max_mistakes_to_win?: number;
+  sigmoid_k?: number;
+}
+
+export interface PackLevel {
+  number: number;
+  title: string;
+  stat_cap: number;
+  max_complexity: number;
+  unlock_requires: PackLevelRequirements;
+  fight: PackFightRules;
+}
+
+export interface PackEnemy {
+  id: string;
+  level: number;
+  name_key: string;
+  max_energy: number;
+  reward_coins: number;
+  preferred_focus: PackTrainingFocus;
+  sprite: "goblin" | "bat" | "troll" | "dragon" | "wizard" | "blob";
+  semantic_tags: string[];
+  skill_weaknesses?: PackHeroStatKey[];
+}
+
+
+export type LabyrinthRevealMode = "current_and_adjacent";
+
+export interface PackLabyrinthMapConfig {
+  width: number;
+  height: number;
+  theme: string;
+  reveal_mode: LabyrinthRevealMode;
+}
+
+export interface PackLabyrinthQuestionConfig {
+  minimum: number;
+  target: number;
+  maximum: number;
+  minimum_per_focus: number;
+  monster_encounters?: number;
+}
+
+export interface PackLabyrinthEventConfig {
+  trap_encounters?: number;
+  cache_cells?: number;
+  healing_cells?: number;
+  reveal_cells?: number;
+  trap_heart_loss?: number;
+  cache_coins_min?: number;
+  cache_coins_max?: number;
+  reveal_radius?: number;
+}
+
+export interface PackLabyrinthBonusReward {
+  none_weight: number;
+  coins_weight: number;
+  item_weight: number;
+  coins_min: number;
+  coins_max: number;
+}
+
+export interface PackLabyrinthRewardConfig {
+  attribute_points_each: number;
+  session_credit: number;
+  bonus: PackLabyrinthBonusReward;
+}
+
+export interface PackLabyrinthConfig {
+  id: string;
+  enabled: boolean;
+  minimum_level: number;
+  map: PackLabyrinthMapConfig;
+  questions: PackLabyrinthQuestionConfig;
+  events?: PackLabyrinthEventConfig;
+  hearts: number;
+  semantic_tags: string[];
+  rewards: PackLabyrinthRewardConfig;
+}
+
+export interface PackFileMap {
+  interface?: string;
+  tags?: string;
+  tasks?: string;
+  levels?: string;
+  enemies?: string;
+  story?: string;
+  labyrinths?: string;
+  words?: string;
+  letters?: string;
+  sentences?: string;
+}
+
+export interface LanguagePack {
+  pack_id: string;
+  version: string;
+  subject: LearningSubject;
+  title: string;
+  titles?: LocalizedText;
+  description: string;
+  descriptions?: LocalizedText;
+  language: LanguageMetadata;
+  source_language: string;
+  base_language?: BaseLanguage;
+  base_languages?: BaseLanguage[];
+  target_language: string;
+  age_band: string;
+  capabilities: PackCapabilities;
+  lessons: Lesson[];
+  items: LearningItem[];
+  letters?: LetterItem[];
+  grammar_items?: GrammarItem[];
+  story?: StoryArc;
+  ui_text?: Record<string, string>;
+  controlled_tags?: ControlledTag[];
+  task_config?: PackTaskConfig;
+  training_options?: PackTrainingOption[];
+  levels?: PackLevel[];
+  enemies?: PackEnemy[];
+  labyrinths?: PackLabyrinthConfig[];
+  files?: PackFileMap;
+  review_status: ReviewStatus;
+  license: string;
+}
+
+export interface ModularPackSources {
+  packYaml: string;
+  interfaceYaml?: string;
+  tagsYaml?: string;
+  tasksYaml?: string;
+  levelsYaml?: string;
+  enemiesYaml?: string;
+  storyYaml?: string;
+  labyrinthsYaml?: string;
+  wordsJsonl: string;
+  lettersJsonl?: string;
+  sentencesJsonl?: string;
+}
+
+export interface ValidationResult {
+  ok: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
+export function buildLanguagePackFromSources(sources: ModularPackSources): LanguagePack {
+  const meta = parseYaml(sources.packYaml) as Record<string, unknown>;
+  const interfaceDoc = sources.interfaceYaml ? parseYaml(sources.interfaceYaml) as Record<string, unknown> : {};
+  const tagsDoc = sources.tagsYaml ? parseYaml(sources.tagsYaml) as Record<string, unknown> : {};
+  const tasksDoc = sources.tasksYaml ? parseYaml(sources.tasksYaml) as Record<string, unknown> : {};
+  const levelsDoc = sources.levelsYaml ? parseYaml(sources.levelsYaml) as Record<string, unknown> : {};
+  const enemiesDoc = sources.enemiesYaml ? parseYaml(sources.enemiesYaml) as Record<string, unknown> : {};
+  const storyDoc = sources.storyYaml ? parseYaml(sources.storyYaml) as Record<string, unknown> : undefined;
+  const labyrinthsDoc = sources.labyrinthsYaml ? parseYaml(sources.labyrinthsYaml) as Record<string, unknown> : {};
+  const baseLanguage = isObject(meta.base_language) ? meta.base_language as unknown as BaseLanguage : undefined;
+  const sourceLanguage = baseLanguage?.code ?? asString(meta.source_language, "it");
+  const items = parseJsonl<LearningItem>(sources.wordsJsonl).map((item) => normalizeItem(item, sourceLanguage));
+  const letters = parseJsonl<LetterItem>(sources.lettersJsonl ?? "").map((letter) => normalizeLetter(letter, sourceLanguage));
+  const grammarItems = parseJsonl<GrammarItem>(sources.sentencesJsonl ?? "").map((grammar) => normalizeGrammar(grammar, sourceLanguage));
+  const lessons = createLessonsFromItems(items, letters, grammarItems);
+
+  return {
+    pack_id: asString(meta.pack_id, "local-pack"),
+    version: asString(meta.version, "0.0.0"),
+    subject: asString(meta.subject, "language") as LearningSubject,
+    title: asString(meta.title, "Language pack"),
+    description: asString(meta.description, ""),
+    language: (isObject(meta.language) ? meta.language : {}) as unknown as LanguageMetadata,
+    source_language: sourceLanguage,
+    base_language: baseLanguage,
+    base_languages: baseLanguage ? [baseLanguage] : [{ code: sourceLanguage, name_english: sourceLanguage, name_native: sourceLanguage, is_default: true }],
+    target_language: asString(meta.target_language, asString((meta.language as Record<string, unknown> | undefined)?.bcp47, "")),
+    age_band: asString(meta.age_band, "children"),
+    capabilities: (isObject(meta.capabilities) ? meta.capabilities : {}) as unknown as PackCapabilities,
+    lessons,
+    items,
+    letters,
+    grammar_items: grammarItems,
+    story: normalizeStory(storyDoc, sourceLanguage),
+    ui_text: isObject(interfaceDoc.text) ? stringRecord(interfaceDoc.text) : {},
+    controlled_tags: Array.isArray(tagsDoc.controlled_tags) ? tagsDoc.controlled_tags as ControlledTag[] : [],
+    task_config: normalizeTaskConfig(tasksDoc),
+    training_options: Array.isArray(tasksDoc.training_options) ? tasksDoc.training_options as PackTrainingOption[] : [],
+    levels: Array.isArray(levelsDoc.levels) ? levelsDoc.levels as PackLevel[] : [],
+    enemies: Array.isArray(enemiesDoc.enemies) ? enemiesDoc.enemies as PackEnemy[] : [],
+    labyrinths: Array.isArray(labyrinthsDoc.labyrinths) ? labyrinthsDoc.labyrinths as PackLabyrinthConfig[] : [],
+    files: isObject(meta.files) ? meta.files as PackFileMap : undefined,
+    review_status: asString(meta.review_status, "draft") as ReviewStatus,
+    license: asString(meta.license, "unknown")
+  };
+}
+
+function normalizeTaskConfig(tasksDoc: Record<string, unknown>): PackTaskConfig {
+  const trainingCompletion = isObject(tasksDoc.training_completion) ? tasksDoc.training_completion : {};
+  const maxMistakes = asNumber(trainingCompletion.max_mistakes, asNumber(tasksDoc.max_mistakes_for_training_completion, 3));
+  return {
+    questions_per_training: asNumber(tasksDoc.questions_per_training, 10),
+    timer_seconds: asNumber(tasksDoc.timer_seconds, 10),
+    training_completion: { max_mistakes: maxMistakes },
+    max_mistakes_for_training_completion: maxMistakes
+  };
+}
+
+export function parseJsonl<T = unknown>(text: string): T[] {
+  return text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line, index) => {
+    try {
+      return JSON.parse(line) as T;
+    } catch (error) {
+      throw new Error(`Invalid JSONL at line ${index + 1}: ${(error as Error).message}`);
+    }
+  });
+}
+
+export function parseYaml(text: string): unknown {
+  const lines = text.replace(/\t/g, "  ").split(/\r?\n/).map((raw) => {
+    const stripped = stripComment(raw);
+    return stripped.trim().length === 0 ? null : { indent: stripped.match(/^ */)?.[0].length ?? 0, text: stripped.trimEnd() };
+  }).filter((line): line is { indent: number; text: string } => Boolean(line));
+
+  if (lines.length === 0) return {};
+  const [value] = parseYamlBlock(lines, 0, lines[0].indent);
+  return value;
+}
+
+function parseYamlBlock(lines: Array<{ indent: number; text: string }>, start: number, indent: number): [unknown, number] {
+  const first = lines[start];
+  if (!first || first.indent < indent) return [{}, start];
+  if (first.text.trimStart().startsWith("- ")) return parseYamlArray(lines, start, indent);
+  return parseYamlObject(lines, start, indent);
+}
+
+function parseYamlArray(lines: Array<{ indent: number; text: string }>, start: number, indent: number): [unknown[], number] {
+  const result: unknown[] = [];
+  let index = start;
+  while (index < lines.length) {
+    const line = lines[index];
+    if (line.indent < indent || line.indent !== indent || !line.text.trimStart().startsWith("- ")) break;
+    const rest = line.text.trimStart().slice(2).trim();
+    if (!rest) {
+      const [child, next] = parseYamlBlock(lines, index + 1, indent + 2);
+      result.push(child);
+      index = next;
+      continue;
+    }
+    const keyValue = splitKeyValue(rest);
+    if (keyValue) {
+      const [key, valueText] = keyValue;
+      const item: Record<string, unknown> = {};
+      if (valueText === "") {
+        const [child, next] = parseYamlBlock(lines, index + 1, indent + 2);
+        item[key] = child;
+        index = next;
+      } else {
+        item[key] = parseYamlScalar(valueText);
+        index += 1;
+      }
+      while (index < lines.length && lines[index].indent === indent + 2 && !lines[index].text.trimStart().startsWith("- ")) {
+        const pair = splitKeyValue(lines[index].text.trim());
+        if (!pair) break;
+        const [childKey, childValueText] = pair;
+        if (childValueText === "") {
+          const [childValue, next] = parseYamlBlock(lines, index + 1, indent + 4);
+          item[childKey] = childValue;
+          index = next;
+        } else {
+          item[childKey] = parseYamlScalar(childValueText);
+          index += 1;
+        }
+      }
+      result.push(item);
+      continue;
+    }
+    result.push(parseYamlScalar(rest));
+    index += 1;
+  }
+  return [result, index];
+}
+
+function parseYamlObject(lines: Array<{ indent: number; text: string }>, start: number, indent: number): [Record<string, unknown>, number] {
+  const result: Record<string, unknown> = {};
+  let index = start;
+  while (index < lines.length) {
+    const line = lines[index];
+    if (line.indent < indent || line.indent !== indent || line.text.trimStart().startsWith("- ")) break;
+    const pair = splitKeyValue(line.text.trim());
+    if (!pair) break;
+    const [key, valueText] = pair;
+    if (valueText === "") {
+      const [child, next] = parseYamlBlock(lines, index + 1, indent + 2);
+      result[key] = child;
+      index = next;
+    } else {
+      result[key] = parseYamlScalar(valueText);
+      index += 1;
+    }
+  }
+  return [result, index];
+}
+
+function splitKeyValue(text: string): [string, string] | null {
+  const match = text.match(/^([A-Za-z0-9_\-]+):(?:\s*(.*))?$/);
+  if (!match) return null;
+  return [match[1], match[2] ?? ""];
+}
+
+function parseYamlScalar(value: string): unknown {
+  const trimmed = value.trim();
+  if (trimmed === "") return "";
+  if (trimmed === "[]") return [];
+  if (trimmed === "{}") return {};
+  if (trimmed === "null") return null;
+  if (trimmed === "true") return true;
+  if (trimmed === "false") return false;
+  if (/^-?\d+(\.\d+)?$/.test(trimmed)) return Number(trimmed);
+  if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
+    try { return JSON.parse(trimmed); } catch { return trimmed.slice(1, -1); }
+  }
+  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+    try { return JSON.parse(trimmed); } catch { return trimmed; }
+  }
+  return trimmed;
+}
+
+function stripComment(raw: string): string {
+  let quoted = false;
+  let quote = "";
+  for (let index = 0; index < raw.length; index += 1) {
+    const char = raw[index];
+    if ((char === '"' || char === "'") && raw[index - 1] !== "\\") {
+      if (!quoted) { quoted = true; quote = char; }
+      else if (quote === char) { quoted = false; quote = ""; }
+    }
+    if (char === "#" && !quoted) return raw.slice(0, index);
+  }
+  return raw;
+}
+
+export function validateLanguagePack(pack: unknown): ValidationResult {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+
+  if (!isObject(pack)) {
+    return { ok: false, errors: ["Pack must be a JSON object."], warnings };
+  }
+
+  requireString(pack, "pack_id", errors);
+  requireString(pack, "version", errors);
+  requireString(pack, "title", errors);
+  requireString(pack, "source_language", errors);
+  requireString(pack, "target_language", errors);
+  requireString(pack, "license", errors);
+
+  if (!Array.isArray(pack.items) || pack.items.length === 0) errors.push("Pack must contain at least one learning item.");
+  if (!Array.isArray(pack.lessons) || pack.lessons.length === 0) errors.push("Pack must contain at least one lesson.");
+
+  if (isObject(pack.language)) {
+    requireString(pack.language, "name_english", errors, "language");
+    requireString(pack.language, "name_native", errors, "language");
+    requireString(pack.language, "bcp47", errors, "language");
+  } else {
+    errors.push("Pack must include language metadata.");
+  }
+
+  const baseLanguageCodes = new Set<string>();
+  if (Array.isArray(pack.base_languages)) {
+    for (const [index, baseLanguage] of pack.base_languages.entries()) {
+      if (!isObject(baseLanguage)) { errors.push(`base_languages[${index}] must be an object.`); continue; }
+      requireString(baseLanguage, "code", errors, `base_languages[${index}]`);
+      if (typeof baseLanguage.code === "string") baseLanguageCodes.add(baseLanguage.code);
+    }
+  }
+
+  const controlledTags = new Set<string>();
+  if (Array.isArray(pack.controlled_tags)) {
+    for (const [index, tag] of pack.controlled_tags.entries()) {
+      if (!isObject(tag)) { errors.push(`controlled_tags[${index}] must be an object.`); continue; }
+      requireString(tag, "id", errors, `controlled_tags[${index}]`);
+      if (typeof tag.id === "string") controlledTags.add(tag.id);
+    }
+  }
+
+  const itemIds = new Set<string>();
+  if (Array.isArray(pack.items)) {
+    for (const [index, item] of pack.items.entries()) {
+      if (!isObject(item)) { errors.push(`items[${index}] must be an object.`); continue; }
+      const id = typeof item.id === "string" ? item.id : undefined;
+      if (!id) errors.push(`items[${index}].id is required.`);
+      else if (itemIds.has(id)) errors.push(`Duplicate learning item id: ${id}`);
+      else itemIds.add(id);
+      requireString(item, "target", errors, `items[${index}]`);
+      requireString(item, "translation", errors, `items[${index}]`);
+      if (typeof item.difficulty !== "number" || item.difficulty < 1) errors.push(`items[${index}].difficulty must be a positive number.`);
+      if (item.complexity !== undefined && (typeof item.complexity !== "number" || item.complexity < 0)) errors.push(`items[${index}].complexity must be a non-negative number when provided.`);
+      if (!Array.isArray(item.tags)) errors.push(`items[${index}].tags must be an array.`);
+      else for (const tag of item.tags) if (controlledTags.size > 0 && !controlledTags.has(String(tag))) warnings.push(`items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
+      if (!Array.isArray(item.audio)) errors.push(`items[${index}].audio must be an array, even if empty.`);
+      else validateAudioReferences(item.audio, `items[${index}].audio`, errors, warnings);
+      if (isObject(item.translations)) {
+        for (const code of baseLanguageCodes) if (typeof item.translations[code] !== "string" || item.translations[code] === "") warnings.push(`items[${index}] is missing translation for base language: ${code}`);
+      }
+      if (item.review_status !== "approved") warnings.push(`items[${index}] is not approved yet: ${id ?? "unknown id"}`);
+    }
+  }
+
+  const letterIds = new Set<string>();
+  if (Array.isArray(pack.letters)) {
+    for (const [index, letter] of pack.letters.entries()) {
+      if (!isObject(letter)) { errors.push(`letters[${index}] must be an object.`); continue; }
+      const id = typeof letter.id === "string" ? letter.id : undefined;
+      if (!id) errors.push(`letters[${index}].id is required.`);
+      else if (letterIds.has(id)) errors.push(`Duplicate letter id: ${id}`);
+      else letterIds.add(id);
+      requireString(letter, "character", errors, `letters[${index}]`);
+      requireString(letter, "sound", errors, `letters[${index}]`);
+      if (!isObject(letter.names)) errors.push(`letters[${index}].names must be a localized text object.`);
+      if (Array.isArray(letter.audio)) validateAudioReferences(letter.audio, `letters[${index}].audio`, errors, warnings);
+      if (letter.review_status !== "approved") warnings.push(`letters[${index}] is not approved yet: ${id ?? "unknown id"}`);
+    }
+  }
+
+  const grammarIds = new Set<string>();
+  if (Array.isArray(pack.grammar_items)) {
+    for (const [index, grammar] of pack.grammar_items.entries()) {
+      if (!isObject(grammar)) { errors.push(`grammar_items[${index}] must be an object.`); continue; }
+      const id = typeof grammar.id === "string" ? grammar.id : undefined;
+      if (!id) errors.push(`grammar_items[${index}].id is required.`);
+      else if (grammarIds.has(id)) errors.push(`Duplicate grammar item id: ${id}`);
+      else grammarIds.add(id);
+      requireString(grammar, "target_sentence", errors, `grammar_items[${index}]`);
+      requireString(grammar, "translation", errors, `grammar_items[${index}]`);
+      if (!isObject(grammar.prompt)) errors.push(`grammar_items[${index}].prompt must be a localized text object.`);
+      if (!Array.isArray(grammar.distractors) || grammar.distractors.length === 0) errors.push(`grammar_items[${index}].distractors must contain at least one sentence.`);
+      if (typeof grammar.difficulty !== "number" || grammar.difficulty < 1) errors.push(`grammar_items[${index}].difficulty must be a positive number.`);
+      if (grammar.complexity !== undefined && (typeof grammar.complexity !== "number" || grammar.complexity < 0)) errors.push(`grammar_items[${index}].complexity must be a non-negative number when provided.`);
+      if (!Array.isArray(grammar.tags)) errors.push(`grammar_items[${index}].tags must be an array.`);
+      else for (const tag of grammar.tags) if (controlledTags.size > 0 && !controlledTags.has(String(tag))) warnings.push(`grammar_items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
+      if (!Array.isArray(grammar.audio)) errors.push(`grammar_items[${index}].audio must be an array, even if empty.`);
+      else validateAudioReferences(grammar.audio, `grammar_items[${index}].audio`, errors, warnings);
+      if (grammar.review_status !== "approved") warnings.push(`grammar_items[${index}] is not approved yet: ${id ?? "unknown id"}`);
+    }
+  }
+
+  if (Array.isArray(pack.lessons)) {
+    for (const [index, lesson] of pack.lessons.entries()) {
+      if (!isObject(lesson)) { errors.push(`lessons[${index}] must be an object.`); continue; }
+      requireString(lesson, "id", errors, `lessons[${index}]`);
+      requireString(lesson, "title", errors, `lessons[${index}]`);
+      if (!Array.isArray(lesson.item_ids) || lesson.item_ids.length === 0) errors.push(`lessons[${index}].item_ids must contain at least one item id.`);
+      else for (const itemId of lesson.item_ids) if (!itemIds.has(String(itemId))) errors.push(`lessons[${index}] references unknown item id: ${String(itemId)}`);
+      if (Array.isArray(lesson.letter_ids)) for (const letterId of lesson.letter_ids) if (!letterIds.has(String(letterId))) errors.push(`lessons[${index}] references unknown letter id: ${String(letterId)}`);
+      if (Array.isArray(lesson.grammar_ids)) for (const grammarId of lesson.grammar_ids) if (!grammarIds.has(String(grammarId))) errors.push(`lessons[${index}] references unknown grammar item id: ${String(grammarId)}`);
+    }
+  }
+
+  if (Array.isArray(pack.levels)) {
+    for (const [index, level] of pack.levels.entries()) {
+      if (!isObject(level)) { errors.push(`levels[${index}] must be an object.`); continue; }
+      if (typeof level.number !== "number") errors.push(`levels[${index}].number must be a number.`);
+      if (typeof level.stat_cap !== "number") errors.push(`levels[${index}].stat_cap must be a number.`);
+      if (!isObject(level.unlock_requires)) errors.push(`levels[${index}].unlock_requires must be an object.`);
+      if (!isObject(level.fight)) errors.push(`levels[${index}].fight must be an object.`);
+    }
+  }
+
+  if (Array.isArray(pack.enemies)) {
+    for (const [index, enemy] of pack.enemies.entries()) {
+      if (!isObject(enemy)) { errors.push(`enemies[${index}] must be an object.`); continue; }
+      requireString(enemy, "id", errors, `enemies[${index}]`);
+      requireString(enemy, "name_key", errors, `enemies[${index}]`);
+      if (!Array.isArray(enemy.semantic_tags)) errors.push(`enemies[${index}].semantic_tags must be an array.`);
+    }
+  }
+
+  if (Array.isArray(pack.labyrinths)) {
+    const labyrinthIds = new Set<string>();
+    for (const [index, labyrinth] of pack.labyrinths.entries()) {
+      const path = `labyrinths[${index}]`;
+      if (!isObject(labyrinth)) { errors.push(`${path} must be an object.`); continue; }
+      requireString(labyrinth, "id", errors, path);
+      if (typeof labyrinth.id === "string") {
+        if (labyrinthIds.has(labyrinth.id)) errors.push(`${path}.id must be unique: ${labyrinth.id}.`);
+        labyrinthIds.add(labyrinth.id);
+      }
+      if (typeof labyrinth.enabled !== "boolean") errors.push(`${path}.enabled must be a boolean.`);
+      if (!Number.isInteger(labyrinth.minimum_level) || Number(labyrinth.minimum_level) < 1) errors.push(`${path}.minimum_level must be a positive integer.`);
+      if (!isObject(labyrinth.map)) errors.push(`${path}.map must be an object.`);
+      else {
+        if (!Number.isInteger(labyrinth.map.width) || Number(labyrinth.map.width) < 5) errors.push(`${path}.map.width must be an integer of at least 5.`);
+        if (!Number.isInteger(labyrinth.map.height) || Number(labyrinth.map.height) < 5) errors.push(`${path}.map.height must be an integer of at least 5.`);
+        requireString(labyrinth.map, "theme", errors, `${path}.map`);
+        if (labyrinth.map.reveal_mode !== "current_and_adjacent") errors.push(`${path}.map.reveal_mode is unsupported.`);
+      }
+      if (!isObject(labyrinth.questions)) errors.push(`${path}.questions must be an object.`);
+      else {
+        const minimum = Number(labyrinth.questions.minimum ?? 0);
+        const target = Number(labyrinth.questions.target ?? 0);
+        const maximum = Number(labyrinth.questions.maximum ?? 0);
+        const perFocus = Number(labyrinth.questions.minimum_per_focus ?? 0);
+        if (!Number.isInteger(minimum) || !Number.isInteger(target) || !Number.isInteger(maximum) || minimum < 1 || target < minimum || maximum < target) {
+          errors.push(`${path}.questions must use integers satisfying 1 <= minimum <= target <= maximum.`);
+        }
+        if (!Number.isInteger(perFocus) || perFocus < 1) errors.push(`${path}.questions.minimum_per_focus must be a positive integer.`);
+        if (target < perFocus * 4) errors.push(`${path}.questions.target must cover all four focuses.`);
+        if (labyrinth.questions.monster_encounters !== undefined && (!Number.isInteger(labyrinth.questions.monster_encounters) || Number(labyrinth.questions.monster_encounters) < 1)) {
+          errors.push(`${path}.questions.monster_encounters must be a positive integer when provided.`);
+        }
+      }
+      if (labyrinth.events !== undefined) {
+        if (!isObject(labyrinth.events)) errors.push(`${path}.events must be an object when provided.`);
+        else {
+          for (const key of ["trap_encounters", "cache_cells", "healing_cells", "reveal_cells"] as const) {
+            const value = labyrinth.events[key];
+            if (value !== undefined && (!Number.isInteger(value) || Number(value) < 0)) {
+              errors.push(`${path}.events.${key} must be a non-negative integer when provided.`);
+            }
+          }
+          for (const key of ["trap_heart_loss", "reveal_radius"] as const) {
+            const value = labyrinth.events[key];
+            if (value !== undefined && (!Number.isInteger(value) || Number(value) < 1)) {
+              errors.push(`${path}.events.${key} must be a positive integer when provided.`);
+            }
+          }
+          const cacheMin = labyrinth.events.cache_coins_min;
+          const cacheMax = labyrinth.events.cache_coins_max;
+          if (cacheMin !== undefined && (!Number.isInteger(cacheMin) || Number(cacheMin) < 0)) errors.push(`${path}.events.cache_coins_min must be a non-negative integer when provided.`);
+          if (cacheMax !== undefined && (!Number.isInteger(cacheMax) || Number(cacheMax) < 0)) errors.push(`${path}.events.cache_coins_max must be a non-negative integer when provided.`);
+          if (cacheMin !== undefined && cacheMax !== undefined && Number(cacheMax) < Number(cacheMin)) errors.push(`${path}.events.cache_coins_max must be >= cache_coins_min.`);
+        }
+      }
+      if (!Number.isInteger(labyrinth.hearts) || Number(labyrinth.hearts) < 1) errors.push(`${path}.hearts must be a positive integer.`);
+      if (!Array.isArray(labyrinth.semantic_tags) || !labyrinth.semantic_tags.every((tag) => typeof tag === "string")) errors.push(`${path}.semantic_tags must be a string array.`);
+      if (!isObject(labyrinth.rewards)) errors.push(`${path}.rewards must be an object.`);
+      else {
+        if (!Number.isInteger(labyrinth.rewards.attribute_points_each) || Number(labyrinth.rewards.attribute_points_each) < 0) errors.push(`${path}.rewards.attribute_points_each must be a non-negative integer.`);
+        if (!Number.isInteger(labyrinth.rewards.session_credit) || Number(labyrinth.rewards.session_credit) < 0) errors.push(`${path}.rewards.session_credit must be a non-negative integer.`);
+        if (!isObject(labyrinth.rewards.bonus)) errors.push(`${path}.rewards.bonus must be an object.`);
+        else {
+          for (const key of ["none_weight", "coins_weight", "item_weight", "coins_min", "coins_max"] as const) {
+            const value = labyrinth.rewards.bonus[key];
+            if (typeof value !== "number" || !Number.isFinite(value) || value < 0) errors.push(`${path}.rewards.bonus.${key} must be a non-negative number.`);
+          }
+          if (Number(labyrinth.rewards.bonus.coins_max) < Number(labyrinth.rewards.bonus.coins_min)) errors.push(`${path}.rewards.bonus.coins_max must be >= coins_min.`);
+        }
+      }
+    }
+  }
+
+  return { ok: errors.length === 0, errors, warnings };
+}
+
+export function getPackSummary(pack: LanguagePack): string {
+  return `${pack.title}: ${pack.items.length} items, ${pack.lessons.length} lessons, ${pack.language.name_english}`;
+}
+
+function validateAudioReferences(audio: unknown[], path: string, errors: string[], warnings: string[]): void {
+  const seenIds = new Set<string>();
+  for (const [index, entry] of audio.entries()) {
+    if (!isObject(entry)) { errors.push(`${path}[${index}] must be an object.`); continue; }
+    requireString(entry, "id", errors, `${path}[${index}]`);
+    requireString(entry, "url", errors, `${path}[${index}]`);
+    requireString(entry, "license", errors, `${path}[${index}]`);
+    if (typeof entry.id === "string") { if (seenIds.has(entry.id)) warnings.push(`${path}[${index}] duplicates audio id within one item: ${entry.id}`); seenIds.add(entry.id); }
+    if (entry.source_type && !["human", "automated", "browser_tts"].includes(String(entry.source_type))) errors.push(`${path}[${index}].source_type must be human, automated, or browser_tts.`);
+    if (entry.review_status !== "approved" && entry.source_type === "human") warnings.push(`${path}[${index}] human audio is not approved yet: ${entry.id ?? "unknown id"}`);
+  }
+}
+
+export function getDefaultBaseLanguage(pack: LanguagePack): string {
+  return pack.base_language?.code ?? pack.base_languages?.find((language) => language.is_default)?.code ?? pack.source_language ?? "it";
+}
+
+export function getLocalizedText(text: LocalizedText | undefined, languageCode: string, fallback = ""): string {
+  if (!text) return fallback;
+  return text[languageCode] ?? text.en ?? Object.values(text)[0] ?? fallback;
+}
+
+export function getItemTranslation(item: LearningItem, languageCode: string): string {
+  return getLocalizedText(item.translations, languageCode, item.translation);
+}
+
+export function getLetterLabel(letter: LetterItem, languageCode: string): string {
+  const name = getLocalizedText(letter.names, languageCode, letter.transliteration ?? letter.sound);
+  return `${name} (${letter.sound})`;
+}
+
+export function getGrammarTranslation(grammar: GrammarItem, languageCode: string): string {
+  return getLocalizedText(grammar.translations, languageCode, grammar.translation);
+}
+
+function normalizeItem(item: LearningItem, sourceLanguage: string): LearningItem {
+  return {
+    ...item,
+    translations: { ...(item.translations ?? {}), [sourceLanguage]: item.translation },
+    difficulty: Number(item.difficulty ?? 1),
+    complexity: Number(item.complexity ?? item.difficulty ?? 1),
+    tags: Array.isArray(item.tags) ? item.tags : [],
+    audio: Array.isArray(item.audio) ? item.audio : [],
+    review_status: item.review_status ?? "draft"
+  };
+}
+
+function normalizeLetter(letter: LetterItem, sourceLanguage: string): LetterItem {
+  return {
+    ...letter,
+    names: { ...(letter.names ?? {}), [sourceLanguage]: getLocalizedText(letter.names, sourceLanguage, letter.sound) },
+    audio: Array.isArray(letter.audio) ? letter.audio : [],
+    similar_letter_ids: Array.isArray(letter.similar_letter_ids) ? letter.similar_letter_ids : [],
+    review_status: letter.review_status ?? "draft"
+  };
+}
+
+function normalizeGrammar(grammar: GrammarItem, sourceLanguage: string): GrammarItem {
+  return {
+    ...grammar,
+    translations: { ...(grammar.translations ?? {}), [sourceLanguage]: grammar.translation },
+    prompt: { ...(grammar.prompt ?? {}), [sourceLanguage]: getLocalizedText(grammar.prompt, sourceLanguage, grammar.translation) },
+    distractors: Array.isArray(grammar.distractors) ? grammar.distractors : [],
+    difficulty: Number(grammar.difficulty ?? 1),
+    complexity: Number(grammar.complexity ?? grammar.difficulty ?? 1),
+    tags: Array.isArray(grammar.tags) ? grammar.tags : [],
+    audio: Array.isArray(grammar.audio) ? grammar.audio : [],
+    review_status: grammar.review_status ?? "draft"
+  };
+}
+
+function createLessonsFromItems(items: LearningItem[], letters: LetterItem[], grammarItems: GrammarItem[]): Lesson[] {
+  const groups = new Map<string, string[]>();
+  for (const item of items) {
+    const tag = item.tags[0] ?? "starter";
+    groups.set(tag, [...(groups.get(tag) ?? []), item.id]);
+  }
+  const lessons: Lesson[] = [...groups.entries()].map(([tag, ids], index) => ({
+    id: `lesson_${String(index + 1).padStart(2, "0")}_${tag}`,
+    title: tag.replaceAll("_", " "),
+    item_ids: ids,
+    letter_ids: index === 0 ? letters.map((letter) => letter.id) : [],
+    grammar_ids: grammarItems.filter((grammar) => grammar.tags.includes(tag)).map((grammar) => grammar.id),
+    activity_types: ["select_translation", "listen_and_choose", "repeat_after_me", "letter_recognition", "sentence_order"]
+  }));
+  return lessons.length > 0 ? lessons : [{ id: "lesson_01_starter", title: "Starter", item_ids: items.map((item) => item.id), letter_ids: letters.map((letter) => letter.id), grammar_ids: grammarItems.map((grammar) => grammar.id), activity_types: ["select_translation"] }];
+}
+
+function normalizeStory(value: unknown, sourceLanguage: string): StoryArc | undefined {
+  if (!isObject(value) || !Array.isArray(value.milestones)) return undefined;
+  return value as unknown as StoryArc;
+}
+
+function stringRecord(value: unknown): Record<string, string> {
+  if (!isObject(value)) return {};
+  return Object.fromEntries(Object.entries(value).filter(([, v]) => typeof v === "string")) as Record<string, string>;
+}
+
+function asString(value: unknown, fallback: string): string {
+  return typeof value === "string" && value.length > 0 ? value : fallback;
+}
+
+function asNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function requireString(obj: Record<string, unknown>, field: string, errors: string[], prefix?: string): void {
+  if (typeof obj[field] !== "string" || obj[field] === "") errors.push(`${prefix ? `${prefix}.` : ""}${field} must be a non-empty string.`);
+}
