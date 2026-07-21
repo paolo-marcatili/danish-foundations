@@ -16,6 +16,7 @@ export type ActivityType =
   | "minimal_pair";
 
 export type LocalizedText = Record<string, string>;
+export type LocalizedStringList = Record<string, string[]>;
 
 export interface BaseLanguage {
   code: string;
@@ -108,6 +109,8 @@ export interface GrammarItem {
   target_sentence: string;
   translation: string;
   translations?: LocalizedText;
+  /** Curated answer choices in each base language, used before automatic fallbacks. */
+  translation_distractors?: LocalizedStringList;
   distractors: string[];
   difficulty: number;
   complexity?: number;
@@ -631,6 +634,17 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       requireString(grammar, "target_sentence", errors, `grammar_items[${index}]`);
       requireString(grammar, "translation", errors, `grammar_items[${index}]`);
       if (!isObject(grammar.prompt)) errors.push(`grammar_items[${index}].prompt must be a localized text object.`);
+      if (grammar.translation_distractors !== undefined) {
+        if (!isObject(grammar.translation_distractors)) {
+          errors.push(`grammar_items[${index}].translation_distractors must be an object of language-code arrays.`);
+        } else {
+          for (const [code, values] of Object.entries(grammar.translation_distractors)) {
+            if (!Array.isArray(values) || values.some((value) => typeof value !== "string" || value.trim() === "")) {
+              errors.push(`grammar_items[${index}].translation_distractors.${code} must contain non-empty strings.`);
+            }
+          }
+        }
+      }
       if (!Array.isArray(grammar.distractors) || grammar.distractors.length === 0) errors.push(`grammar_items[${index}].distractors must contain at least one sentence.`);
       if (typeof grammar.difficulty !== "number" || grammar.difficulty < 1) errors.push(`grammar_items[${index}].difficulty must be a positive number.`);
       if (grammar.complexity !== undefined && (typeof grammar.complexity !== "number" || grammar.complexity < 0)) errors.push(`grammar_items[${index}].complexity must be a non-negative number when provided.`);
@@ -816,6 +830,7 @@ function normalizeGrammar(grammar: GrammarItem, sourceLanguage: string): Grammar
     ...grammar,
     translations: { ...(grammar.translations ?? {}), [sourceLanguage]: grammar.translation },
     prompt: { ...(grammar.prompt ?? {}), [sourceLanguage]: getLocalizedText(grammar.prompt, sourceLanguage, grammar.translation) },
+    translation_distractors: normalizeLocalizedStringList(grammar.translation_distractors),
     distractors: Array.isArray(grammar.distractors) ? grammar.distractors : [],
     difficulty: Number(grammar.difficulty ?? 1),
     complexity: Number(grammar.complexity ?? grammar.difficulty ?? 1),
@@ -823,6 +838,16 @@ function normalizeGrammar(grammar: GrammarItem, sourceLanguage: string): Grammar
     audio: Array.isArray(grammar.audio) ? grammar.audio : [],
     review_status: grammar.review_status ?? "draft"
   };
+}
+
+function normalizeLocalizedStringList(value: LocalizedStringList | undefined): LocalizedStringList | undefined {
+  if (!value || !isObject(value)) return undefined;
+  const normalized = Object.fromEntries(
+    Object.entries(value)
+      .map(([code, entries]) => [code, Array.isArray(entries) ? [...new Set(entries.map((entry) => String(entry).trim()).filter(Boolean))] : []] as const)
+      .filter(([, entries]) => entries.length > 0)
+  );
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
 }
 
 function createLessonsFromItems(items: LearningItem[], letters: LetterItem[], grammarItems: GrammarItem[]): Lesson[] {

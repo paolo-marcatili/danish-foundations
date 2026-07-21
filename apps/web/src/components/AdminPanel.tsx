@@ -25,6 +25,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
   const [kind, setKind] = useState<ContributionKind>("word");
   const [target, setTarget] = useState("");
   const [italian, setItalian] = useState("");
+  const [translationDistractors, setTranslationDistractors] = useState("");
   const [emoji, setEmoji] = useState("");
   const [transliteration, setTransliteration] = useState("");
   const [tags, setTags] = useState("community");
@@ -56,7 +57,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
     const needle = normalize(query);
     const items = [...(pack.grammar_items ?? [])].sort((a, b) => a.target_sentence.localeCompare(b.target_sentence, "hy"));
     if (!needle) return items.slice(0, 100);
-    return items.filter((item) => [item.target_sentence, getGrammarTranslation(item, language), getGrammarTranslation(item, pack.source_language), ...(item.tags ?? [])].some((value) => normalize(value).includes(needle))).slice(0, 100);
+    return items.filter((item) => [item.target_sentence, getGrammarTranslation(item, language), getGrammarTranslation(item, pack.source_language), ...(item.translation_distractors?.[pack.source_language] ?? []), ...(item.tags ?? [])].some((value) => normalize(value).includes(needle))).slice(0, 100);
   }, [pack.grammar_items, query, language]);
 
   useEffect(() => {
@@ -127,6 +128,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
     const idSeed = slugify(transliteration || cleanTarget);
     const parsedTags = tags.split(",").map((tag) => tag.trim()).filter(Boolean);
     const audio = recordedAudio ? [audioContribution(cleanTarget, recordedAudio)] : [];
+    const parsedTranslationDistractors = uniqueStrings(translationDistractors.split(/\r?\n/));
     const safeComplexity = Math.max(1, Math.min(10, Math.floor(complexity || 1)));
 
     return {
@@ -161,6 +163,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
               target_sentence: cleanTarget,
               translation: italian.trim() || cleanTarget,
               translations: { [pack.source_language]: italian.trim() },
+              translation_distractors: parsedTranslationDistractors.length > 0 ? { [pack.source_language]: parsedTranslationDistractors } : undefined,
               distractors: makeSentenceDistractors(cleanTarget),
               difficulty: safeComplexity,
               complexity: safeComplexity,
@@ -210,6 +213,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
     setKind("word");
     setTarget(item.target);
     setItalian(item.translations?.[pack.source_language] ?? "");
+    setTranslationDistractors("");
     setEmoji(item.emoji ?? "");
     setTransliteration(item.transliteration ?? "");
     setComplexity(item.complexity ?? item.difficulty ?? 1);
@@ -221,7 +225,8 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
   function loadSentence(item: GrammarItem) {
     setKind("sentence");
     setTarget(item.target_sentence);
-    setItalian(item.translations?.[pack.source_language] ?? "");
+    setItalian(item.translations?.[pack.source_language] ?? item.translation ?? "");
+    setTranslationDistractors((item.translation_distractors?.[pack.source_language] ?? []).join("\n"));
     setEmoji("");
     setTransliteration("");
     setComplexity(item.complexity ?? item.difficulty ?? 1);
@@ -253,6 +258,18 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
           <span>{t(language, "adminItalian")}</span>
           <input value={italian} onChange={(event: ChangeEvent<HTMLInputElement>) => setItalian(event.target.value)} placeholder="ciao" />
         </label>
+        {kind === "sentence" ? (
+          <label className="wide">
+            <span>{t(language, "adminTranslationDistractors")}</span>
+            <textarea
+              value={translationDistractors}
+              onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setTranslationDistractors(event.target.value)}
+              placeholder={"Tu vai a scuola.\nIo non vado a scuola.\nIo torno da scuola."}
+              rows={4}
+            />
+            <small className="field-hint">{t(language, "adminTranslationDistractorsHint")}</small>
+          </label>
+        ) : null}
         {kind === "word" ? (
           <label>
             <span>{t(language, "adminEmoji")}</span>

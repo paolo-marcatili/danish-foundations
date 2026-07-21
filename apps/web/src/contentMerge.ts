@@ -69,7 +69,7 @@ export function loadLocalPack(basePack: LanguagePack): LanguagePack {
       files: basePack.files ?? parsed.files,
       items: parsed.items ?? basePack.items,
       letters: parsed.letters ?? basePack.letters,
-      grammar_items: parsed.grammar_items ?? basePack.grammar_items
+      grammar_items: mergeLocalGrammarItems(basePack.grammar_items ?? [], parsed.grammar_items ?? [])
     };
   } catch {
     return basePack;
@@ -155,6 +155,7 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
         target_sentence: targetSentence,
         translation: contributionGrammar.translation || contributionGrammar.translations?.[nextPack.source_language] || contributionGrammar.translations?.it || contributionGrammar.translations?.en || targetSentence,
         translations: cleanTranslations(contributionGrammar.translations),
+        translation_distractors: cleanLocalizedStringLists(contributionGrammar.translation_distractors),
         distractors: Array.isArray(contributionGrammar.distractors) ? contributionGrammar.distractors : makeSentenceDistractors(targetSentence),
         difficulty: Number(contributionGrammar.difficulty || 1),
         complexity: Number(contributionGrammar.complexity || contributionGrammar.difficulty || 1),
@@ -167,6 +168,8 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
     } else {
       grammar.translations = { ...(grammar.translations ?? {}), ...cleanTranslations(contributionGrammar.translations) };
       if (contributionGrammar.translation) grammar.translation = contributionGrammar.translation;
+      const translationDistractors = cleanLocalizedStringLists(contributionGrammar.translation_distractors);
+      if (translationDistractors) grammar.translation_distractors = { ...(grammar.translation_distractors ?? {}), ...translationDistractors };
       if (contributionGrammar.difficulty) grammar.difficulty = Number(contributionGrammar.difficulty);
       if (contributionGrammar.complexity || contributionGrammar.difficulty) grammar.complexity = Number(contributionGrammar.complexity || contributionGrammar.difficulty);
       grammar.tags = uniqueStrings([...(grammar.tags ?? []), ...(contributionGrammar.tags ?? [])]);
@@ -182,6 +185,33 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
 
   nextPack.version = bumpPatchVersion(nextPack.version);
   return { pack: nextPack, summary };
+}
+
+function mergeLocalGrammarItems(baseItems: GrammarItem[], localItems: GrammarItem[]): GrammarItem[] {
+  const baseById = new Map(baseItems.map((item) => [item.id, item]));
+  const merged = localItems.map((local) => {
+    const base = baseById.get(local.id);
+    if (!base) return local;
+    return {
+      ...base,
+      ...local,
+      translations: { ...(base.translations ?? {}), ...(local.translations ?? {}) },
+      prompt: { ...(base.prompt ?? {}), ...(local.prompt ?? {}) },
+      translation_distractors: { ...(base.translation_distractors ?? {}), ...(local.translation_distractors ?? {}) }
+    };
+  });
+  const localIds = new Set(localItems.map((item) => item.id));
+  return [...merged, ...baseItems.filter((item) => !localIds.has(item.id))];
+}
+
+function cleanLocalizedStringLists(value: GrammarItem["translation_distractors"] | undefined): GrammarItem["translation_distractors"] | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const cleaned = Object.fromEntries(
+    Object.entries(value)
+      .map(([code, entries]) => [code, uniqueStrings(Array.isArray(entries) ? entries.map(String) : [])] as const)
+      .filter(([, entries]) => entries.length > 0)
+  );
+  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
 }
 
 function appendAudioReferences(

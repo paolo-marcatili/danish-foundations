@@ -72,6 +72,18 @@ export interface AnswerOption {
   is_hard_distractor?: boolean;
 }
 
+export interface AnswerGloss {
+  target: string;
+  translation: string;
+}
+
+export interface AnswerExplanation {
+  target: string;
+  transliteration?: string;
+  translation?: string;
+  word_glosses?: AnswerGloss[];
+}
+
 export type QuestionVariant =
   | "target_to_base"
   | "base_to_target"
@@ -101,6 +113,8 @@ export interface TrainingQuestion {
   options: AnswerOption[];
   correct_option_id: string;
   correct_answer_label: string;
+  expected_answer_length?: number;
+  answer_explanation?: AnswerExplanation;
   target_audio_text?: string;
   target_audio_lang?: string;
   audio?: AudioReference[];
@@ -110,7 +124,7 @@ export interface QuestionSelectionOptions {
   maxComplexity?: number;
   tags?: string[];
   requireHumanAudio?: boolean;
-  /** Require an actual audio reference (human, generated file, or browser TTS). */
+  /** Require an audio reference usable under automatic-audio mode. Synthetic draft previews are allowed because the parent explicitly opted in. */
   requirePlayableAudio?: boolean;
   includeLetters?: boolean;
 }
@@ -487,9 +501,10 @@ function getItemQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: 
     options,
     correct_option_id: item.id,
     correct_answer_label: correctLabel,
-    target_audio_text: focus === "comprehension" ? item.target : undefined,
-    target_audio_lang: focus === "comprehension" ? pack.language.bcp47 : undefined,
-    audio: focus === "comprehension" ? item.audio : undefined
+    answer_explanation: buildItemExplanation(item, baseLanguage),
+    target_audio_text: item.target,
+    target_audio_lang: pack.language.bcp47,
+    audio: item.audio
   };
 }
 
@@ -519,9 +534,10 @@ function getLetterQuestion(pack: LanguagePack, state: LearnerState, baseLanguage
     options,
     correct_option_id: letter.id,
     correct_answer_label: getLetterAnswerLabel(letter, baseLanguage),
-    target_audio_text: undefined,
-    target_audio_lang: undefined,
-    audio: undefined
+    answer_explanation: buildLetterExplanation(letter, baseLanguage),
+    target_audio_text: letter.character,
+    target_audio_lang: pack.language.bcp47,
+    audio: letter.audio
   };
 }
 
@@ -553,15 +569,20 @@ function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguag
       options,
       correct_option_id: missingWord,
       correct_answer_label: grammar.target_sentence,
-      target_audio_text: undefined,
-      target_audio_lang: undefined,
-      audio: undefined
+      answer_explanation: buildGrammarExplanation(pack, grammar, baseLanguage),
+      target_audio_text: grammar.target_sentence,
+      target_audio_lang: pack.language.bcp47,
+      audio: grammar.audio
     };
   }
 
   if (variant === "sentence_tap_order") {
     const words = splitSentenceWords(grammar.target_sentence);
-    const options = shuffle(words.map((word, index) => ({ id: `chip:${index}:${word}`, label: word })));
+    const decoys = chooseTapOrderDecoys(pack, grammarItems, grammar, words, getTapOrderDecoyCount(grammar));
+    const options = shuffle([
+      ...words.map((word, index) => ({ id: `chip:answer:${index}:${word}`, label: word })),
+      ...decoys.map((word, index) => ({ id: `chip:decoy:${index}:${word}`, label: word, is_hard_distractor: index === 0 }))
+    ]);
     return {
       id: `sentence_tap_order:${grammar.id}:${Date.now()}:${Math.random().toString(16).slice(2)}`,
       kind: "grammar",
@@ -571,13 +592,15 @@ function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguag
       variant,
       grammar,
       prompt: getGrammarTranslation(grammar, baseLanguage),
-      prompt_hint: baseLanguage === "it" ? "Tocca le parole nell'ordine giusto." : "Tap the words in the right order.",
+      prompt_hint: baseLanguage === "it" ? "Costruisci la frase. Alcune parole non servono." : "Build the sentence. Some words are extra.",
       options,
       correct_option_id: grammar.target_sentence,
       correct_answer_label: grammar.target_sentence,
-      target_audio_text: undefined,
-      target_audio_lang: undefined,
-      audio: undefined
+      expected_answer_length: words.length,
+      answer_explanation: buildGrammarExplanation(pack, grammar, baseLanguage),
+      target_audio_text: grammar.target_sentence,
+      target_audio_lang: pack.language.bcp47,
+      audio: grammar.audio
     };
   }
 
@@ -587,7 +610,7 @@ function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguag
       { id: grammar.id, label: getGrammarTranslation(grammar, baseLanguage) },
       ...distractors.map((candidate, index) => ({
         id: candidate.id,
-        label: getGrammarTranslation(candidate, baseLanguage),
+        label: candidate.label,
         is_hard_distractor: index === 0
       }))
     ]);
@@ -604,9 +627,10 @@ function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguag
       options,
       correct_option_id: grammar.id,
       correct_answer_label: getGrammarTranslation(grammar, baseLanguage),
-      target_audio_text: undefined,
-      target_audio_lang: undefined,
-      audio: undefined
+      answer_explanation: buildGrammarExplanation(pack, grammar, baseLanguage),
+      target_audio_text: grammar.target_sentence,
+      target_audio_lang: pack.language.bcp47,
+      audio: grammar.audio
     };
   }
 
@@ -634,9 +658,10 @@ function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguag
     options,
     correct_option_id: grammar.target_sentence,
     correct_answer_label: grammar.target_sentence,
-    target_audio_text: undefined,
-    target_audio_lang: undefined,
-    audio: undefined
+    answer_explanation: buildGrammarExplanation(pack, grammar, baseLanguage),
+    target_audio_text: grammar.target_sentence,
+    target_audio_lang: pack.language.bcp47,
+    audio: grammar.audio
   };
 }
 
@@ -807,7 +832,11 @@ function hasHumanAudio(audio: AudioReference[] | undefined): boolean {
 }
 
 function hasPlayableAudio(audio: AudioReference[] | undefined): boolean {
-  return Boolean(audio?.some((entry) => entry.review_status !== "draft" && Boolean(entry.url?.trim())));
+  return Boolean(audio?.some((entry) => {
+    if (!entry.url?.trim()) return false;
+    if (entry.source_type === "automated" || entry.source_type === "browser_tts") return true;
+    return entry.review_status !== "draft";
+  }));
 }
 
 function compareMemoryScore(a?: PracticeMemory, b?: PracticeMemory): number {
@@ -826,6 +855,97 @@ function memoryPriorityScore(memory?: PracticeMemory): number {
   if (memory.seen_count === 0) score -= 3;
   score -= daysSinceAsked * 0.18;
   return score + Math.random() * 0.35;
+}
+
+function buildItemExplanation(item: LearningItem, baseLanguage: string): AnswerExplanation {
+  return {
+    target: item.target,
+    transliteration: item.transliteration || item.ipa,
+    translation: getItemTranslation(item, baseLanguage)
+  };
+}
+
+function buildLetterExplanation(letter: LetterItem, baseLanguage: string): AnswerExplanation {
+  return {
+    target: letter.character,
+    transliteration: letter.transliteration || letter.sound,
+    translation: getLetterLabel(letter, baseLanguage)
+  };
+}
+
+function buildGrammarExplanation(pack: LanguagePack, grammar: GrammarItem, baseLanguage: string): AnswerExplanation {
+  const wordGlosses = buildSentenceGlosses(pack, grammar.target_sentence, baseLanguage);
+  const transliteration = buildSentenceTransliteration(pack, grammar.target_sentence);
+  return {
+    target: grammar.target_sentence,
+    transliteration,
+    translation: getGrammarTranslation(grammar, baseLanguage),
+    word_glosses: wordGlosses.length > 0 ? wordGlosses : undefined
+  };
+}
+
+function buildSentenceGlosses(pack: LanguagePack, sentence: string, baseLanguage: string): AnswerGloss[] {
+  const itemByTarget = new Map<string, LearningItem>();
+  for (const item of pack.items) {
+    itemByTarget.set(normalizeToken(item.target), item);
+    for (const alias of item.aliases ?? []) itemByTarget.set(normalizeToken(alias), item);
+  }
+  const glosses: AnswerGloss[] = [];
+  const seen = new Set<string>();
+  for (const token of splitSentenceWords(sentence)) {
+    const normalized = normalizeToken(token);
+    const item = itemByTarget.get(normalized);
+    if (!item || seen.has(normalized)) continue;
+    seen.add(normalized);
+    glosses.push({ target: stripOuterPunctuation(token), translation: getItemTranslation(item, baseLanguage) });
+  }
+  return glosses.slice(0, 6);
+}
+
+function buildSentenceTransliteration(pack: LanguagePack, sentence: string): string | undefined {
+  const itemByTarget = new Map(pack.items.map((item) => [normalizeToken(item.target), item]));
+  const transliterated = splitSentenceWords(sentence).map((token) => {
+    const item = itemByTarget.get(normalizeToken(token));
+    return item?.transliteration || item?.ipa;
+  });
+  return transliterated.every(Boolean) ? transliterated.join(" ") : undefined;
+}
+
+function getTapOrderDecoyCount(grammar: GrammarItem): number {
+  const complexity = getComplexity(grammar);
+  if (complexity <= 1) return 1;
+  if (complexity <= 3) return 2;
+  return 3;
+}
+
+function chooseTapOrderDecoys(pack: LanguagePack, grammarItems: GrammarItem[], grammar: GrammarItem, answerWords: string[], count: number): string[] {
+  const correctTokens = new Set(answerWords.map(normalizeToken));
+  const fromExplicitDistractors = grammar.distractors.flatMap(splitSentenceWords);
+  const fromRelatedSentences = grammarItems
+    .filter((candidate) => candidate.id !== grammar.id && candidate.tags.some((tag) => tag !== "sentence_order" && grammar.tags.includes(tag)))
+    .flatMap((candidate) => splitSentenceWords(candidate.target_sentence));
+  const fromRelatedVocabulary = pack.items
+    .filter((item) => item.tags.some((tag) => grammar.tags.includes(tag)))
+    .map((item) => item.target);
+  const fromAllVocabulary = pack.items.map((item) => item.target);
+  const pool = uniqueStrings([...fromExplicitDistractors, ...shuffle(fromRelatedSentences), ...shuffle(fromRelatedVocabulary), ...shuffle(fromAllVocabulary)])
+    .filter((word) => {
+      const normalized = normalizeToken(word);
+      return normalized && !correctTokens.has(normalized);
+    });
+  return pool.slice(0, count);
+}
+
+function stripOuterPunctuation(value: string): string {
+  return value.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
+}
+
+function normalizeToken(value: string): string {
+  return stripOuterPunctuation(value).toLocaleLowerCase();
+}
+
+function normalizeComparison(value: string): string {
+  return value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
 }
 
 function chooseGrammarVariant(grammar: GrammarItem): QuestionVariant {
@@ -855,11 +975,34 @@ function chooseMissingWordDistractors(pack: LanguagePack, grammar: GrammarItem, 
   return shuffle(pool).slice(0, count);
 }
 
-function chooseGrammarTranslationDistractors(grammarItems: GrammarItem[], grammar: GrammarItem, baseLanguage: string, count: number): GrammarItem[] {
+interface TranslationDistractor {
+  id: string;
+  label: string;
+}
+
+function chooseGrammarTranslationDistractors(grammarItems: GrammarItem[], grammar: GrammarItem, baseLanguage: string, count: number): TranslationDistractor[] {
+  const correct = getGrammarTranslation(grammar, baseLanguage);
+  const curated = grammar.translation_distractors?.[baseLanguage]
+    ?? grammar.translation_distractors?.en
+    ?? Object.values(grammar.translation_distractors ?? {})[0]
+    ?? [];
+  const explicit = uniqueStrings(curated)
+    .filter((label) => normalizeComparison(label) !== normalizeComparison(correct))
+    .map((label, index) => ({ id: `translation-distractor:${grammar.id}:${index}`, label }));
+
   const sameTag = grammarItems.filter((candidate) => candidate.id !== grammar.id && candidate.tags.some((tag) => grammar.tags.includes(tag)));
   const others = grammarItems.filter((candidate) => candidate.id !== grammar.id && !sameTag.includes(candidate));
-  const selected = uniqueGrammarItems([...shuffle(sameTag), ...shuffle(others)]).filter((candidate) => getGrammarTranslation(candidate, baseLanguage) !== getGrammarTranslation(grammar, baseLanguage));
-  return selected.slice(0, count);
+  const fallback = uniqueGrammarItems([...shuffle(sameTag), ...shuffle(others)])
+    .map((candidate) => ({ id: candidate.id, label: getGrammarTranslation(candidate, baseLanguage) }))
+    .filter((candidate) => normalizeComparison(candidate.label) !== normalizeComparison(correct));
+
+  const seen = new Set<string>();
+  return [...explicit, ...fallback].filter((candidate) => {
+    const key = normalizeComparison(candidate.label);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).slice(0, count);
 }
 
 function chooseHardSentenceDistractor(grammar: GrammarItem): string {

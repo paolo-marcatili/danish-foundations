@@ -26,6 +26,7 @@ interface QuestionCardProps {
     combatLabelKey?: string;
   } | null;
   onAnswer: (selectedOptionId: string) => void;
+  onContinue?: () => void;
   onTimeout?: () => void;
 }
 
@@ -39,24 +40,43 @@ export function QuestionCard({
   timerSeconds = 10,
   feedback,
   onAnswer,
+  onContinue,
   onTimeout
 }: QuestionCardProps) {
   const showTimer = mode === "fight" && onTimeout;
   const showAudioButton = question.activity_type === "listen_and_choose";
   const isTapOrder = question.variant === "sentence_tap_order";
   const [selectedChips, setSelectedChips] = useState<AnswerOption[]>([]);
+  const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
+  const tapOrderReady = selectedChips.length === expectedAnswerLength;
 
   useEffect(() => {
     setSelectedChips([]);
   }, [question.id]);
 
   function handleChipTap(option: AnswerOption) {
-    if (disabled || !isTapOrder || selectedChips.some((chip) => chip.id === option.id)) return;
-    const next = [...selectedChips, option];
-    setSelectedChips(next);
-    if (next.length === question.options.length) {
-      onAnswer(next.map((chip) => chip.label).join(" "));
-    }
+    if (
+      disabled
+      || !isTapOrder
+      || selectedChips.length >= expectedAnswerLength
+      || selectedChips.some((chip) => chip.id === option.id)
+    ) return;
+    setSelectedChips((previous) => [...previous, option]);
+  }
+
+  function removeSelectedChip(optionId: string) {
+    if (disabled) return;
+    setSelectedChips((previous) => previous.filter((chip) => chip.id !== optionId));
+  }
+
+  function submitTapOrder() {
+    if (disabled || !tapOrderReady) return;
+    onAnswer(selectedChips.map((chip) => chip.label).join(" "));
+  }
+
+  function playQuestionAudio() {
+    void unlockAudio();
+    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM");
   }
 
   return (
@@ -79,14 +99,7 @@ export function QuestionCard({
       ) : null}
 
       {showAudioButton ? (
-        <button
-          type="button"
-          className="audio-button"
-          onClick={() => {
-            void unlockAudio();
-            void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM");
-          }}
-        >
+        <button type="button" className="audio-button" onClick={playQuestionAudio}>
           {question.activity_type === "repeat_after_me" ? t(language, "listenAndRepeat") : t(language, "listen")}
         </button>
       ) : null}
@@ -98,8 +111,26 @@ export function QuestionCard({
 
       {isTapOrder ? (
         <div className="tap-order-area">
-          <div className="tap-order-answer" lang="hy">
-            {selectedChips.length > 0 ? selectedChips.map((chip) => chip.label).join(" ") : t(language, "tapWordsInOrder")}
+          <div className="tap-order-answer" lang="hy" aria-live="polite">
+            {selectedChips.length > 0 ? (
+              <div className="tap-order-selected-list">
+                {selectedChips.map((chip) => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    className="tap-order-selected-chip"
+                    disabled={disabled}
+                    onClick={() => removeSelectedChip(chip.id)}
+                    title={t(language, "removeWord")}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            ) : t(language, "tapWordsInOrder")}
+          </div>
+          <div className="tap-order-count">
+            {t(language, "wordsSelected", { selected: selectedChips.length, total: expectedAnswerLength })}
           </div>
           <div className="answer-grid word-chip-grid">
             {question.options.map((option) => {
@@ -109,7 +140,7 @@ export function QuestionCard({
                   key={option.id}
                   type="button"
                   className={`answer-button word-chip${used ? " chip-used" : ""}`}
-                  disabled={disabled || used}
+                  disabled={disabled || used || selectedChips.length >= expectedAnswerLength}
                   onClick={() => handleChipTap(option)}
                 >
                   <FitText text={option.label} lang="hy" maxRem={1.02} minRem={0.62} />
@@ -117,10 +148,33 @@ export function QuestionCard({
               );
             })}
           </div>
-          {!disabled && selectedChips.length > 0 ? (
-            <button type="button" className="ghost-button compact-button" onClick={() => setSelectedChips([])}>
-              {t(language, "resetOrder")}
-            </button>
+          {!disabled ? (
+            <div className="tap-order-actions">
+              <button
+                type="button"
+                className="ghost-button compact-button"
+                disabled={selectedChips.length === 0}
+                onClick={() => setSelectedChips((previous) => previous.slice(0, -1))}
+              >
+                {t(language, "undoWord")}
+              </button>
+              <button
+                type="button"
+                className="ghost-button compact-button"
+                disabled={selectedChips.length === 0}
+                onClick={() => setSelectedChips([])}
+              >
+                {t(language, "resetOrder")}
+              </button>
+              <button
+                type="button"
+                className="primary-button compact-button tap-order-check"
+                disabled={!tapOrderReady}
+                onClick={submitTapOrder}
+              >
+                {t(language, "checkAnswer")}
+              </button>
+            </div>
           ) : null}
         </div>
       ) : (
@@ -148,7 +202,44 @@ export function QuestionCard({
         <div className={`inline-feedback ${feedback.correct ? "correct" : "incorrect"}`}>
           <strong>{feedback.timedOut ? t(language, "timeout") : feedback.correct ? t(language, "correct") : t(language, "wrong")}</strong>
           {!feedback.correct ? <span>{t(language, "answerIs")}: {feedback.correctAnswer}</span> : <span>{feedback.correctAnswer}</span>}
+          {question.answer_explanation ? (
+            <div className="answer-explanation">
+              <div className="answer-explanation-target" lang="hy">{question.answer_explanation.target}</div>
+              {question.answer_explanation.transliteration ? (
+                <div className="answer-explanation-row">
+                  <span>{t(language, "pronunciationLabel")}</span>
+                  <strong>{question.answer_explanation.transliteration}</strong>
+                </div>
+              ) : null}
+              {question.answer_explanation.translation ? (
+                <div className="answer-explanation-row">
+                  <span>{t(language, "meaningLabel")}</span>
+                  <strong>{question.answer_explanation.translation}</strong>
+                </div>
+              ) : null}
+              {question.answer_explanation.word_glosses?.length ? (
+                <div className="answer-glosses" aria-label={t(language, "wordByWord") }>
+                  {question.answer_explanation.word_glosses.map((gloss) => (
+                    <span key={`${gloss.target}:${gloss.translation}`} className="answer-gloss">
+                      <b lang="hy">{gloss.target}</b>
+                      <span>{gloss.translation}</span>
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {question.target_audio_text ? (
+                <button type="button" className="feedback-audio-button" onClick={playQuestionAudio}>
+                  🔊 {t(language, "listenAgain")}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           {feedback.statCapReached ? <span>{t(language, "statCapReached")}</span> : null}
+          {!feedback.correct && onContinue ? (
+            <button type="button" className="primary-button feedback-continue-button" onClick={onContinue}>
+              {t(language, "continueButton")}
+            </button>
+          ) : null}
         </div>
       ) : null}
     </section>

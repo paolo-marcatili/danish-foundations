@@ -75,6 +75,12 @@ function validateLanguagePack(value) {
     for (const field of ["id", "target_sentence", "translation", "review_status"]) requireString(grammar, `grammar_items[${index}].${field}`, errors, field);
     if (grammarIds.has(grammar.id)) errors.push(`Duplicate grammar item id: ${grammar.id}`);
     grammarIds.add(grammar.id);
+    if (grammar.translation_distractors !== undefined) {
+      if (!isObject(grammar.translation_distractors)) errors.push(`grammar_items[${index}].translation_distractors must be an object.`);
+      else for (const [code, entries] of Object.entries(grammar.translation_distractors)) {
+        if (!Array.isArray(entries) || entries.some((entry) => typeof entry !== "string" || !entry.trim())) errors.push(`grammar_items[${index}].translation_distractors.${code} must contain non-empty strings.`);
+      }
+    }
     if (!Array.isArray(grammar.distractors) || grammar.distractors.length === 0) errors.push(`grammar_items[${index}].distractors must be non-empty.`);
     if (!Array.isArray(grammar.tags)) errors.push(`grammar_items[${index}].tags must be an array.`);
     else for (const tag of grammar.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`grammar_items[${index}] uses uncontrolled tag: ${tag}`);

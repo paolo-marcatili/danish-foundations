@@ -80,6 +80,7 @@ for (const contributionGrammar of contribution.grammar_items ?? []) {
       target_sentence: targetSentence,
       translation: contributionGrammar.translation || contributionGrammar.translations?.[pack.source_language] || targetSentence,
       translations: contributionGrammar.translations || (contributionGrammar.translation ? { [pack.source_language]: contributionGrammar.translation } : {}),
+      translation_distractors: cleanLocalizedStringLists(contributionGrammar.translation_distractors),
       distractors: Array.isArray(contributionGrammar.distractors) ? contributionGrammar.distractors : [],
       difficulty: Number(contributionGrammar.difficulty || 1),
       complexity: Number(contributionGrammar.complexity || contributionGrammar.difficulty || 1),
@@ -91,6 +92,8 @@ for (const contributionGrammar of contribution.grammar_items ?? []) {
   } else {
     if (contributionGrammar.translation) grammar.translation = contributionGrammar.translation;
     if (contributionGrammar.translations) grammar.translations = { ...(grammar.translations || {}), ...contributionGrammar.translations };
+    const translationDistractors = cleanLocalizedStringLists(contributionGrammar.translation_distractors);
+    if (translationDistractors) grammar.translation_distractors = { ...(grammar.translation_distractors || {}), ...translationDistractors };
     grammar.tags = uniqueStrings([...(grammar.tags || []), ...cleanTags(contributionGrammar.tags)]);
     grammar.distractors = uniqueStrings([...(grammar.distractors || []), ...(contributionGrammar.distractors || [])]);
     grammar.complexity = Number(contributionGrammar.complexity || grammar.complexity || grammar.difficulty || 1);
@@ -102,6 +105,16 @@ for (const contributionGrammar of contribution.grammar_items ?? []) {
 writeFileSync(wordsPath, writeJsonl(words));
 writeFileSync(sentencesPath, writeJsonl(sentences));
 console.log(JSON.stringify({ addedItems, updatedItems, addedGrammar, updatedGrammar, addedAudio }, null, 2));
+
+function cleanLocalizedStringLists(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const cleaned = Object.fromEntries(
+    Object.entries(value)
+      .map(([code, entries]) => [code, uniqueStrings(Array.isArray(entries) ? entries.map(String) : [])])
+      .filter(([, entries]) => entries.length > 0)
+  );
+  return Object.keys(cleaned).length > 0 ? cleaned : undefined;
+}
 
 function appendAudioReferences(entry, audioContributions, entryId, text, languageTag) {
   if (!Array.isArray(entry.audio)) entry.audio = [];

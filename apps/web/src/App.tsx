@@ -189,6 +189,7 @@ export default function App() {
   const [actionEvent, setActionEvent] = useState<HeroActionEvent | null>(null);
   const actionSerial = useRef(0);
   const labyrinthMoveLockUntil = useRef(0);
+  const trainingSessionRef = useRef<TrainingSession | null>(null);
 
   const labyrinthConfig = useMemo(
     () => getLabyrinthForLevel(pack, learnerState.level),
@@ -224,6 +225,10 @@ export default function App() {
   const encounterMode = pendingEncounter ? "approaching" : sessionActive ? "active" : null;
 
   useEffect(() => installAudioUnlock(), []);
+
+  useEffect(() => {
+    trainingSessionRef.current = trainingSession;
+  }, [trainingSession]);
 
   useEffect(() => {
     setLearningAudioMode(settings.audioMode);
@@ -393,58 +398,70 @@ export default function App() {
     playAnswerAudio(result, false);
     triggerAction(result.correct ? getTrainingAction(trainingSession.focus) : randomFailAction());
 
-    const nextCorrectCount = trainingSession.correctCount + (result.correct ? 1 : 0);
-    const nextMistakeCount = trainingSession.mistakeCount + (result.correct ? 0 : 1);
-    const nextIndex = trainingSession.index + 1;
-    const nextPracticeState = result.updated_state;
-    setTrainingSession({
+    const answeredSession: TrainingSession = {
       ...trainingSession,
       locked: true,
-      correctCount: nextCorrectCount,
-      mistakeCount: nextMistakeCount,
-      practiceState: nextPracticeState,
+      correctCount: trainingSession.correctCount + (result.correct ? 1 : 0),
+      mistakeCount: trainingSession.mistakeCount + (result.correct ? 0 : 1),
+      practiceState: result.updated_state,
       feedback: toFeedback(result, selectedOptionId, trainingSession.question.correct_option_id)
-    });
+    };
+    trainingSessionRef.current = answeredSession;
+    setTrainingSession(answeredSession);
 
-    window.setTimeout(() => {
-      const outOfHearts = !settings.debugBypass && !result.correct && nextMistakeCount >= trainingSession.maxMistakes;
-      if (outOfHearts) {
-        triggerAction("fall");
+    // Correct answers keep the quick automatic rhythm. After a mistake the
+    // rich explanation remains on screen until the learner explicitly continues.
+    if (result.correct) {
+      window.setTimeout(() => advanceTrainingAfterFeedback(answeredSession.question.id), 2300);
+    }
+  }
+
+  function advanceTrainingAfterFeedback(expectedQuestionId: string) {
+    const session = trainingSessionRef.current;
+    if (!session || !session.locked || !session.feedback || session.question.id !== expectedQuestionId) return;
+
+    const nextIndex = session.index + 1;
+    const outOfHearts = !settings.debugBypass && !session.feedback.correct && session.mistakeCount >= session.maxMistakes;
+    if (outOfHearts) {
+      triggerAction("fall");
+      playSound("wrong");
+      setLearnerState((previous) => commitPracticeMemoryOnly(previous, session.practiceState));
+      trainingSessionRef.current = null;
+      setTrainingSession(null);
+      return;
+    }
+
+    if (nextIndex >= questionsPerTraining) {
+      const completed = settings.debugBypass || session.mistakeCount < session.maxMistakes;
+      if (completed) {
+        triggerAction("victory");
+        playSound("coin");
+        setLearnerState(markTrainingSessionCompleted(session.practiceState, session.focus, pack));
+      } else {
+        triggerAction("stumble");
         playSound("wrong");
-        setLearnerState((previous) => commitPracticeMemoryOnly(previous, nextPracticeState));
-        setTrainingSession(null);
-        return;
+        setLearnerState((previous) => commitPracticeMemoryOnly(previous, session.practiceState));
       }
+      trainingSessionRef.current = null;
+      setTrainingSession(null);
+      return;
+    }
 
-      if (nextIndex >= questionsPerTraining) {
-        const completed = settings.debugBypass || nextMistakeCount < trainingSession.maxMistakes;
-        if (completed) {
-          triggerAction("victory");
-          playSound("coin");
-          setLearnerState(markTrainingSessionCompleted(nextPracticeState, trainingSession.focus, pack));
-        } else {
-          triggerAction("stumble");
-          playSound("wrong");
-          setLearnerState((previous) => commitPracticeMemoryOnly(previous, nextPracticeState));
-        }
-        setTrainingSession(null);
-        return;
-      }
-
-      setTrainingSession((previous) => {
-        if (!previous) return previous;
-        return {
-          ...previous,
-          index: nextIndex,
-          correctCount: nextCorrectCount,
-          mistakeCount: nextMistakeCount,
-          practiceState: nextPracticeState,
-          locked: false,
-          feedback: null,
-          question: getNextQuestion(pack, nextPracticeState, baseLanguage, previous.focus, getTrainingSelection(pack, nextPracticeState.level, settings.audioMode, previous.focus))
-        };
-      });
-    }, 1650);
+    const nextSession: TrainingSession = {
+      ...session,
+      index: nextIndex,
+      locked: false,
+      feedback: null,
+      question: getNextQuestion(
+        pack,
+        session.practiceState,
+        baseLanguage,
+        session.focus,
+        getTrainingSelection(pack, session.practiceState.level, settings.audioMode, session.focus)
+      )
+    };
+    trainingSessionRef.current = nextSession;
+    setTrainingSession(nextSession);
   }
 
   function startLabyrinth() {
@@ -638,7 +655,7 @@ export default function App() {
       });
       playSound("levelUp");
       window.setTimeout(() => triggerAction("victory"), 350);
-    }, 1650);
+    }, 2300);
   }
 
   function pauseLabyrinth() {
@@ -791,7 +808,7 @@ export default function App() {
           question: getNextQuestion(pack, result.updated_state, baseLanguage, focus, getFightSelection(pack, previous.enemy, result.updated_state.level, settings.audioMode, focus))
         };
       });
-    }, 1500);
+    }, 2100);
   }
 
   function handleReset() {
@@ -860,7 +877,19 @@ export default function App() {
   const activeSessionPanel = trainingSession ? (
     <section className="session-panel-card training-session-panel" aria-label={t(baseLanguage, "training")}>
       <div className="session-heading"><span>{t(baseLanguage, "training")}</span><strong>{t(baseLanguage, trainingOptions.find((option) => option.focus === trainingSession.focus)?.encounterLabelKey ?? "training")}</strong><TrainingHearts language={baseLanguage} remaining={Math.max(0, trainingSession.maxMistakes - trainingSession.mistakeCount)} total={trainingSession.maxMistakes} /></div>
-      <QuestionCard question={trainingSession.question} language={baseLanguage} disabled={trainingSession.locked} mode="training" index={trainingSession.index} total={questionsPerTraining} feedback={trainingSession.feedback} onAnswer={handleTrainingAnswer} />
+      <QuestionCard
+        question={trainingSession.question}
+        language={baseLanguage}
+        disabled={trainingSession.locked}
+        mode="training"
+        index={trainingSession.index}
+        total={questionsPerTraining}
+        feedback={trainingSession.feedback}
+        onAnswer={handleTrainingAnswer}
+        onContinue={trainingSession.feedback && !trainingSession.feedback.correct
+          ? () => advanceTrainingAfterFeedback(trainingSession.question.id)
+          : undefined}
+      />
       <button type="button" className="ghost-button full-width" onClick={() => setTrainingSession(null)}>{t(baseLanguage, "backHome")}</button>
     </section>
   ) : fightSession ? (
@@ -1549,7 +1578,11 @@ function questionAudioIsEligible(question: TrainingQuestion, audioMode: AppSetti
   if (audioMode === "human_only") {
     return audio.some((entry) => entry.source_type === "human" && entry.review_status !== "draft" && Boolean(entry.url?.trim()));
   }
-  return audio.some((entry) => entry.review_status !== "draft" && Boolean(entry.url?.trim()));
+  return audio.some((entry) => {
+    if (!entry.url?.trim()) return false;
+    if (entry.source_type === "automated" || entry.source_type === "browser_tts") return true;
+    return entry.review_status !== "draft";
+  });
 }
 
 function getTrainingAction(focus: TrainingFocus): HeroActionName {
