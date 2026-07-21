@@ -73,7 +73,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-00-sky",
     textureKey: "layer-00-sky",
-    path: publicUrl("/assets/pixel/layer-00-sky.png"),
+    path: publicUrl("assets/pixel/layer-00-sky.png"),
     kind: "image",
     x: 0,
     y: 0,
@@ -85,7 +85,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-01-far-mountains",
     textureKey: "layer-01-far-mountains",
-    path: publicUrl("/assets/pixel/layer-01-far-mountains.png"),
+    path: publicUrl("assets/pixel/layer-01-far-mountains.png"),
     kind: "tile",
     x: 0,
     y: 108,
@@ -97,7 +97,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-02-far-hills",
     textureKey: "layer-02-far-hills",
-    path: publicUrl("/assets/pixel/layer-02-far-hills.png"),
+    path: publicUrl("assets/pixel/layer-02-far-hills.png"),
     kind: "tile",
     x: 0,
     y: 164,
@@ -109,7 +109,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-03-mid-hills",
     textureKey: "layer-03-mid-hills",
-    path: publicUrl("/assets/pixel/layer-03-mid-hills.png"),
+    path: publicUrl("assets/pixel/layer-03-mid-hills.png"),
     kind: "tile",
     x: 0,
     y: 190,
@@ -121,7 +121,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-04-sparse-forest",
     textureKey: "layer-04-sparse-forest",
-    path: publicUrl("/assets/pixel/layer-04-sparse-forest.png"),
+    path: publicUrl("assets/pixel/layer-04-sparse-forest.png"),
     kind: "tile",
     x: 0,
     y: 176,
@@ -133,7 +133,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-05-village-back",
     textureKey: "layer-05-village-back",
-    path: publicUrl("/assets/pixel/layer-05-village-back.png"),
+    path: publicUrl("assets/pixel/layer-05-village-back.png"),
     kind: "tile",
     x: 0,
     y: 206,
@@ -145,7 +145,7 @@ export const PARALLAX_LAYERS = [
   {
     id: "layer-06-path-ground",
     textureKey: "layer-06-path-ground",
-    path: publicUrl("/assets/pixel/layer-06-path-ground.png"),
+    path: publicUrl("assets/pixel/layer-06-path-ground.png"),
     kind: "tile",
     x: 0,
     y: WORLD.groundTopY,
@@ -198,31 +198,31 @@ export interface HeroSpriteSheetConfig {
 export const HERO_SPRITESHEETS = {
   walk: {
     key: "hero-walk",
-    path: publicUrl("/assets/pixel/hero-walk.png")
+    path: publicUrl("assets/pixel/hero-walk.png")
   },
   attack1: {
     key: "hero-attack-simple",
-    path: publicUrl("/assets/pixel/hero-attack-simple.png")
+    path: publicUrl("assets/pixel/hero-attack-simple.png")
   },
   attack2: {
     key: "hero-attack-swing",
-    path: publicUrl("/assets/pixel/hero-attack-swing.png")
+    path: publicUrl("assets/pixel/hero-attack-swing.png")
   },
   fall: {
     key: "hero-fall",
-    path: publicUrl("/assets/pixel/hero-fall.png")
+    path: publicUrl("assets/pixel/hero-fall.png")
   },
   energy: {
     key: "hero-energy-ball",
-    path: publicUrl("/assets/pixel/hero-energy-ball.png")
+    path: publicUrl("assets/pixel/hero-energy-ball.png")
   },
   parry: {
     key: "hero-parry",
-    path: publicUrl("/assets/pixel/hero-parry.png")
+    path: publicUrl("assets/pixel/hero-parry.png")
   },
   victory: {
     key: "hero-victory",
-    path: publicUrl("/assets/pixel/hero-victory.png")
+    path: publicUrl("assets/pixel/hero-victory.png")
   }
 } as const satisfies Record<string, HeroSpriteSheetConfig>;
 
@@ -339,11 +339,11 @@ export interface CompanionSpriteSheetConfig {
 export const COMPANION_SPRITESHEETS = {
   walk: {
     key: "companion-dragon-walk",
-    path: publicUrl("/assets/pixel/companion-dragon-walk.png")
+    path: publicUrl("assets/pixel/companion-dragon-walk.png")
   },
   victory: {
     key: "companion-dragon-victory",
-    path: publicUrl("/assets/pixel/companion-dragon-victory.png")
+    path: publicUrl("assets/pixel/companion-dragon-victory.png")
   }
 } as const satisfies Record<string, CompanionSpriteSheetConfig>;
 
@@ -369,31 +369,31 @@ export interface SpriteSheetConfig {
 export const SPRITESHEETS = [
   {
     key: "monsters",
-    path: publicUrl("/assets/pixel/monsters.png"),
+    path: publicUrl("assets/pixel/monsters.png"),
     frameWidth: 96,
     frameHeight: 96
   },
   {
     key: "objects-small",
-    path: publicUrl("/assets/pixel/objects-small.png"),
+    path: publicUrl("assets/pixel/objects-small.png"),
     frameWidth: 64,
     frameHeight: 64
   },
   {
     key: "objects-large",
-    path: publicUrl("/assets/pixel/objects-large.png"),
+    path: publicUrl("assets/pixel/objects-large.png"),
     frameWidth: 256,
     frameHeight: 256
   },
   {
     key: "objects-front",
-    path: publicUrl("/assets/pixel/objects-front.png"),
+    path: publicUrl("assets/pixel/objects-front.png"),
     frameWidth: 96,
     frameHeight: 96
   },
   {
     key: "training-stations",
-    path: publicUrl("/assets/pixel/training-stations.png"),
+    path: publicUrl("assets/pixel/training-stations.png"),
     frameWidth: 96,
     frameHeight: 96
   }

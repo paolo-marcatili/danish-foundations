@@ -24,6 +24,7 @@ import {
   type LabyrinthWallEdge
 } from "../labyrinth";
 import { t } from "../i18n";
+import { publicUrl } from "../publicUrl";
 import { LabyrinthLog } from "./labyrinth/LabyrinthLog";
 import { QuestionCard } from "./QuestionCard";
 
@@ -37,7 +38,7 @@ interface LabyrinthPanelProps {
   onAbandon: () => void;
 }
 
-const ASSET_ROOT = "/assets/pixel/labyrinth";
+const ASSET_ROOT = publicUrl("assets/pixel/labyrinth");
 const FLOOR_ASSETS = [`${ASSET_ROOT}/floor-01.png`, `${ASSET_ROOT}/floor-02.png`, `${ASSET_ROOT}/floor-03.png`] as const;
 const PATH_ASSETS: readonly string[] = Array.from({ length: 16 }, (_, mask) => `${ASSET_ROOT}/path-${String(mask).padStart(2, "0")}.png`);
 const DECOR_ASSETS = [`${ASSET_ROOT}/decoration-01.png`, `${ASSET_ROOT}/decoration-02.png`, `${ASSET_ROOT}/decoration-03.png`, `${ASSET_ROOT}/decoration-04.png`, `${ASSET_ROOT}/decoration-05.png`, `${ASSET_ROOT}/decoration-06.png`] as const;

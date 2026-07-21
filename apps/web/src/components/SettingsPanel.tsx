@@ -3,6 +3,7 @@ import type { LanguagePack } from "@hero-lang/content-schema";
 import type { AppSettings, ChildProfile, GraphicsPack, HeroAppearance, HeroSpriteSet, LearningAudioMode, ViewportPreset } from "../storage";
 import { createChildProfile } from "../storage";
 import { t } from "../i18n";
+import { publicUrl } from "../publicUrl";
 
 interface SettingsPanelProps {
   pack: LanguagePack;
@@ -111,7 +112,7 @@ export function SettingsPanel({
                 className={activeProfile.appearance.spriteSet === sprite.id ? "sprite-choice active" : "sprite-choice"}
                 onClick={() => updateAppearance({ spriteSet: sprite.id })}
               >
-                <img src="/assets/pixel/hero-preview.png" alt="" />
+                <img src={publicUrl("assets/pixel/hero-preview.png")} alt="" />
                 <strong>{t(language, sprite.labelKey)}</strong>
               </button>
             ))}

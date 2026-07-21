@@ -1,23 +1,20 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
+const githubPagesBase = process.env.GITHUB_PAGES_BASE ?? "/hero-language-camp/";
+
 export default defineConfig({
-  // GitHub Pages serves the app under /hero-language-camp/.
-  // Local and Capacitor builds continue to use /.
-  base:
-    process.env.GITHUB_PAGES === "true"
-      ? "/hero-language-camp/"
-      : "/",
-
+  // GitHub Pages hosts project sites in a repository subdirectory. Keep `/`
+  // for local development and Capacitor, and opt into the Pages base only in
+  // the deployment workflow.
+  base: process.env.GITHUB_PAGES === "true" ? githubPagesBase : "/",
   plugins: [react()],
-
   server: {
     host: "127.0.0.1",
     port: 5173,
     strictPort: true,
     allowedHosts: ["localhost", "127.0.0.1"]
   },
-
   preview: {
     host: "127.0.0.1",
     port: 4173,

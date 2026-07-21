@@ -1,4 +1,5 @@
 import type { AudioReference } from "@hero-lang/content-schema";
+import { publicUrl } from "./publicUrl";
 
 export type SoundName =
   | "correct"
@@ -125,7 +126,7 @@ export async function playLearningAudio(audio: AudioReference[] | undefined, tex
   if (preferred?.url && !preferred.url.startsWith("browser-tts:")) {
     try {
       stopCurrentLearningAudio();
-      const element = new Audio(preferred.url);
+      const element = new Audio(publicUrl(preferred.url));
       currentLearningAudio = element;
       element.volume = 0.9;
       await element.play();
