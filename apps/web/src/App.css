@@ -5720,8 +5720,9 @@ body {
   grid-template-columns: minmax(0, 1.68fr) minmax(320px, .92fr);
 }
 
-/* v0.12.2 scroll-safe settings and question-first labyrinth encounters */
-.settings-panel {
+/* v0.12.2 scroll-safe settings, dictionary, and question-first labyrinth encounters */
+.settings-panel,
+.admin-panel {
   position: absolute;
   top: 70px;
   right: 12px;
@@ -5737,6 +5738,8 @@ body {
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 
 .settings-panel .settings-actions {
@@ -5846,7 +5849,8 @@ body {
 }
 
 @media (max-width: 780px) {
-  .settings-panel {
+  .settings-panel,
+  .admin-panel {
     top: 60px;
     right: 6px;
     bottom: 6px;
@@ -5887,7 +5891,8 @@ body {
   }
 }
 
-.device-viewport-shell[data-force-layout="mobile"] .settings-panel {
+.device-viewport-shell[data-force-layout="mobile"] .settings-panel,
+.device-viewport-shell[data-force-layout="mobile"] .admin-panel {
   top: 58px;
   right: 5px;
   bottom: 5px;
