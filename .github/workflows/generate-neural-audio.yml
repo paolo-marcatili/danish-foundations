@@ -12,6 +12,19 @@ on:
           - sample
           - core
           - all
+      voice:
+        description: Azure Armenian voice
+        required: true
+        default: hy-AM-AnahitNeural
+        type: choice
+        options:
+          - hy-AM-AnahitNeural
+          - hy-AM-HaykNeural
+      rate:
+        description: SSML speaking-rate adjustment
+        required: true
+        default: -8%
+        type: string
 
 permissions:
   contents: read
@@ -29,11 +42,28 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22.12.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Show generation plan
+        env:
+          AUDIO_SCOPE: ${{ inputs.scope }}
+        run: |
+          case "$AUDIO_SCOPE" in
+            sample) EXTRA_ARGS="--sample" ;;
+            all) EXTRA_ARGS="--all" ;;
+            *) EXTRA_ARGS="" ;;
+          esac
+          node tools/generate-automated-audio.mjs content-packs/hy-eastern-it --plan $EXTRA_ARGS
 
       - name: Generate Armenian audio
         env:
           AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
           AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          AZURE_SPEECH_VOICE: ${{ inputs.voice }}
+          AZURE_SPEECH_RATE: ${{ inputs.rate }}
           AUDIO_SCOPE: ${{ inputs.scope }}
         run: |
           test -n "$AZURE_SPEECH_KEY" || (echo "Missing AZURE_SPEECH_KEY repository secret" && exit 1)
@@ -44,15 +74,28 @@ jobs:
             *) EXTRA_ARGS="--force" ;;
           esac
           node tools/generate-automated-audio.mjs content-packs/hy-eastern-it $EXTRA_ARGS
+          npm run content:sync-web
+
+      - name: Validate updated pack
+        run: npm run validate:content
 
       - name: Package generated update
+        env:
+          AUDIO_SCOPE: ${{ inputs.scope }}
+          AUDIO_VOICE: ${{ inputs.voice }}
+          AUDIO_RATE: ${{ inputs.rate }}
         run: |
           mkdir -p neural-audio-update/content-packs/hy-eastern-it/dictionary
           mkdir -p neural-audio-update/content-packs/hy-eastern-it/audio
-          mkdir -p neural-audio-update/apps/web/public/content-packs/hy-eastern-it/audio
           cp content-packs/hy-eastern-it/dictionary/*.jsonl neural-audio-update/content-packs/hy-eastern-it/dictionary/
           cp -R content-packs/hy-eastern-it/audio/auto-neural neural-audio-update/content-packs/hy-eastern-it/audio/
-          cp -R apps/web/public/content-packs/hy-eastern-it/audio/auto-neural neural-audio-update/apps/web/public/content-packs/hy-eastern-it/audio/
+          cat > neural-audio-update/AUDIO_GENERATION.txt <<REPORT
+          Scope: $AUDIO_SCOPE
+          Voice: $AUDIO_VOICE
+          Rate: $AUDIO_RATE
+          Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          MP3 files: $(find content-packs/hy-eastern-it/audio/auto-neural -type f -name '*.mp3' | wc -l)
+          REPORT
 
       - name: Upload generated audio update
         uses: actions/upload-artifact@v4

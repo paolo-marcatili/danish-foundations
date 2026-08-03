@@ -198,7 +198,7 @@ function TrainingEncounter({ option, language, mode, bottom, left }: { option: T
 
 function MonsterEncounter({ enemy, language, mode, bottom, left }: { enemy: EnemyConfig; language: string; mode: "approaching" | "active" | null; bottom: number; left: number }) {
   return (
-    <div className={`encounter-sprite monster-sprite encounter-${mode ?? "idle"} monster-${enemy.sprite}`} style={{ bottom: `${bottom}%`, left: `${left}%` }} aria-hidden="true">
+    <div className={`encounter-sprite monster-sprite encounter-${mode ?? "idle"} monster-${enemy.sprite} monster-variant-${enemy.visualVariant ?? "default"}`} style={{ bottom: `${bottom}%`, left: `${left}%`, transform: `scale(${enemy.scale})` }} aria-hidden="true">
       <div className="monster-shadow" />
       <div className="monster-body">
         <div className="monster-eye monster-eye-left" />

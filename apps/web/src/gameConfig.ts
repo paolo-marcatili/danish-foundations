@@ -67,7 +67,11 @@ export interface EnemyConfig {
   maxEnergy: number;
   rewardCoins: number;
   preferredFocus: TrainingFocus;
-  sprite: "goblin" | "bat" | "troll" | "dragon" | "wizard" | "blob";
+  sprite: string;
+  spriteRow: number;
+  visualVariant?: string;
+  scale: number;
+  tint?: number;
   requiredStats: Partial<HeroStats>;
   tags: string[];
   skillWeaknesses: HeroStatKey[];
@@ -157,10 +161,25 @@ export function getSpeedBonusMultiplier(elapsedSeconds: number, parSeconds: numb
 }
 
 export function getEnemyForLevel(pack: LanguagePack, level: number): EnemyConfig {
-  const enemies = pack.enemies ?? [];
-  const found = enemies.find((enemy) => enemy.level === level) ?? enemies[enemies.length - 1];
-  if (found) return toEnemyConfig(pack, found);
-  return { id: "mist_goblin", level: 0, nameKey: "mistGoblin", maxEnergy: 50, rewardCoins: 35, preferredFocus: "vocabulary", sprite: "goblin", requiredStats: {}, tags: ["basic"], skillWeaknesses: ["strength"] };
+  const enemies = [...(pack.enemies ?? [])].sort((a, b) => a.level - b.level);
+  const exact = enemies.find((enemy) => enemy.level === level);
+  if (exact) return toEnemyConfig(pack, exact);
+
+  const reusable = [...enemies].reverse().find((enemy) => enemy.level < level) ?? enemies[enemies.length - 1];
+  if (reusable) {
+    const extraLevels = Math.max(0, level - reusable.level);
+    const growth = 1 + extraLevels * 0.18;
+    return toEnemyConfig(pack, {
+      ...reusable,
+      id: extraLevels > 0 ? `${reusable.id}_level_${level}` : reusable.id,
+      level,
+      max_energy: Math.round(reusable.max_energy * growth),
+      reward_coins: Math.round(reusable.reward_coins * (1 + extraLevels * 0.12)),
+      visual_variant: reusable.visual_variant ?? (extraLevels > 0 ? `ascended-${level}` : undefined),
+      scale: Math.min(1.45, (reusable.scale ?? 1) * (1 + Math.min(0.2, extraLevels * 0.025)))
+    });
+  }
+  return { id: "mist_goblin", level, nameKey: "mistGoblin", maxEnergy: 50 + level * 50, rewardCoins: 35 + level * 15, preferredFocus: "vocabulary", sprite: "goblin", spriteRow: 0, scale: 1, requiredStats: {}, tags: ["basic"], skillWeaknesses: ["strength"] };
 }
 
 export function getVisibleShopItems(level: number, debugBypass = false): ShopUiItem[] {
@@ -304,10 +323,27 @@ function toEnemyConfig(pack: LanguagePack, enemy: PackEnemy): EnemyConfig {
     rewardCoins: enemy.reward_coins,
     preferredFocus: normalizeFocus(enemy.preferred_focus),
     sprite: enemy.sprite,
+    spriteRow: enemy.sprite_row ?? getLegacyMonsterRow(enemy.sprite),
+    visualVariant: enemy.visual_variant,
+    scale: Math.max(0.6, Math.min(1.8, enemy.scale ?? 1)),
+    tint: parseEnemyTint(enemy.tint),
     requiredStats,
     tags: enemy.semantic_tags ?? [],
     skillWeaknesses: (enemy.skill_weaknesses ?? []).map(normalizeStat)
   };
+}
+
+
+function getLegacyMonsterRow(sprite: string): number {
+  return ({ goblin: 0, bat: 1, troll: 2, dragon: 3, wizard: 4, blob: 5 } as Record<string, number>)[sprite] ?? 0;
+}
+
+function parseEnemyTint(value: string | number | undefined): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return Math.max(0, Math.min(0xffffff, Math.floor(value)));
+  if (typeof value !== "string") return undefined;
+  const normalized = value.trim().replace(/^#/, "").replace(/^0x/i, "");
+  if (!/^[0-9a-f]{6}$/i.test(normalized)) return undefined;
+  return Number.parseInt(normalized, 16);
 }
 
 function normalizeFocus(value: string): TrainingFocus {

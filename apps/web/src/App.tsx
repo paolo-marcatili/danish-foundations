@@ -30,6 +30,7 @@ import { LabyrinthPanel } from "./components/LabyrinthPanel";
 import { PhaserWorld, type WorldEncounter } from "./components/PhaserWorld";
 import { QuestionCard } from "./components/QuestionCard";
 import { OfflineStatus } from "./components/OfflineStatus";
+import { InstallAppButton } from "./components/InstallAppButton";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { ShopPanel } from "./components/ShopPanel";
 import { StoryPanel } from "./components/StoryPanel";
@@ -1060,6 +1061,7 @@ export default function App() {
             </div>
             <div className="top-controls">
               <OfflineStatus state={offlineState} language={baseLanguage} />
+              <InstallAppButton language={baseLanguage} />
               <button type="button" className="profile-pill" onClick={() => { setProfileSwitcherOpen((open) => !open); setSettingsOpen(false); setAdminOpen(false); setShopOpen(false); setTrainingMenuOpen(false); }}>{activeProfile.name}</button>
               <button type="button" className="icon-button" onClick={toggleAudio} aria-label={audioOn ? t(baseLanguage, "soundOn") : t(baseLanguage, "soundOff")}>
                 {audioOn ? "🔊" : "🔇"}
@@ -1170,7 +1172,6 @@ function TrainingPopover({
         <div className="training-level-guide">
           <span>{getLocalizedText(levelConfig.theme, language, levelConfig.title)}</span>
           <strong>{getLocalizedText(levelConfig.learning_goal, language, levelConfig.title)}</strong>
-          <p><b>{getLocalizedText(levelConfig.grammar_title, language, "")}</b> {getLocalizedText(levelConfig.grammar_note, language, "")}</p>
         </div>
       ) : null}
       <div className="training-bubble-grid">
@@ -1577,7 +1578,8 @@ function getLabyrinthSelection(
     stage: level,
     tags: config.semantic_tags,
     requireHumanAudio: requiresHumanAudioForFocus(focus, audioMode),
-    requirePlayableAudio: requiresPlayableAudioForFocus(focus, audioMode)
+    requirePlayableAudio: requiresPlayableAudioForFocus(focus, audioMode),
+    reviewChance: getCurriculumReviewChance(level)
   };
 }
 
@@ -1644,7 +1646,8 @@ function getTrainingSelection(pack: LanguagePack, level: number, audioMode?: App
   return {
     stage: level,
     requireHumanAudio: focus ? requiresHumanAudioForFocus(focus, audioMode) : false,
-    requirePlayableAudio: focus ? requiresPlayableAudioForFocus(focus, audioMode) : false
+    requirePlayableAudio: focus ? requiresPlayableAudioForFocus(focus, audioMode) : false,
+    reviewChance: getCurriculumReviewChance(level)
   };
 }
 
@@ -1653,8 +1656,18 @@ function getFightSelection(pack: LanguagePack, enemy: EnemyConfig, level: number
     stage: level,
     tags: enemy.tags,
     requireHumanAudio: focus ? requiresHumanAudioForFocus(focus, audioMode) : false,
-    requirePlayableAudio: focus ? requiresPlayableAudioForFocus(focus, audioMode) : false
+    requirePlayableAudio: focus ? requiresPlayableAudioForFocus(focus, audioMode) : false,
+    reviewChance: getCurriculumReviewChance(level)
   };
+}
+
+function getCurriculumReviewChance(level: number): number {
+  // Later chapters intentionally introduce fewer new items and increasingly
+  // combine earlier material. This keeps their workload substantial without
+  // imposing a calendar gate or forcing a child to wait between sessions.
+  if (level >= 7) return 0.55;
+  if (level >= 5) return 0.4;
+  return 0.3;
 }
 
 function requiresHumanAudioForFocus(focus: TrainingFocus, audioMode: AppSettings["audioMode"] | undefined): boolean {

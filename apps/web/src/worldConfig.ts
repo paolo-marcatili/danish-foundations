@@ -406,7 +406,7 @@ export const TRAINING_STATION_FRAMES: Record<TrainingFocus, number> = {
   pronunciation: 3
 };
 
-export const MONSTER_ROWS: Record<EnemyConfig["sprite"], number> = {
+export const MONSTER_ROWS: Record<string, number> = {
   goblin: 0,
   bat: 1,
   troll: 2,

@@ -48,17 +48,19 @@ export function QuestionCard({
   audioHasStarted = false
 }: QuestionCardProps) {
   const showTimer = mode === "fight" && timerSeconds > 0;
-  const showAudioButton = question.activity_type === "listen_and_choose";
+  const showAudioButton = question.activity_type === "listen_and_choose" || Boolean(question.audio?.length);
   const isTapOrder = question.variant === "sentence_tap_order";
   const [selectedChips, setSelectedChips] = useState<AnswerOption[]>([]);
   const [audioStarted, setAudioStarted] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [secondaryAudioPlaying, setSecondaryAudioPlaying] = useState(false);
   const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
   const tapOrderReady = selectedChips.length === expectedAnswerLength;
 
   useEffect(() => {
     setSelectedChips([]);
     setAudioPlaying(false);
+    setSecondaryAudioPlaying(false);
     setAudioStarted(question.activity_type !== "listen_and_choose" || audioHasStarted);
   }, [question.id, question.activity_type, audioHasStarted]);
 
@@ -99,6 +101,14 @@ export function QuestionCard({
     });
   }
 
+  function playSecondaryAudio() {
+    if (secondaryAudioPlaying || !question.secondary_audio?.length) return;
+    void unlockAudio();
+    setSecondaryAudioPlaying(true);
+    void playLearningAudio(question.secondary_audio, question.secondary_audio_text, question.target_audio_lang ?? "hy-AM")
+      .finally(() => setSecondaryAudioPlaying(false));
+  }
+
   return (
     <section className="question-card" aria-label={mode === "fight" ? t(language, "fightTitle") : t(language, "training")}>
       <div className="question-header">
@@ -117,10 +127,25 @@ export function QuestionCard({
         />
       ) : null}
 
-      {showAudioButton ? (
-        <button type="button" className="audio-button" disabled={audioPlaying} onClick={playQuestionAudio}>
-          {question.activity_type === "repeat_after_me" ? t(language, "listenAndRepeat") : t(language, "listen")}
-        </button>
+      {showAudioButton || question.secondary_audio?.length ? (
+        <div className="question-audio-actions">
+          {showAudioButton ? (
+            <button type="button" className="audio-button" disabled={audioPlaying} onClick={playQuestionAudio}>
+              🔊 {question.kind === "letter"
+                ? t(language, "playLetterAudio")
+                : question.activity_type === "repeat_after_me"
+                  ? t(language, "listenAndRepeat")
+                  : question.activity_type === "listen_and_choose"
+                    ? t(language, "listen")
+                    : t(language, "playTargetAudio")}
+            </button>
+          ) : null}
+          {question.secondary_audio?.length ? (
+            <button type="button" className="audio-button secondary-audio-button" disabled={secondaryAudioPlaying} onClick={playSecondaryAudio}>
+              ◉ {t(language, "playLetterSound")}
+            </button>
+          ) : null}
+        </div>
       ) : null}
 
       <div className={question.kind === "letter" ? "prompt letter-prompt" : "prompt"} lang="hy">

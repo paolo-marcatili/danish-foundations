@@ -45,6 +45,11 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
   const existingGrammar = useMemo(() => (pack.grammar_items ?? []).find((item) => normalize(item.target_sentence) === normalize(target)), [pack.grammar_items, target]);
   const existing = kind === "word" ? existingItem : existingGrammar;
   const selectedTagSet = useMemo(() => new Set(tags.split(",").map((tag) => tag.trim()).filter(Boolean)), [tags]);
+  const stageOptions = useMemo(() => {
+    const configured = (pack.levels ?? []).map((level) => Math.max(0, Math.floor(level.number)));
+    const maxStage = Math.max(0, stage, ...configured);
+    return Array.from({ length: maxStage + 1 }, (_, value) => value);
+  }, [pack.levels, stage]);
 
   const filteredItems = useMemo(() => {
     const needle = normalize(query);
@@ -127,7 +132,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
     const cleanTarget = target.trim();
     const idSeed = slugify(transliteration || cleanTarget);
     const enteredTags = tags.split(",").map((tag) => tag.trim()).filter(Boolean).filter((tag) => !tag.startsWith("stage:"));
-    const parsedTags = uniqueStrings([`stage:${Math.max(0, Math.min(8, Math.floor(stage || 0)))}`, ...enteredTags]);
+    const parsedTags = uniqueStrings([`stage:${Math.max(0, Math.floor(stage || 0))}`, ...enteredTags]);
     if (!parsedTags.some((tag) => tag.startsWith("tier:"))) parsedTags.push("tier:core");
     const audio = recordedAudio ? [audioContribution(cleanTarget, recordedAudio)] : [];
     const parsedTranslationDistractors = uniqueStrings(translationDistractors.split(/\r?\n/));
@@ -280,7 +285,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
         <label>
           <span>{t(language, "adminStage")}</span>
           <select value={stage} onChange={(event: ChangeEvent<HTMLSelectElement>) => setStage(Number(event.target.value))}>
-            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((value) => <option key={value} value={value}>{value}</option>)}
+            {stageOptions.map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
         <label className="wide">
@@ -408,7 +413,7 @@ function formatSummary(summary: MergeSummary): Record<string, number> {
 
 function stageFromTags(tags: string[] | undefined): number {
   const value = tags?.find((tag) => /^stage:\d+$/.test(tag));
-  return Math.max(0, Math.min(8, Number(value?.slice("stage:".length) ?? 0)));
+  return Math.max(0, Number(value?.slice("stage:".length) ?? 0));
 }
 
 function normalize(value: unknown): string {

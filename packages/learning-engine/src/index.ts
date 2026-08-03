@@ -128,6 +128,8 @@ export interface TrainingQuestion {
   answer_explanation?: AnswerExplanation;
   target_audio_text?: string;
   target_audio_lang?: string;
+  secondary_audio?: AudioReference[];
+  secondary_audio_text?: string;
   audio?: AudioReference[];
 }
 
@@ -651,9 +653,11 @@ function getLetterQuestion(pack: LanguagePack, state: LearnerState, baseLanguage
     correct_option_id: letter.id,
     correct_answer_label: getLetterAnswerLabel(letter, baseLanguage),
     answer_explanation: buildLetterExplanation(letter, baseLanguage),
-    target_audio_text: letter.character,
+    target_audio_text: letter.spoken_name ?? letter.character,
     target_audio_lang: pack.language.bcp47,
-    audio: letter.audio
+    audio: letter.audio,
+    secondary_audio: letter.sound_audio,
+    secondary_audio_text: letter.sound
   };
 }
 

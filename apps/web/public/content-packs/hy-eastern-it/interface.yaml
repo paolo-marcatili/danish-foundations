@@ -12,7 +12,7 @@ text:
   close: Chiudi
   backHome: Torna
   chooseTraining: Scegli allenamento
-  trainingMenuTitle: Che allenamento trova l eroe?
+  trainingMenuTitle: Come vuoi allenare l’eroe?
   training: Allenamento
   fightTitle: Sfida
   question: Domanda
@@ -63,16 +63,16 @@ text:
   resetConfirm: Ricomincia
   vocabularyTitle: Vocabolario -> Forza
   vocabularyShort: Parole
-  vocabularyBody: 'Lettere e parole armene fanno crescere la Forza: piu Forza significa colpi piu grandi.'
+  vocabularyBody: 'Lettere e parole armene fanno crescere la Forza: più Forza significa colpi più potenti.'
   comprehensionTitle: Comprensione -> Difesa
   comprehensionShort: Suoni
-  comprehensionBody: 'Ascolta l audio armeno e scegli il significato: la Difesa riduce i danni degli errori.'
+  comprehensionBody: 'Ascolta l’audio armeno e scegli il significato: la Difesa riduce i danni degli errori.'
   pronunciationTitle: Pronuncia -> Resistenza
   pronunciationShort: Eco
-  pronunciationBody: 'Allena suoni, sillabe e traslitterazione senza registrazione: la Resistenza aumenta l energia dell eroe.'
+  pronunciationBody: 'Allena suoni, sillabe e traslitterazione senza registrazione: la Resistenza aumenta l’energia dell’eroe.'
   grammarTitle: Grammatica -> Precisione
   grammarShort: Puzzle
-  grammarBody: 'Ordina frasi e scegli le forme corrette: la Precisione rende i colpi piu efficaci.'
+  grammarBody: 'Ordina frasi e scegli le forme corrette: la Precisione rende i colpi più efficaci.'
   lettersTitle: Lettere armene -> Forza
   lettersShort: Lettere
   lettersBody: Riconosci le lettere armene. Utile per leggere parole nuove.
@@ -93,20 +93,20 @@ text:
   checkAnswer: Controlla
   wordsSelected: '{selected} di {total} parole'
   chooseMeaning: Scegli il significato.
-  comprehensionHint: Ascolta l armeno e scegli il significato.
+  comprehensionHint: Ascolta l’armeno e scegli il significato.
   pronunciationHint: Scegli come si legge o si divide in suoni.
-  grammarHint: Scegli la parola armena che completa l idea.
+  grammarHint: Scegli la parola armena che completa l’idea.
   letterHint: Scegli il suono della lettera armena.
   sayItLike: Si legge
   start: Inizia
-  trainHint: 10 domande rapide. L eroe reagisce subito e va avanti.
-  fightHint: '10 secondi per domanda. Giusto: l eroe colpisce. Sbagliato: il mostro colpisce.'
+  trainHint: 10 domande rapide. L’eroe reagisce subito e va avanti.
+  fightHint: 'Il tempo offre soltanto un bonus al colpo. Una risposta lenta resta valida; il mostro colpisce solo dopo un errore.'
   packWarning: 'Contenuto demo: da revisionare da madrelingua.'
   levelGate: Per salire di livello devi sconfiggere il mostro del sentiero.
   woodenSword: Spada di legno
   woodenSwordDesc: +1 Forza. Una prima spada da avventuriero.
   runnerBoots: Stivali veloci
-  runnerBootsDesc: +1 Resistenza. Aiutano l eroe a non stancarsi.
+  runnerBootsDesc: +1 Resistenza. Aiutano l’eroe a non stancarsi.
   blueCape: Mantello blu
   blueCapeDesc: +1 Difesa. Morbido, brillante e molto eroico.
   starShield: Scudo stellare
@@ -147,8 +147,8 @@ text:
   adminEmoji: Emoji o simbolo
   adminTransliteration: Traslitterazione
   adminTags: Tag, separati da virgole
-  adminDuplicateFound: 'Elemento gia presente:'
-  adminDuplicateAudio: Il merge aggiungera l audio come nuova registrazione, senza sovrascrivere.
+  adminDuplicateFound: 'Elemento già presente:'
+  adminDuplicateAudio: Il merge aggiungerà l’audio come nuova registrazione, senza sovrascrivere.
   adminAudio: Audio
   adminRecording: Registrando...
   adminRecorded: Registrazione pronta
@@ -163,7 +163,7 @@ text:
   adminCurrentVocabulary: Vocabolario attuale
   adminSearch: Cerca
   adminSearchPlaceholder: parola, traduzione o suono
-  adminAutoAudioHint: Senza registrazione useremo audio automatico/browser TTS finche qualcuno registra una voce reale.
+  adminAutoAudioHint: Senza registrazione useremo audio automatico/browser TTS finché qualcuno registra una voce reale.
   adminMergedLocal: 'Salvato sul dispositivo: {items} parole/frasi, {grammar} frasi, {audio} audio/fallback.'
   adminImported: 'Importato: {items} parole/frasi, {grammar} frasi, {audio} audio/fallback.'
   adminImportFailed: 'Import fallito: controlla che sia un JSON contributo valido.'
@@ -171,8 +171,8 @@ text:
   adminRecordingUnsupported: Questo browser non supporta la registrazione audio.
   adminRecordingDenied: Microfono non disponibile o permesso negato.
   adminMissingTarget: Aggiungi prima la parola o frase armena.
-  adminWillAppend: 'Contributo creato: verra unito all elemento esistente.'
-  adminWillCreate: 'Contributo creato: verra aggiunto come nuovo elemento.'
+  adminWillAppend: 'Contributo creato: verrà unito all’elemento esistente.'
+  adminWillCreate: 'Contributo creato: verrà aggiunto come nuovo elemento.'
   needsTraining: Serve allenamento
   trainMore: Allena prima
   requirementsMet: Requisiti ok
@@ -184,7 +184,7 @@ text:
   pickleBoots: Stivali cetriolino
   pickleBootsDesc: +2 Precisione, +2 Resistenza. Buffi ma velocissimi.
   lionMask: Maschera leone
-  lionMaskDesc: +4 Forza. Ruggisce anche quando l eroe ride.
+  lionMaskDesc: +4 Forza. Ruggisce anche quando l’eroe ride.
   settings: Impostazioni
   settingsTitle: Impostazioni eroe
   settingsProfiles: Profili bambini
@@ -219,7 +219,7 @@ text:
   debugMode: Mostra debug e misure
   editDictionary: Modifica dizionario
   resetProgress: Reset progresso eroe
-  adminComplexity: Complessita
+  adminComplexity: Complessità
   adminComplexityShort: C
   adminWaitForRecording: Aspetta la fine della registrazione.
   adminAutoMergedLocal: 'Audio salvato automaticamente: {items} parole/frasi, {grammar} frasi, {audio} audio/fallback.'
@@ -231,9 +231,9 @@ text:
   targetChallenge: Bersaglio buffo
   runeChallenge: Porta delle rune
   echoChallenge: Cristallo eco
-  audioHumanOnlyHint: In modalita solo voci reali, le voci automatiche sono mute finche non registri audio umano.
+  audioHumanOnlyHint: In modalità solo voci reali, le voci automatiche sono mute finché non registri audio umano.
   communityMergeTitle: Contributi community
-  communityMergeBody: 'Per una community, la strada semplice e: salva qui per giocare subito, esporta il pack o contributo JSON, poi apri una Pull Request o importa il JSON di un altro utente con il pulsante Importa e unisci.'
+  communityMergeBody: 'Per una community, la strada più semplice è: salva qui per giocare subito, esporta il pack o contributo JSON, poi apri una Pull Request o importa il JSON di un altro utente con il pulsante Importa e unisci.'
   mobileDocs: Istruzioni mobile
   packName: Armeno orientale · Italiano
   switchHero: Cambia eroe
@@ -267,11 +267,11 @@ text:
   heroSpriteGreen: Guardiano verde
   heroSpriteRose: Campionessa rosa
   heroSpriteAdventurer: Avventuriero
-  heroSpriteHint: L eroe usa uno sprite unico con spada, scudo e armatura leggera inclusi. Questo rende le animazioni piu pulite e facili da migliorare con strumenti grafici.
-  trainingFailedTitle: Sessione non completata
-  trainingFailedBody: 'Troppi errori: l allenamento non aumenta le statistiche e non conta per sfidare i mostri.'
+  heroSpriteHint: L’eroe usa uno sprite unico con spada, scudo e armatura leggera inclusi. Questo rende le animazioni più pulite e facili da migliorare con strumenti grafici.
+  trainingFailedTitle: Allenamento concluso
+  trainingFailedBody: 'Hai completato la sessione e ottenuto la pietra. Per aumentare l’attributo, prova a commettere meno errori la prossima volta.'
   audioUnavailableTitle: Serve una voce reale
-  audioUnavailableBody: Questo allenamento usa il suono per rispondere. Con 'Solo voci reali' attivo, registra prima almeno una voce umana oppure abilita l audio automatico nelle impostazioni.
+  audioUnavailableBody: Questo allenamento usa il suono per rispondere. Con “Solo voci reali” attivo, registra prima almeno una voce umana oppure abilita l’audio automatico nelle impostazioni.
   power: Forza
   shield: Difesa
   accuracy: Precisione
@@ -279,7 +279,7 @@ text:
   listening: Comprensione
   listeningTitle: Comprensione -> Difesa
   listeningShort: Suoni
-  listeningBody: 'Ascolta l audio armeno e scegli il significato: la Difesa riduce i danni degli errori.'
+  listeningBody: 'Ascolta l’audio armeno e scegli il significato: la Difesa riduce i danni degli errori.'
   damageAbsorbed: 'Assorbito: {value}'
   weakHit: Colpetto!
   normalHit: Bel colpo!
@@ -290,8 +290,8 @@ text:
   heroBlocked: Parata!
   trainingDummy: Pupazzo
   echoCrystal: Cristallo eco
-  tapWordsInOrder: Tocca le parole nell ordine giusto
-  resetOrder: Ricomincia ordine
+  tapWordsInOrder: Tocca le parole nell’ordine giusto
+  resetOrder: Ricomincia
   fightMistakeHint: La Resistenza e la Difesa decidono quanti colpi puoi sopportare.
   labyrinthTraining: Allenamento speciale
   labyrinthTitle: Labirinto delle Rovine Incantate
@@ -323,8 +323,8 @@ text:
   labyrinthTrapCleared: Trappola superata! Il sentiero è di nuovo sicuro.
   labyrinthMonsterCleared: Creatura sconfitta! Le rovine si fanno più tranquille.
   labyrinthCacheFound: Hai trovato una piccola scorta di monete. Le porterai fuori se completi la spedizione.
-  labyrinthHealingFound: La fontana magica restituisce un cuore.
-  labyrinthHealingFull: La fontana brilla, ma hai già tutti i cuori.
+  labyrinthHealingFound: La fontana magica ti restituisce un cuore.
+  labyrinthHealingFull: La fontana brilla, ma hai già tutti i cuori. Puoi tornare a usarla più tardi.
   labyrinthRevealFound: L'obelisco illumina nuovi sentieri nella nebbia.
   labyrinthRunCoins: +{coins} monete trovate
   labyrinthFailedTitle: La spedizione è finita
@@ -373,7 +373,7 @@ text:
   labyrinthCacheEventTitle: Cassa nascosta
   labyrinthCacheEventBody: Una piccola cassa potrebbe contenere monete per il tesoro finale.
   labyrinthHealingEventTitle: Fonte curativa
-  labyrinthHealingEventBody: L'acqua luminosa può restituire un cuore.
+  labyrinthHealingEventBody: L’acqua luminosa può restituire un cuore. Se sei già al massimo, la fonte resta disponibile.
   labyrinthRevealEventTitle: Obelisco della mappa
   labyrinthRevealEventBody: L'obelisco dirada la nebbia e mostra nuove stanze.
   labyrinthTreasureEventTitle: Camera del tesoro
@@ -382,7 +382,7 @@ text:
   labyrinthLogMoved: Un'altra stanza emerge dalla nebbia.
   labyrinthLogCache: 'Cassa trovata: {coins} monete attendono nel bottino.'
   labyrinthLogHealing: La fonte restituisce un cuore.
-  labyrinthLogHealingFull: La fonte brilla, ma i cuori sono già al massimo.
+  labyrinthLogHealingFull: La fonte resta intatta: potrai tornare quando avrai perso un cuore.
   labyrinthLogReveal: L'obelisco illumina una parte della mappa.
   labyrinthLogTreasureLocked: 'Una barriera protegge il tesoro: mancano ancora delle rune.'
   labyrinthLogRuneEncounter: Una runa sfida l'eroe.
@@ -409,9 +409,35 @@ text:
   speedBonusEarned: Bonus velocità +{value}%
   speedBonusSetting: Usa il bonus velocità nei combattimenti
   offlinePreparing: Preparazione offline
+  offlineAppPreparing: Download dell’app
+  offlineAudioPreparing: Download dell’audio
+  offlineRetry: Riprova
+  offlineFilesMissing: '{count} file da riprovare'
   offlineReady: Pronto offline
   offlineMode: Modalità offline
   offlineUpdate: Aggiorna app
   starDragon: Drago delle Stelle
   adminStage: Livello di introduzione
   adminStageShort: Livello
+
+  currentChapter: Capitolo attuale
+  previousChapter: Capitolo precedente
+  openChapterReader: Apri storia e lezione
+  readChapter: Leggi
+  chapterReaderTitle: Libro dei capitoli
+  chapterStory: Storia
+  chapterLesson: Lezione
+  chapterMission: Missione
+  watchOut: Attenzione
+  playTargetAudio: Ascolta la parola o la frase
+  playLetterAudio: Ascolta il nome della lettera
+  playLetterSound: Ascolta il suono della lettera
+  installApp: Installa app
+  installAppTitle: Metti il campo sulla schermata Home
+  installAppReady: Installa
+  installIosStep1: Apri questa pagina in Safari.
+  installIosStep2: Tocca il pulsante Condividi.
+  installIosStep3: Scegli “Aggiungi alla schermata Home”.
+  installIosStep4: Attiva “Apri come app web”, quindi tocca “Aggiungi”.
+  installGenericBody: Installa l’app per aprirla a schermo intero e usarla più facilmente offline.
+  installAlreadyInstalled: App già installata

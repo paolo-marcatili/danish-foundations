@@ -4,9 +4,9 @@ An open-source gamified learning prototype for low-resource, minority, heritage,
 
 The current MVP teaches **Eastern Armenian through Italian** with a mobile-friendly 2D pixel side-scroller. The project is intentionally structured so a community language can work with reviewed text and human audio even when commercial TTS, ASR, or pronunciation scoring is unavailable.
 
-## What is in the v0.13.1 curriculum and offline build
+## What is in the v0.14 chapter, audio, and offline build
 
-The v0.13.1 build adds a staged Level 0–8 curriculum, controlled `stage:*` and `tier:*` tags, training stones that unlock each labyrinth expedition, a soft fight speed bonus, and a generated service worker that caches the complete GitHub Pages build for offline use. Existing profiles migrate once from the old Level 1 start to the new Level 0 start without losing mastery, coins, inventory, or completed sessions.
+The v0.14 build keeps the staged Level 0–8 curriculum and adds a full-screen chapter reader, an audited Italian course layer, resumable offline installation, direct word and letter audio controls, an install-app guide, and pack-defined reusable monster visuals. Existing mastery, coins, inventory, sessions, stones, and labyrinth progress are preserved.
 
 The stable contextual layout remains: the side-scroller stays visible beside training and fight questions, while labyrinth questions temporarily prioritize the encounter animation and question panel.
 
@@ -17,9 +17,9 @@ The stable contextual layout remains: the side-scroller stays visible beside tra
   - `interface.yaml` for all UI/menu text.
   - `tags.yaml` for controlled semantic tags.
   - `tasks.yaml` for training mappings and session settings.
-  - `levels.yaml` for staged learning goals, grammar guidance, stat caps, soft fight timing, and fight-entry requirements.
+  - `levels.yaml` for staged learning goals, chapter references, stat caps, soft fight timing, and fight-entry requirements.
   - `enemies.yaml` for monsters, levels, tags, rewards, and preferred skills.
-  - `story.yaml` for milestones and next tasks.
+  - `story.yaml` for structured fictional chapters, grammar lectures, examples, mistakes, and missions.
   - `labyrinths.yaml` for maze size, question budget, hearts, tags, and rewards.
   - `dictionary/*.jsonl` for words, letters, and sentence-order practice.
 - Training/stat mappings are now:
@@ -56,7 +56,11 @@ The stable contextual layout remains: the side-scroller stays visible beside tra
 - Active training and fights use a fixed responsive session layout: the side-scroller stays visible while questions scroll in a dedicated side panel on desktop or bottom panel on phones.
 - The labyrinth keeps its camera visible during encounters and now has a persistent translated adventure log, clearer event cards, and no dragon token inside the maze.
 - Settings include a developer viewport simulator for iPhone, Android, small-phone, tablet, landscape, and forced desktop layouts.
-- The Story/Task panel can expand into pack-authored chapters and reading passages.
+- The compact Story/Task panel opens a distraction-free chapter reader containing the fictional scene, grammar lecture, examples, mission, and all previously unlocked chapters.
+- Offline installation is resumable: application files and audio are checked separately, failed downloads can be retried, and a previous complete cache remains available during updates.
+- Vocabulary questions expose available Armenian audio directly. Letter practice supports the spoken letter name and an optional separately reviewed phoneme recording.
+- The install button opens the native browser prompt where supported and clear Add-to-Home-Screen instructions on iPhone.
+- Enemy artwork is addressed by pack-defined asset keys, rows, variants, scale, and tint. Later levels can reuse a monster with stronger stats and a different visual treatment.
 - Content import tools preserve user lesson sources, provenance, alternative meanings/transliterations, and a native-review report.
 
 The expanded draft pack contains 629 vocabulary/phrase entries, 281 sentence exercises, and all 39 modern Armenian letters. Normal training uses a compact staged core; the broader imported dictionary remains visible as extension material until reviewed. Existing human/automated preview files were preserved, but the importer does not synthesize new gameplay audio. The Armenian content is demo content and still needs fluent/native-speaker review.
@@ -66,7 +70,7 @@ The expanded draft pack contains 629 vocabulary/phrase entries, 281 sentence exe
 - Node.js 20.19+ or 22.12+.
 - npm 10 or newer.
 - Git.
-- Optional: an Azure Speech resource if you want to generate the reviewed Armenian neural-audio candidate set described in `docs/ARMENIAN_NEURAL_AUDIO.md`.
+- Optional: an Azure Speech resource if you want to generate the Armenian neural-audio candidate set described in `docs/ARMENIAN_AUDIO_GENERATION.md`.
 - The active renderer is Phaser 2D in `apps/web/src/components/PhaserWorld.tsx`.
 
 ## Most useful guides
@@ -119,7 +123,7 @@ apps/
         HeroStatsPanel.tsx      Hero status and capped attributes
         QuestionCard.tsx        Training/fight question UI
         ShopPanel.tsx           Level-unlocked item backlog
-        StoryPanel.tsx          Visible next task / story milestone
+        StoryPanel.tsx          Compact chapter card and full-screen reader
 packages/
   content-schema/              Shared pack types, YAML/JSONL loader, validation
   learning-engine/             Scoring, mastery, coins, caps, distractors, questions
@@ -164,7 +168,7 @@ Install Git LFS before the first `git add`; see `docs/git-first-setup.md` for th
 ```bash
 git init -b main
 git add .
-git commit -m "Hero Language Camp v0.13.1"
+git commit -m "Hero Language Camp v0.14.0"
 ```
 
 Create an empty GitHub repository named `hero-language-camp`, then connect and push:
@@ -191,7 +195,7 @@ npm run validate:content   # Validate the default language pack
 npm run typecheck          # Run TypeScript checks
 npm run check              # Validate content and typecheck
 npm run content:restructure # Rebuild controlled curriculum tags and core sequencing
-npm run content:auto-audio # Generate Armenian neural audio (requires Azure credentials)
+npm run content:auto-audio # Generate core Armenian neural audio (requires Azure credentials)
 npm run content:merge -- ./contribution.json # Merge admin-panel content/audio
 npm run assets:import-companion -- /path/to/dragon-sheets.zip # Normalize 25-frame dragon sheets
 npm run assets:generate-labyrinth-walls # Restore low single-edge labyrinth wall guides

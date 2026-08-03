@@ -2,187 +2,434 @@ title:
   it: Il Sentiero delle Scintille
   en: The Spark Path
 opening:
-  it: Ogni campo insegna poche parole utili e una regola magica. Gli allenamenti donano pietre diverse; la combinazione sulla porta apre il labirinto.
-  en: Each camp teaches a small set of useful words and one magic rule. Training grants different stones; the combination on the door opens the labyrinth.
+  it: Ogni capitolo unisce una piccola avventura a una lezione chiara. Puoi riaprire in qualsiasi momento i capitoli già scoperti.
+  en: Ogni capitolo unisce una piccola avventura a una lezione chiara. Puoi riaprire in qualsiasi momento i capitoli già scoperti.
 milestones: []
 chapters:
   - id: chapter_stage_0
     minimum_level: 0
     title:
-      it: Livello 0 · Prime scintille
-      en: Level 0 · Prime scintille
-    body:
-      it: 'Missione · Lettere, saluti e parole essenziali.
-
-
-        Regola magica · Anche una sola parola può essere un messaggio completo.
-
-
-        Esempi · Բարև։ — Ciao! · Շնորհակալություն։ — Grazie.'
-      en: 'Mission · Letters, greetings and essential words.
-
-
-        Magic rule · Even one word can be a complete message.
-
-
-        Examples · Բարև։ — Hello! · Շնորհակալություն։ — Thank you.'
+      it: Capitolo 0 · Le prime scintille
+      en: Chapter 0 · The first sparks
+    summary:
+      it: Riconosci le prime lettere e usa saluti brevi ma utili.
+      en: Riconosci le prime lettere e usa saluti brevi ma utili.
+    fiction:
+      it: 'Al limitare del campo, una piccola scintilla si posa sul palmo dell’eroe. La scintilla non parla ancora: disegna lettere nell’aria. Ogni lettera accesa fa comparire una parola capace di aprire il primo sentiero.'
+      en: 'Al limitare del campo, una piccola scintilla si posa sul palmo dell’eroe. La scintilla non parla ancora: disegna lettere nell’aria. Ogni lettera accesa fa comparire una parola capace di aprire il primo sentiero.'
+    lesson:
+      title:
+        it: Lettere e messaggi di una parola
+        en: Lettere e messaggi di una parola
+      objectives:
+        - it: Riconoscere un primo gruppo di lettere armene.
+          en: Riconoscere un primo gruppo di lettere armene.
+        - it: Salutare, ringraziare e rispondere sì o no.
+          en: Salutare, ringraziare e rispondere sì o no.
+      explanation:
+        it: "L’armeno ha un alfabeto proprio. Inizia osservando la forma delle lettere e collegandola al loro nome e al loro suono. Non serve impararle tutte insieme.\n\nAnche una sola parola può essere una frase completa: Բարև significa «Ciao», mentre Այո e Ոչ significano «Sì» e «No»."
+        en: "L’armeno ha un alfabeto proprio. Inizia osservando la forma delle lettere e collegandola al loro nome e al loro suono. Non serve impararle tutte insieme.\n\nAnche una sola parola può essere una frase completa: Բարև significa «Ciao», mentre Այո e Ոչ significano «Sì» e «No»."
+      examples:
+        - target: Բարև։
+          transliteration: barev
+          translation:
+            it: Ciao!
+            en: Ciao!
+        - target: Շնորհակալություն։
+          transliteration: shnorhakalutyun
+          translation:
+            it: Grazie.
+            en: Grazie.
+        - target: Այո։ / Ոչ։
+          transliteration: ayo / voch
+          translation:
+            it: Sì. / No.
+            en: Sì. / No.
+      common_mistakes:
+        - it: 'Non cercare di leggere ogni lettera come se fosse latina: ascolta prima il modello armeno.'
+          en: 'Non cercare di leggere ogni lettera come se fosse latina: ascolta prima il modello armeno.'
+    mission:
+      it: Accendi le prime rune pronunciando saluti e riconoscendo le lettere del capitolo.
+      en: Accendi le prime rune pronunciando saluti e riconoscendo le lettere del capitolo.
   - id: chapter_stage_1
     minimum_level: 1
     title:
-      it: Livello 1 · Chi sono?
-      en: Level 1 · Chi sono?
-    body:
-      it: 'Missione · Presentarsi e chiedere il nome.
-
-
-        Regola magica · In armeno la piccola forma del verbo «essere» spesso arriva alla fine.
-
-
-        Esempi · Ես Անի եմ։ — Sono Ani. · Ի՞նչ է քո անունը։ — Come ti chiami?'
-      en: 'Missione · Presentarsi e chiedere il nome.
-
-
-        Regola magica · In armeno la piccola forma del verbo «essere» spesso arriva alla fine.
-
-
-        Esempi · Ես Անի եմ։ — Sono Ani. · Ի՞նչ է քո անունը։ — Come ti chiami?'
+      it: Capitolo 1 · Il guardiano dei nomi
+      en: Chapter 1 · The guardian of names
+    summary:
+      it: Presentati, chiedi il nome e usa le forme più comuni del verbo essere.
+      en: Presentati, chiedi il nome e usa le forme più comuni del verbo essere.
+    fiction:
+      it: Il primo ponte è sorvegliato da un guardiano che ha dimenticato tutti i nomi. Lascia passare soltanto chi sa dire chi è e sa chiedere con gentilezza il nome di un’altra persona.
+      en: Il primo ponte è sorvegliato da un guardiano che ha dimenticato tutti i nomi. Lascia passare soltanto chi sa dire chi è e sa chiedere con gentilezza il nome di un’altra persona.
+    lesson:
+      title:
+        it: Presentarsi con il verbo essere
+        en: Presentarsi con il verbo essere
+      objectives:
+        - it: Dire il proprio nome.
+          en: Dire il proprio nome.
+        - it: Chiedere il nome a un’altra persona.
+          en: Chiedere il nome a un’altra persona.
+        - it: Riconoscere եմ, ես ed է nelle frasi semplici.
+          en: Riconoscere եմ, ես ed է nelle frasi semplici.
+      explanation:
+        it: "Nelle frasi armene più semplici, la forma del verbo «essere» arriva spesso alla fine. Ես significa «io» e եմ significa «sono».\n\nPer chiedere il nome si usa Ի՞նչ է քո անունը։, letteralmente «Qual è il tuo nome?». Nella traduzione italiana naturale diciamo «Come ti chiami?»."
+        en: "Nelle frasi armene più semplici, la forma del verbo «essere» arriva spesso alla fine. Ես significa «io» e եմ significa «sono».\n\nPer chiedere il nome si usa Ի՞նչ է քո անունը։, letteralmente «Qual è il tuo nome?». Nella traduzione italiana naturale diciamo «Come ti chiami?»."
+      examples:
+        - target: Ես Անի եմ։
+          transliteration: yes Ani em
+          translation:
+            it: Sono Ani.
+            en: Sono Ani.
+          note:
+            it: եմ corrisponde a «sono».
+            en: եմ corrisponde a «sono».
+        - target: Ի՞նչ է քո անունը։
+          transliteration: inch e qo anuny
+          translation:
+            it: Come ti chiami?
+            en: Come ti chiami?
+        - target: Իմ անունը Անի է։
+          transliteration: im anuny Ani e
+          translation:
+            it: Mi chiamo Ani.
+            en: Mi chiamo Ani.
+          note:
+            it: La traduzione letterale è «Il mio nome è Ani».
+            en: La traduzione letterale è «Il mio nome è Ani».
+      common_mistakes:
+        - it: 'Non tradurre sempre parola per parola: in italiano «Mi chiamo Ani» è più naturale di «Il mio nome è Ani».'
+          en: 'Non tradurre sempre parola per parola: in italiano «Mi chiamo Ani» è più naturale di «Il mio nome è Ani».'
+    mission:
+      it: Di’ il tuo nome al guardiano e scopri come si chiama.
+      en: Di’ il tuo nome al guardiano e scopri come si chiama.
   - id: chapter_stage_2
     minimum_level: 2
     title:
-      it: Livello 2 · La mia famiglia
-      en: Level 2 · La mia famiglia
-    body:
-      it: 'Missione · Famiglia, possesso e descrizioni.
-
-
-        Regola magica · իմ significa «mio/mia»; սա introduce una persona o una cosa vicina.
-
-
-        Esempi · Սա իմ մայրն է։ — Questa è mia madre. · Մեր տունը մեծ է։ — La nostra casa è grande.'
-      en: 'Missione · Famiglia, possesso e descrizioni.
-
-
-        Regola magica · իմ significa «mio/mia»; սա introduce una persona o una cosa vicina.
-
-
-        Esempi · Սա իմ մայրն է։ — Questa è mia madre. · Մեր տունը մեծ է։ — La nostra casa è grande.'
+      it: Capitolo 2 · La casa delle fotografie
+      en: Chapter 2 · The house of photographs
+    summary:
+      it: Parla della famiglia, indica persone e cose, e usa mio/mia.
+      en: Parla della famiglia, indica persone e cose, e usa mio/mia.
+    fiction:
+      it: In una casa illuminata dalla luna, le fotografie hanno perso le etichette. L’eroe deve riconoscere i membri della famiglia e restituire a ogni ritratto il nome giusto.
+      en: In una casa illuminata dalla luna, le fotografie hanno perso le etichette. L’eroe deve riconoscere i membri della famiglia e restituire a ogni ritratto il nome giusto.
+    lesson:
+      title:
+        it: Questo è… e mio/mia
+        en: Questo è… e mio/mia
+      objectives:
+        - it: Presentare una persona o una cosa vicina.
+          en: Presentare una persona o una cosa vicina.
+        - it: Usare իմ con i nomi della famiglia.
+          en: Usare իմ con i nomi della famiglia.
+        - it: Descrivere con un aggettivo semplice.
+          en: Descrivere con un aggettivo semplice.
+      explanation:
+        it: "Սա significa «questo/questa» e introduce qualcosa di vicino. Իմ significa «mio/mia». L’articolo e il genere che usiamo in italiano dipendono dal nome, anche se l’armeno non li esprime nello stesso modo.\n\nNella frase Սա իմ մայրն է։, la forma է chiude la frase con il significato di «è»."
+        en: "Սա significa «questo/questa» e introduce qualcosa di vicino. Իմ significa «mio/mia». L’articolo e il genere che usiamo in italiano dipendono dal nome, anche se l’armeno non li esprime nello stesso modo.\n\nNella frase Սա իմ մայրն է։, la forma է chiude la frase con il significato di «è»."
+      examples:
+        - target: Սա իմ մայրն է։
+          transliteration: sa im mayrn e
+          translation:
+            it: Questa è mia madre.
+            en: Questa è mia madre.
+        - target: Սա իմ հայրն է։
+          transliteration: sa im hayrn e
+          translation:
+            it: Questo è mio padre.
+            en: Questo è mio padre.
+        - target: Մեր տունը մեծ է։
+          transliteration: mer tuny mets e
+          translation:
+            it: La nostra casa è grande.
+            en: La nostra casa è grande.
+      common_mistakes:
+        - it: In italiano scegli «questo» o «questa» in base al nome; non usare una forma doppia come «questo/questa».
+          en: In italiano scegli «questo» o «questa» in base al nome; non usare una forma doppia come «questo/questa».
+    mission:
+      it: Rimetti in ordine le fotografie e presenta la famiglia al custode della casa.
+      en: Rimetti in ordine le fotografie e presenta la famiglia al custode della casa.
   - id: chapter_stage_3
     minimum_level: 3
     title:
-      it: Livello 3 · Ho fame e sete
-      en: Level 3 · Ho fame e sete
-    body:
-      it: 'Missione · Bisogni, cibo e richieste gentili.
-
-
-        Regola magica · Per dire ciò che desideri puoi usare ուզում եմ: «voglio».
-
-
-        Esempi · Ես ջուր եմ ուզում։ — Voglio dell''acqua. · Ես սոված եմ։ — Ho fame.'
-      en: 'Missione · Bisogni, cibo e richieste gentili.
-
-
-        Regola magica · Per dire ciò che desideri puoi usare ուզում եմ: «voglio».
-
-
-        Esempi · Ես ջուր եմ ուզում։ — Voglio dell''acqua. · Ես սոված եմ։ — Ho fame.'
+      it: Capitolo 3 · Il banchetto silenzioso
+      en: Chapter 3 · The silent banquet
+    summary:
+      it: Esprimi fame, sete e desideri; chiedi cibo e bevande con gentilezza.
+      en: Esprimi fame, sete e desideri; chiedi cibo e bevande con gentilezza.
+    fiction:
+      it: Nel refettorio incantato il cibo appare soltanto quando qualcuno formula una richiesta chiara. Piatti e bicchieri restano vuoti finché l’eroe non impara a dire ciò che desidera.
+      en: Nel refettorio incantato il cibo appare soltanto quando qualcuno formula una richiesta chiara. Piatti e bicchieri restano vuoti finché l’eroe non impara a dire ciò che desidera.
+    lesson:
+      title:
+        it: Dire ciò che vuoi e ciò di cui hai bisogno
+        en: Dire ciò che vuoi e ciò di cui hai bisogno
+      objectives:
+        - it: Dire «Ho fame» e «Ho sete».
+          en: Dire «Ho fame» e «Ho sete».
+        - it: Usare ուզում եմ per esprimere un desiderio.
+          en: Usare ուզում եմ per esprimere un desiderio.
+        - it: Aggiungere «per favore» a una richiesta.
+          en: Aggiungere «per favore» a una richiesta.
+      explanation:
+        it: "Ուզում եմ significa «voglio». L’oggetto desiderato viene espresso nella frase armena senza gli articoli italiani. In italiano, però, scegliamo la forma naturale: «del pane», «dell’acqua», «una mela», «della torta».\n\nԵս սոված եմ e Ես ծարավ եմ significano «Ho fame» e «Ho sete»."
+        en: "Ուզում եմ significa «voglio». L’oggetto desiderato viene espresso nella frase armena senza gli articoli italiani. In italiano, però, scegliamo la forma naturale: «del pane», «dell’acqua», «una mela», «della torta».\n\nԵս սոված եմ e Ես ծարավ եմ significano «Ho fame» e «Ho sete»."
+      examples:
+        - target: Ես ջուր եմ ուզում։
+          transliteration: yes jur em uzum
+          translation:
+            it: Voglio dell’acqua.
+            en: Voglio dell’acqua.
+        - target: Ես սոված եմ։
+          transliteration: yes sovats em
+          translation:
+            it: Ho fame.
+            en: Ho fame.
+        - target: Խնդրում եմ։
+          transliteration: khndrum em
+          translation:
+            it: Per favore.
+            en: Per favore.
+      common_mistakes:
+        - it: 'In italiano non dire «Voglio torta»: usa «Voglio una torta» oppure «Voglio della torta», secondo il significato.'
+          en: 'In italiano non dire «Voglio torta»: usa «Voglio una torta» oppure «Voglio della torta», secondo il significato.'
+    mission:
+      it: Fai comparire il banchetto chiedendo correttamente ciò che serve agli ospiti.
+      en: Fai comparire il banchetto chiedendo correttamente ciò che serve agli ospiti.
   - id: chapter_stage_4
     minimum_level: 4
     title:
-      it: Livello 4 · La mia giornata
-      en: Level 4 · La mia giornata
-    body:
-      it: 'Missione · Azioni quotidiane e frasi utili a lezione.
-
-
-        Regola magica · Le forme del presente raccontano ciò che succede adesso o abitualmente.
-
-
-        Esempi · Ես դպրոց եմ գնում։ — Vado a scuola. · Չեմ հասկանում։ — Non capisco.'
-      en: 'Missione · Azioni quotidiane e frasi utili a lezione.
-
-
-        Regola magica · Le forme del presente raccontano ciò che succede adesso o abitualmente.
-
-
-        Esempi · Ես դպրոց եմ գնում։ — Vado a scuola. · Չեմ հասկանում։ — Non capisco.'
+      it: Capitolo 4 · La scuola che si muove
+      en: Chapter 4 · The moving school
+    summary:
+      it: Descrivi azioni quotidiane e usa frasi utili durante una lezione.
+      en: Descrivi azioni quotidiane e usa frasi utili durante una lezione.
+    fiction:
+      it: 'La scuola del campo cambia posto ogni mattina. Per raggiungerla, l’eroe deve raccontare che cosa fa: va, legge, scrive, ascolta e chiede di ripetere quando qualcosa non è chiaro.'
+      en: 'La scuola del campo cambia posto ogni mattina. Per raggiungerla, l’eroe deve raccontare che cosa fa: va, legge, scrive, ascolta e chiede di ripetere quando qualcosa non è chiaro.'
+    lesson:
+      title:
+        it: Azioni al presente
+        en: Azioni al presente
+      objectives:
+        - it: Parlare di azioni abituali o in corso.
+          en: Parlare di azioni abituali o in corso.
+        - it: Dire che vai a scuola, leggi, scrivi o ascolti.
+          en: Dire che vai a scuola, leggi, scrivi o ascolti.
+        - it: Chiedere aiuto quando non capisci.
+          en: Chiedere aiuto quando non capisci.
+      explanation:
+        it: "Le forme del presente raccontano ciò che accade adesso o abitualmente. In molte frasi armene una forma di եմ accompagna il verbo principale.\n\nՉեմ հասկանում significa «Non capisco». Կրկնիր, խնդրում եմ significa «Ripeti, per favore». Sono frasi importanti da poter usare davvero durante lo studio."
+        en: "Le forme del presente raccontano ciò che accade adesso o abitualmente. In molte frasi armene una forma di եմ accompagna il verbo principale.\n\nՉեմ հասկանում significa «Non capisco». Կրկնիր, խնդրում եմ significa «Ripeti, per favore». Sono frasi importanti da poter usare davvero durante lo studio."
+      examples:
+        - target: Ես դպրոց եմ գնում։
+          transliteration: yes dprots em gnum
+          translation:
+            it: Vado a scuola.
+            en: Vado a scuola.
+        - target: Ես գիրք եմ կարդում։
+          transliteration: yes girk em kardum
+          translation:
+            it: Leggo un libro.
+            en: Leggo un libro.
+        - target: Չեմ հասկանում։
+          transliteration: chem haskanum
+          translation:
+            it: Non capisco.
+            en: Non capisco.
+      common_mistakes:
+        - it: 'Non aggiungere sempre «sto» in italiano: spesso il presente semplice è la scelta più naturale.'
+          en: 'Non aggiungere sempre «sto» in italiano: spesso il presente semplice è la scelta più naturale.'
+    mission:
+      it: Segui la scuola in movimento e completa le istruzioni della maestra.
+      en: Segui la scuola in movimento e completa le istruzioni della maestra.
   - id: chapter_stage_5
     minimum_level: 5
     title:
-      it: Livello 5 · Dove siamo?
-      en: Level 5 · Dove siamo?
-    body:
-      it: 'Missione · Luoghi, qui/là e domande con dove.
-
-
-        Regola magica · Որտե՞ղ significa «dove?»; այստեղ e այնտեղ significano «qui» e «là».
-
-
-        Esempi · Որտե՞ղ է դպրոցը։ — Dov''è la scuola? · Այգին այնտեղ է։ — Il parco è là.'
-      en: 'Missione · Luoghi, qui/là e domande con dove.
-
-
-        Regola magica · Որտե՞ղ significa «dove?»; այստեղ e այնտեղ significano «qui» e «là».
-
-
-        Esempi · Որտե՞ղ է դպրոցը։ — Dov''è la scuola? · Այգին այնտեղ է։ — Il parco è là.'
+      it: Capitolo 5 · La mappa nella nebbia
+      en: Chapter 5 · The map in the mist
+    summary:
+      it: Chiedi dove si trova un luogo e distingui qui, lì e là.
+      en: Chiedi dove si trova un luogo e distingui qui, lì e là.
+    fiction:
+      it: Una nebbia fitta ha cancellato i nomi dalla mappa. Le strade ricompaiono soltanto quando l’eroe sa chiedere dove si trova un posto e comprendere una risposta.
+      en: Una nebbia fitta ha cancellato i nomi dalla mappa. Le strade ricompaiono soltanto quando l’eroe sa chiedere dove si trova un posto e comprendere una risposta.
+    lesson:
+      title:
+        it: Dove? Qui e là
+        en: Dove? Qui e là
+      objectives:
+        - it: Chiedere dove si trova un luogo.
+          en: Chiedere dove si trova un luogo.
+        - it: Comprendere այստեղ e այնտեղ.
+          en: Comprendere այստեղ e այնտեղ.
+        - it: Descrivere una posizione semplice.
+          en: Descrivere una posizione semplice.
+      explanation:
+        it: "Որտե՞ղ significa «dove?». Այստեղ significa «qui», mentre այնտեղ significa «lì/là».\n\nIn italiano usiamo l’apostrofo in «Dov’è…?». Quando il luogo è già noto, l’articolo è naturale: «Dov’è la scuola?»."
+        en: "Որտե՞ղ significa «dove?». Այստեղ significa «qui», mentre այնտեղ significa «lì/là».\n\nIn italiano usiamo l’apostrofo in «Dov’è…?». Quando il luogo è già noto, l’articolo è naturale: «Dov’è la scuola?»."
+      examples:
+        - target: Որտե՞ղ է դպրոցը։
+          transliteration: vortegh e dprotsy
+          translation:
+            it: Dov’è la scuola?
+            en: Dov’è la scuola?
+        - target: Այգին այնտեղ է։
+          transliteration: aygin ayntegh e
+          translation:
+            it: Il parco è là.
+            en: Il parco è là.
+        - target: Իմ ընկերը այստեղ է։
+          transliteration: im ynkery aystegh e
+          translation:
+            it: Il mio amico è qui.
+            en: Il mio amico è qui.
+      common_mistakes:
+        - it: Scrivi «Dov’è» con l’apostrofo, non «Dove è».
+          en: Scrivi «Dov’è» con l’apostrofo, non «Dove è».
+    mission:
+      it: Ricostruisci la mappa chiedendo la posizione dei luoghi nascosti.
+      en: Ricostruisci la mappa chiedendo la posizione dei luoghi nascosti.
   - id: chapter_stage_6
     minimum_level: 6
     title:
-      it: Livello 6 · Numeri e tempo
-      en: Level 6 · Numeri e tempo
-    body:
-      it: 'Missione · Età, numeri, oggi, domani e meteo.
-
-
-        Regola magica · I numeri e le parole del tempo aiutano a raccontare quando e quanto.
-
-
-        Esempi · Քանի՞ տարեկան ես։ — Quanti anni hai? · Այսօր եղանակը լավ է։ — Oggi il tempo è bello.'
-      en: 'Missione · Età, numeri, oggi, domani e meteo.
-
-
-        Regola magica · I numeri e le parole del tempo aiutano a raccontare quando e quanto.
-
-
-        Esempi · Քանի՞ տարեկան ես։ — Quanti anni hai? · Այսօր եղանակը լավ է։ — Oggi il tempo è bello.'
+      it: Capitolo 6 · L’orologio delle nuvole
+      en: Chapter 6 · The cloud clock
+    summary:
+      it: Usa numeri, età, oggi e domani per orientarti nel tempo.
+      en: Usa numeri, età, oggi e domani per orientarti nel tempo.
+    fiction:
+      it: 'Sopra il campo gira un orologio fatto di nuvole. Le sue lancette non indicano ore: mostrano numeri, età, giorni e cambiamenti del tempo.'
+      en: 'Sopra il campo gira un orologio fatto di nuvole. Le sue lancette non indicano ore: mostrano numeri, età, giorni e cambiamenti del tempo.'
+    lesson:
+      title:
+        it: Numeri, età e parole del tempo
+        en: Numeri, età e parole del tempo
+      objectives:
+        - it: Chiedere e dire l’età.
+          en: Chiedere e dire l’età.
+        - it: Usare oggi e domani.
+          en: Usare oggi e domani.
+        - it: Comprendere semplici frasi sul tempo atmosferico.
+          en: Comprendere semplici frasi sul tempo atmosferico.
+      explanation:
+        it: "Քանի՞ տարեկան ես։ significa «Quanti anni hai?». Per rispondere puoi usare Ես ութ տարեկան եմ։, «Ho otto anni».\n\nԱյսօր significa «oggi» e վաղը significa «domani». Queste parole spesso vengono all’inizio della frase per chiarire quando avviene l’azione."
+        en: "Քանի՞ տարեկան ես։ significa «Quanti anni hai?». Per rispondere puoi usare Ես ութ տարեկան եմ։, «Ho otto anni».\n\nԱյսօր significa «oggi» e վաղը significa «domani». Queste parole spesso vengono all’inizio della frase per chiarire quando avviene l’azione."
+      examples:
+        - target: Քանի՞ տարեկան ես։
+          transliteration: kani tarekan es
+          translation:
+            it: Quanti anni hai?
+            en: Quanti anni hai?
+        - target: Ես ութ տարեկան եմ։
+          transliteration: yes ut tarekan em
+          translation:
+            it: Ho otto anni.
+            en: Ho otto anni.
+        - target: Այսօր եղանակը լավ է։
+          transliteration: aysor yeghanaky lav e
+          translation:
+            it: Oggi il tempo è bello.
+            en: Oggi il tempo è bello.
+      common_mistakes:
+        - it: In italiano si dice «Ho otto anni», non «Sono otto anni».
+          en: In italiano si dice «Ho otto anni», non «Sono otto anni».
+    mission:
+      it: Rimetti in moto l’orologio rispondendo alle domande su numeri, giorni e tempo.
+      en: Rimetti in moto l’orologio rispondendo alle domande su numeri, giorni e tempo.
   - id: chapter_stage_7
     minimum_level: 7
     title:
-      it: Livello 7 · Noi e loro
-      en: Level 7 · Noi e loro
-    body:
-      it: 'Missione · Plurali e negazione.
-
-
-        Regola magica · ենք ed են sono forme plurali di «essere»; չենք rende negativa una forma con «noi».
-
-
-        Esempi · Մենք ընկերներ ենք։ — Siamo amici. · Մենք չենք գնում։ — Non andiamo.'
-      en: 'Missione · Plurali e negazione.
-
-
-        Regola magica · ենք ed են sono forme plurali di «essere»; չենք rende negativa una forma con «noi».
-
-
-        Esempi · Մենք ընկերներ ենք։ — Siamo amici. · Մենք չենք գնում։ — Non andiamo.'
+      it: Capitolo 7 · Il coro delle ombre
+      en: Chapter 7 · The chorus of shadows
+    summary:
+      it: Parla di noi e loro, forma il plurale e costruisci frasi negative.
+      en: Parla di noi e loro, forma il plurale e costruisci frasi negative.
+    fiction:
+      it: Nel teatro delle ombre nessuno può cantare da solo. Il coro si sveglia quando l’eroe sa parlare di più persone e sa dire anche ciò che non accade.
+      en: Nel teatro delle ombre nessuno può cantare da solo. Il coro si sveglia quando l’eroe sa parlare di più persone e sa dire anche ciò che non accade.
+    lesson:
+      title:
+        it: Noi, loro e la negazione
+        en: Noi, loro e la negazione
+      objectives:
+        - it: Usare «noi» e «loro».
+          en: Usare «noi» e «loro».
+        - it: Riconoscere ենք ed են.
+          en: Riconoscere ենք ed են.
+        - it: Formare una frase negativa con չենք.
+          en: Formare una frase negativa con չենք.
+      explanation:
+        it: "Մենք significa «noi» e նրանք significa «loro». Ենք ed են sono forme plurali del verbo «essere».\n\nLa forma չենք rende negativa una frase con «noi». In italiano i pronomi soggetto spesso si possono omettere: «Siamo amici» e «Non andiamo» sono più naturali di «Noi siamo amici» e «Noi non andiamo», salvo quando vuoi dare enfasi."
+        en: "Մենք significa «noi» e նրանք significa «loro». Ենք ed են sono forme plurali del verbo «essere».\n\nLa forma չենք rende negativa una frase con «noi». In italiano i pronomi soggetto spesso si possono omettere: «Siamo amici» e «Non andiamo» sono più naturali di «Noi siamo amici» e «Noi non andiamo», salvo quando vuoi dare enfasi."
+      examples:
+        - target: Մենք ընկերներ ենք։
+          transliteration: menk ynkerner enk
+          translation:
+            it: Siamo amici.
+            en: Siamo amici.
+        - target: Նրանք տանն են։
+          transliteration: nrank tann en
+          translation:
+            it: Sono a casa.
+            en: Sono a casa.
+        - target: Մենք չենք գնում։
+          transliteration: menk chenk gnum
+          translation:
+            it: Non andiamo.
+            en: Non andiamo.
+      common_mistakes:
+        - it: 'Non tradurre automaticamente ogni pronome armeno: in italiano spesso il verbo basta.'
+          en: 'Non tradurre automaticamente ogni pronome armeno: in italiano spesso il verbo basta.'
+    mission:
+      it: Fai cantare il coro componendo frasi al plurale e frasi negative.
+      en: Fai cantare il coro componendo frasi al plurale e frasi negative.
   - id: chapter_stage_8
     minimum_level: 8
     title:
-      it: Livello 8 · Piccole avventure
-      en: Level 8 · Piccole avventure
-    body:
-      it: 'Missione · Dialoghi brevi e comprensione integrata.
-
-
-        Regola magica · Combina saluti, persone, luoghi, tempo e azioni in un piccolo dialogo.
-
-
-        Esempi · Բարև, ես Անի եմ։ Իսկ դու՞։ — Ciao, sono Ani. E tu? · Այսօր մենք դպրոց ենք գնում։ — Oggi andiamo a scuola.'
-      en: 'Missione · Dialoghi brevi e comprensione integrata.
-
-
-        Regola magica · Combina saluti, persone, luoghi, tempo e azioni in un piccolo dialogo.
-
-
-        Esempi · Բարև, ես Անի եմ։ Իսկ դու՞։ — Ciao, sono Ani. E tu? · Այսօր մենք դպրոց ենք գնում։ — Oggi andiamo a scuola.'
+      it: Capitolo 8 · Il sentiero delle voci
+      en: Chapter 8 · The path of voices
+    summary:
+      it: Combina saluti, luoghi, tempo e azioni in brevi dialoghi.
+      en: Combina saluti, luoghi, tempo e azioni in brevi dialoghi.
+    fiction:
+      it: Le scintille raccolte lungo il viaggio diventano voci. Per raggiungere la cima, l’eroe deve ascoltare un piccolo dialogo e rispondere usando tutto ciò che ha imparato.
+      en: Le scintille raccolte lungo il viaggio diventano voci. Per raggiungere la cima, l’eroe deve ascoltare un piccolo dialogo e rispondere usando tutto ciò che ha imparato.
+    lesson:
+      title:
+        it: Costruire un piccolo dialogo
+        en: Costruire un piccolo dialogo
+      objectives:
+        - it: Collegare più frasi in uno scambio breve.
+          en: Collegare più frasi in uno scambio breve.
+        - it: Fare una domanda e rispondere.
+          en: Fare una domanda e rispondere.
+        - it: Riutilizzare parole dei capitoli precedenti.
+          en: Riutilizzare parole dei capitoli precedenti.
+      explanation:
+        it: "Un dialogo semplice nasce da blocchi già conosciuti: saluto, presentazione, domanda, risposta e informazione su luogo o tempo.\n\nNon serve creare frasi lunghe. È meglio usare poche strutture chiare e corrette, ascoltando il ritmo dell’armeno."
+        en: "Un dialogo semplice nasce da blocchi già conosciuti: saluto, presentazione, domanda, risposta e informazione su luogo o tempo.\n\nNon serve creare frasi lunghe. È meglio usare poche strutture chiare e corrette, ascoltando il ritmo dell’armeno."
+      examples:
+        - target: Բարև, ես Անի եմ։ Իսկ դու՞։
+          transliteration: barev, yes Ani em. isk du
+          translation:
+            it: Ciao, sono Ani. E tu?
+            en: Ciao, sono Ani. E tu?
+        - target: Այսօր մենք դպրոց ենք գնում։
+          transliteration: aysor menk dprots enk gnum
+          translation:
+            it: Oggi andiamo a scuola.
+            en: Oggi andiamo a scuola.
+        - target: Որտե՞ղ է դպրոցը։
+          transliteration: vortegh e dprotsy
+          translation:
+            it: Dov’è la scuola?
+            en: Dov’è la scuola?
+      common_mistakes:
+        - it: In un dialogo italiano naturale evita di ripetere sempre «io», «noi» e «loro» quando il verbo è già chiaro.
+          en: In un dialogo italiano naturale evita di ripetere sempre «io», «noi» e «loro» quando il verbo è già chiaro.
+    mission:
+      it: Completa il dialogo finale e apri il sentiero delle voci.
+      en: Completa il dialogo finale e apri il sentiero delle voci.

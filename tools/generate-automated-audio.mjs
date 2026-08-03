@@ -5,6 +5,7 @@ import { loadModularPack, parseJsonl, writeJsonl } from "./pack-utils.mjs";
 
 const args = new Set(process.argv.slice(3));
 const force = args.has("--force");
+const planOnly = args.has("--plan");
 const allContent = args.has("--all");
 const sampleOnly = args.has("--sample");
 const target = resolve(process.argv[2] ?? "content-packs/hy-eastern-it");
@@ -15,19 +16,10 @@ const region = process.env.AZURE_SPEECH_REGION;
 const voice = process.env.AZURE_SPEECH_VOICE || "hy-AM-AnahitNeural";
 const rate = process.env.AZURE_SPEECH_RATE || "-8%";
 const endpoint = process.env.AZURE_SPEECH_ENDPOINT || `https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`;
-if (!key || !region) {
-  console.error("Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION before generating neural Armenian audio.");
-  console.error("Example: AZURE_SPEECH_REGION=westeurope AZURE_SPEECH_KEY=... npm run content:auto-audio -- --force");
-  process.exit(2);
-}
-
 const pack = loadModularPack(target);
 const packSlug = pack.pack_id;
 const sourceDir = join(target, "audio", "auto-neural");
 const publicDir = join("apps", "web", "public", "content-packs", packSlug, "audio", "auto-neural");
-mkdirSync(sourceDir, { recursive: true });
-mkdirSync(publicDir, { recursive: true });
-
 const files = pack.files || {};
 const paths = {
   words: join(target, files.words || "dictionary/words.jsonl"),
@@ -53,6 +45,18 @@ if (sampleOnly) {
   }
   queue = chosen;
 }
+
+const counts = queue.reduce((result, item) => ({ ...result, [item.kind]: (result[item.kind] ?? 0) + 1 }), {});
+console.log(`Audio plan: ${queue.length} files (${counts.word ?? 0} words, ${counts.sentence ?? 0} sentences, ${counts.letter ?? 0} letters).`);
+if (planOnly) process.exit(0);
+if (!key || !region) {
+  console.error("Set AZURE_SPEECH_KEY and AZURE_SPEECH_REGION before generating neural Armenian audio.");
+  console.error("Run `npm run content:audio:plan` first to inspect the exact scope without credentials.");
+  process.exit(2);
+}
+
+mkdirSync(sourceDir, { recursive: true });
+mkdirSync(publicDir, { recursive: true });
 
 let generated = 0;
 for (const item of queue) {
@@ -109,6 +113,7 @@ function replaceGeneratedAudio(entry, id, text, fileName) {
 }
 
 function getLetterName(entry) {
+  if (entry.spoken_name) return String(entry.spoken_name).trim();
   const label = entry.names?.it || entry.names?.en || entry.character;
   return String(label).split("·")[0].trim() || entry.character;
 }

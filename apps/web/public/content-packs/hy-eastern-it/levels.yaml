@@ -11,23 +11,6 @@ levels:
     learning_goal:
       it: Lettere, saluti e parole essenziali
       en: Lettere, saluti e parole essenziali
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: Le parole possono già formare piccoli messaggi.
-      en: Le parole possono già formare piccoli messaggi.
-    grammar_examples:
-      - target: Բարև։
-        translation:
-          it: Ciao!
-          en: Ciao!
-        transliteration: barev
-      - target: Շնորհակալություն։
-        translation:
-          it: Grazie.
-          en: Thank you.
-        transliteration: shnorhakalutyun
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -39,6 +22,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_0
   - number: 1
     title: Livello 1 · Chi sono?
     stat_cap: 10
@@ -51,23 +35,6 @@ levels:
     learning_goal:
       it: Presentarsi e chiedere il nome
       en: Presentarsi e chiedere il nome
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: In armeno la piccola forma del verbo «essere» spesso arriva alla fine.
-      en: In armeno la piccola forma del verbo «essere» spesso arriva alla fine.
-    grammar_examples:
-      - target: Ես Անի եմ։
-        translation:
-          it: Sono Ani.
-          en: Sono Ani.
-        transliteration: yes Ani em
-      - target: Ի՞նչ է քո անունը։
-        translation:
-          it: Come ti chiami?
-          en: Come ti chiami?
-        transliteration: inch e qo anuny
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -79,6 +46,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_1
   - number: 2
     title: Livello 2 · La mia famiglia
     stat_cap: 15
@@ -91,23 +59,6 @@ levels:
     learning_goal:
       it: Famiglia, possesso e descrizioni
       en: Famiglia, possesso e descrizioni
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: իմ significa «mio/mia»; սա introduce una persona o una cosa vicina.
-      en: իմ significa «mio/mia»; սա introduce una persona o una cosa vicina.
-    grammar_examples:
-      - target: Սա իմ մայրն է։
-        translation:
-          it: Questa è mia madre.
-          en: Questa è mia madre.
-        transliteration: sa im mayrn e
-      - target: Մեր տունը մեծ է։
-        translation:
-          it: La nostra casa è grande.
-          en: La nostra casa è grande.
-        transliteration: mer tuny mets e
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -119,6 +70,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_2
   - number: 3
     title: Livello 3 · Ho fame e sete
     stat_cap: 20
@@ -131,23 +83,6 @@ levels:
     learning_goal:
       it: Bisogni, cibo e richieste gentili
       en: Bisogni, cibo e richieste gentili
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: 'Per dire ciò che desideri puoi usare ուզում եմ: «voglio».'
-      en: 'Per dire ciò che desideri puoi usare ուզում եմ: «voglio».'
-    grammar_examples:
-      - target: Ես ջուր եմ ուզում։
-        translation:
-          it: Voglio dell'acqua.
-          en: Voglio dell'acqua.
-        transliteration: yes jur em uzum
-      - target: Ես սոված եմ։
-        translation:
-          it: Ho fame.
-          en: Ho fame.
-        transliteration: yes sovats em
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -159,6 +94,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_3
   - number: 4
     title: Livello 4 · La mia giornata
     stat_cap: 25
@@ -171,23 +107,6 @@ levels:
     learning_goal:
       it: Azioni quotidiane e frasi utili a lezione
       en: Azioni quotidiane e frasi utili a lezione
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: Le forme del presente raccontano ciò che succede adesso o abitualmente.
-      en: Le forme del presente raccontano ciò che succede adesso o abitualmente.
-    grammar_examples:
-      - target: Ես դպրոց եմ գնում։
-        translation:
-          it: Vado a scuola.
-          en: Vado a scuola.
-        transliteration: yes dprots em gnum
-      - target: Չեմ հասկանում։
-        translation:
-          it: Non capisco.
-          en: Non capisco.
-        transliteration: chem haskanum
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -199,6 +118,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_4
   - number: 5
     title: Livello 5 · Dove siamo?
     stat_cap: 30
@@ -211,23 +131,6 @@ levels:
     learning_goal:
       it: Luoghi, qui/là e domande con dove
       en: Luoghi, qui/là e domande con dove
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: Որտե՞ղ significa «dove?»; այստեղ e այնտեղ significano «qui» e «là».
-      en: Որտե՞ղ significa «dove?»; այստեղ e այնտեղ significano «qui» e «là».
-    grammar_examples:
-      - target: Որտե՞ղ է դպրոցը։
-        translation:
-          it: Dov'è la scuola?
-          en: Dov'è la scuola?
-        transliteration: vortegh e dprotsy
-      - target: Այգին այնտեղ է։
-        translation:
-          it: Il parco è là.
-          en: Il parco è là.
-        transliteration: aygin ayntegh e
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -239,6 +142,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_5
   - number: 6
     title: Livello 6 · Numeri e tempo
     stat_cap: 35
@@ -251,23 +155,6 @@ levels:
     learning_goal:
       it: Età, numeri, oggi, domani e meteo
       en: Età, numeri, oggi, domani e meteo
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: I numeri e le parole del tempo aiutano a raccontare quando e quanto.
-      en: I numeri e le parole del tempo aiutano a raccontare quando e quanto.
-    grammar_examples:
-      - target: Քանի՞ տարեկան ես։
-        translation:
-          it: Quanti anni hai?
-          en: Quanti anni hai?
-        transliteration: qani tarekan es
-      - target: Այսօր եղանակը լավ է։
-        translation:
-          it: Oggi il tempo è bello.
-          en: Oggi il tempo è bello.
-        transliteration: aysor yeghanaky lav e
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -279,6 +166,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_6
   - number: 7
     title: Livello 7 · Noi e loro
     stat_cap: 40
@@ -291,23 +179,6 @@ levels:
     learning_goal:
       it: Plurali e negazione
       en: Plurali e negazione
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: ենք ed են sono forme plurali di «essere»; չենք rende negativa una forma con «noi».
-      en: ենք ed են sono forme plurali di «essere»; չենք rende negativa una forma con «noi».
-    grammar_examples:
-      - target: Մենք ընկերներ ենք։
-        translation:
-          it: Siamo amici.
-          en: Siamo amici.
-        transliteration: menq ynkerner enq
-      - target: Մենք չենք գնում։
-        translation:
-          it: Non andiamo.
-          en: Non andiamo.
-        transliteration: menq chenq gnum
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -319,6 +190,7 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_7
   - number: 8
     title: Livello 8 · Piccole avventure
     stat_cap: 45
@@ -331,23 +203,6 @@ levels:
     learning_goal:
       it: Dialoghi brevi e comprensione integrata
       en: Dialoghi brevi e comprensione integrata
-    grammar_title:
-      it: La regola magica
-      en: The magic rule
-    grammar_note:
-      it: Combina saluti, persone, luoghi, tempo e azioni in un piccolo dialogo.
-      en: Combina saluti, persone, luoghi, tempo e azioni in un piccolo dialogo.
-    grammar_examples:
-      - target: Բարև, ես Անի եմ։ Իսկ դու՞։
-        translation:
-          it: Ciao, sono Ani. E tu?
-          en: Ciao, sono Ani. E tu?
-        transliteration: barev, yes Ani em. isk du
-      - target: Այսօր մենք դպրոց ենք գնում։
-        translation:
-          it: Oggi andiamo a scuola.
-          en: Oggi andiamo a scuola.
-        transliteration: aysor menq dprots enq gnum
     unlock_requires:
       completed_training_sessions: 5
       answered_fight_questions: 10
@@ -359,3 +214,4 @@ levels:
       max_questions: 30
       timer_seconds: 12
       sigmoid_k: 2.2
+    chapter_id: chapter_stage_8

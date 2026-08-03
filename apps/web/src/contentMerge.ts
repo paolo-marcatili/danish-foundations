@@ -48,11 +48,11 @@ export function loadLocalPack(basePack: LanguagePack): LanguagePack {
     const parsed = JSON.parse(raw) as LanguagePack;
     if (parsed.pack_id !== basePack.pack_id) return basePack;
 
-    // Curriculum v0.13.1 replaces legacy complexity sequencing with controlled
-    // stage/tier tags and corrected core translations. An older local snapshot
+    // Curriculum v0.14.0 replaces legacy sequencing and introduces structured
+    // chapters, audited Italian content, and expanded audio metadata. An older local snapshot
     // must inherit those bundled fields, while preserving user-recorded audio
     // and locally added dictionary entries.
-    const preferBundledCurriculum = compareVersions(parsed.version, "0.13.1") < 0;
+    const preferBundledCurriculum = compareVersions(parsed.version, "0.14.0") < 0;
     return {
       ...basePack,
       ...parsed,
@@ -269,7 +269,7 @@ function normalizeCurriculumTags(
   defaultTier: "core" | "extension" = "extension"
 ): string[] {
   const values = uniqueStrings([...(Array.isArray(tags) ? tags : []), ...extras]);
-  if (!values.some((tag) => tag.startsWith("stage:"))) values.unshift("stage:0");
+  if (defaultTier === "core" && !values.some((tag) => tag.startsWith("stage:"))) values.unshift("stage:0");
   // Imported or locally added material must not silently enter the active
   // beginner syllabus. It remains visible in the dictionary as extension
   // content until an editor deliberately marks it tier:core.

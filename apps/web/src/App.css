@@ -6222,3 +6222,366 @@ button.offline-pill { cursor: pointer; }
 
 .training-level-guide > strong { font-size: 0.9rem; }
 .training-level-guide > p { margin: 0; font-size: 0.76rem; line-height: 1.35; }
+
+/* v0.14 chapter reader, resilient offline state, and installation guidance. */
+.chapter-summary-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  align-items: center;
+  padding: 0.8rem;
+}
+
+.chapter-summary-card .story-progress-track {
+  grid-column: 1 / -1;
+}
+
+.chapter-summary-copy {
+  min-width: 0;
+}
+
+.chapter-summary-copy > span,
+.story-section-kicker,
+.story-reader-header span,
+.story-chapter-toggle > span {
+  display: block;
+  color: #76521e;
+  font-size: 0.68rem;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chapter-summary-copy > strong {
+  display: block;
+  margin-top: 0.18rem;
+  color: #243226;
+  font-size: 1rem;
+}
+
+.chapter-summary-copy > p {
+  margin: 0.28rem 0 0.45rem;
+  color: #526055;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.chapter-open-button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 0.1rem;
+  width: 4.25rem;
+  min-height: 4.25rem;
+  border: 2px solid rgba(89, 57, 19, 0.22);
+  border-radius: 1rem;
+  background: linear-gradient(180deg, #fff9d7, #f5ddb0);
+  color: #5f411b;
+  box-shadow: inset 0 -4px 0 rgba(103, 69, 24, 0.12);
+  cursor: pointer;
+}
+
+.chapter-open-button > span {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+
+.chapter-open-button > small {
+  font-size: 0.62rem;
+  font-weight: 950;
+}
+
+.story-reader-overlay,
+.install-guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  display: grid;
+  place-items: center;
+  padding: clamp(0.35rem, 2vw, 1.25rem);
+  background: rgba(10, 18, 22, 0.78);
+  backdrop-filter: blur(7px);
+}
+
+.story-reader-window {
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  width: min(56rem, 100%);
+  height: min(92dvh, 54rem);
+  overflow: hidden;
+  border: 3px solid #7a5824;
+  border-radius: 1.3rem;
+  background: #fffaf0;
+  color: #27322b;
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.42), inset 0 0 0 4px rgba(255, 225, 154, 0.55);
+}
+
+.story-reader-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem 0.8rem;
+  border-bottom: 1px solid rgba(84, 58, 25, 0.16);
+  background: linear-gradient(180deg, #fff0bd, #fff8e6);
+}
+
+.story-reader-header h2 {
+  margin: 0.15rem 0 0;
+  font-size: clamp(1.25rem, 3vw, 1.8rem);
+}
+
+.story-reader-close {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(70, 46, 19, 0.12);
+  color: #3e2b17;
+  font-size: 1.65rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.story-reader-intro {
+  padding: 0.65rem 1.1rem;
+  border-bottom: 1px solid rgba(84, 58, 25, 0.12);
+  color: #5b625b;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.story-chapter-list {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.85rem;
+}
+
+.story-chapter {
+  overflow: hidden;
+  border: 1px solid rgba(79, 60, 31, 0.18);
+  border-radius: 0.95rem;
+  background: #fff;
+}
+
+.story-chapter + .story-chapter {
+  margin-top: 0.65rem;
+}
+
+.story-chapter.current {
+  border-color: rgba(228, 154, 48, 0.65);
+  box-shadow: 0 0 0 2px rgba(255, 198, 95, 0.18);
+}
+
+.story-chapter-toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem 0.65rem;
+  width: 100%;
+  padding: 0.78rem 0.9rem;
+  border: 0;
+  background: #fff9e8;
+  color: #27322b;
+  text-align: left;
+  cursor: pointer;
+}
+
+.story-chapter-toggle > span {
+  grid-column: 1;
+}
+
+.story-chapter-toggle > strong {
+  grid-column: 1;
+  font-size: 0.95rem;
+}
+
+.story-chapter-toggle > em {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  align-self: center;
+  font-size: 1.45rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.story-chapter-content {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0.9rem;
+}
+
+.story-chapter-content section {
+  padding: 0.8rem;
+  border-radius: 0.85rem;
+}
+
+.story-fiction-section {
+  background: #f6f1ff;
+  border-left: 4px solid #8d79c8;
+}
+
+.story-lesson-section {
+  background: #eef8ff;
+  border-left: 4px solid #4e94bd;
+}
+
+.story-chapter-content h3 {
+  margin: 0.25rem 0 0.45rem;
+}
+
+.story-chapter-content p {
+  margin: 0.38rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.story-objective-list,
+.story-mistakes-card ul,
+.install-guide-steps {
+  margin: 0.45rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.story-objective-list li,
+.story-mistakes-card li,
+.install-guide-steps li {
+  margin: 0.3rem 0;
+  line-height: 1.4;
+}
+
+.story-example-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 0.55rem;
+  margin-top: 0.75rem;
+}
+
+.story-example-card {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.7rem;
+  border: 1px solid rgba(47, 102, 130, 0.18);
+  border-radius: 0.75rem;
+  background: #fff;
+}
+
+.story-example-card > strong {
+  font-size: 1.15rem;
+}
+
+.story-example-card > span,
+.story-example-card > small {
+  color: #64717b;
+  font-size: 0.76rem;
+}
+
+.story-example-card > p {
+  margin: 0;
+  font-weight: 800;
+}
+
+.story-mistakes-card {
+  margin-top: 0.7rem;
+  padding: 0.65rem;
+  border-radius: 0.7rem;
+  background: #fff5d9;
+}
+
+.story-mission-card {
+  background: #eff9e9;
+  border-left: 4px solid #65a758;
+}
+
+.install-guide-window {
+  position: relative;
+  width: min(28rem, 100%);
+  max-height: 88dvh;
+  overflow-y: auto;
+  padding: 1.25rem;
+  border: 3px solid #5d7f90;
+  border-radius: 1.25rem;
+  background: #f8fcff;
+  color: #27323a;
+  box-shadow: 0 1.4rem 4rem rgba(0, 0, 0, 0.4);
+}
+
+.install-guide-window .story-reader-close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.65rem;
+}
+
+.install-guide-icon {
+  font-size: 2.7rem;
+}
+
+.install-guide-window h2 {
+  margin: 0.45rem 2.6rem 0.8rem 0;
+}
+
+.install-guide-window p,
+.install-guide-steps {
+  color: #53626c;
+  line-height: 1.5;
+}
+
+.offline-pill.retry {
+  border-color: rgba(255, 151, 112, 0.72);
+}
+
+@media (max-width: 620px) {
+  .chapter-summary-card {
+    grid-template-columns: minmax(0, 1fr) 3.7rem;
+  }
+  .chapter-open-button {
+    width: 3.7rem;
+    min-height: 3.7rem;
+  }
+  .story-reader-overlay,
+  .install-guide-overlay {
+    padding: 0;
+  }
+  .story-reader-window {
+    width: 100%;
+    height: 100dvh;
+    border-width: 0;
+    border-radius: 0;
+  }
+  .story-reader-header {
+    padding-top: max(0.8rem, env(safe-area-inset-top));
+  }
+  .story-chapter-list {
+    padding-bottom: max(0.85rem, env(safe-area-inset-bottom));
+  }
+  .story-example-list {
+    grid-template-columns: 1fr;
+  }
+  .install-guide-window {
+    width: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    padding-top: max(1.25rem, env(safe-area-inset-top));
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom));
+  }
+}
+
+.question-audio-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.question-audio-actions .audio-button {
+  margin: 0;
+}
+
+.secondary-audio-button {
+  background: rgba(236, 246, 255, 0.95);
+}

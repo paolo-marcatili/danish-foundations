@@ -173,6 +173,7 @@ class SideScrollerScene extends Phaser.Scene {
   private lastEncounterKey = "";
   private encounterStart = 0;
   private currentMonsterRow = 0;
+  private currentMonsterScale: number = WORLD.monsterScale;
   private companionVictoryActive = false;
 
   constructor() {
@@ -466,9 +467,12 @@ class SideScrollerScene extends Phaser.Scene {
     this.encounterLabel.setText("").setVisible(false);
     if (props.encounter.type === "fight") {
       this.station.setVisible(false);
-      this.monster.setVisible(true).setAlpha(1).setScale(WORLD.monsterScale).setY(WORLD.walkY - 4);
-      this.currentMonsterRow = MONSTER_ROWS[props.encounter.enemy.sprite] ?? 0;
+      this.currentMonsterScale = WORLD.monsterScale * props.encounter.enemy.scale;
+      this.monster.setVisible(true).setAlpha(1).setScale(this.currentMonsterScale).setY(WORLD.walkY - 4);
+      this.currentMonsterRow = props.encounter.enemy.spriteRow ?? MONSTER_ROWS[props.encounter.enemy.sprite] ?? 0;
       this.monster.setFrame(this.currentMonsterRow * 4);
+      if (props.encounter.enemy.tint !== undefined) this.monster.setTint(props.encounter.enemy.tint);
+      else this.monster.clearTint();
     } else {
       this.monster.setVisible(false);
       const stationFrame = props.encounter.type === "labyrinth"
@@ -830,7 +834,7 @@ class SideScrollerScene extends Phaser.Scene {
     const base = this.currentMonsterRow * 4;
     if (action === "monster_defeat") {
       this.monster.setFrame(base + 3);
-      this.tweens.add({ targets: this.monster, alpha: 0, y: this.monster.y - 40, scale: WORLD.monsterScale * 1.3, duration: 760, ease: "Cubic.easeOut", onComplete: () => { this.monster.setAlpha(1).setScale(WORLD.monsterScale); } });
+      this.tweens.add({ targets: this.monster, alpha: 0, y: this.monster.y - 40, scale: this.currentMonsterScale * 1.3, duration: 760, ease: "Cubic.easeOut", onComplete: () => { this.monster.setAlpha(1).setScale(this.currentMonsterScale); } });
       return;
     }
     if (["hero_hit", "super_punch", "fart_attack", "dagger_throw", "strategy_spell"].includes(action)) {

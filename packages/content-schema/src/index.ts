@@ -97,10 +97,15 @@ export interface LetterItem {
   id: string;
   character: string;
   names: LocalizedText;
+  /** Armenian text spoken when the learner asks for the letter name. */
+  spoken_name?: string;
   sound: string;
   transliteration?: string;
   tags?: string[];
+  /** Recordings of the letter name. */
   audio?: AudioReference[];
+  /** Optional human-reviewed recording of the isolated sound. */
+  sound_audio?: AudioReference[];
   similar_letter_ids?: string[];
   example_item_ids?: string[];
   uppercase?: string;
@@ -158,10 +163,30 @@ export interface StoryMilestone {
   reward_coins?: number;
 }
 
+export interface StoryLessonExample {
+  target: string;
+  transliteration?: string;
+  translation: LocalizedText;
+  note?: LocalizedText;
+}
+
+export interface StoryLesson {
+  title: LocalizedText;
+  objectives?: LocalizedText[];
+  explanation: LocalizedText;
+  examples?: StoryLessonExample[];
+  common_mistakes?: LocalizedText[];
+}
+
 export interface StoryChapter {
   id: string;
   title: LocalizedText;
-  body: LocalizedText;
+  summary?: LocalizedText;
+  fiction?: LocalizedText;
+  lesson?: StoryLesson;
+  mission?: LocalizedText;
+  /** Legacy free-form chapter text. */
+  body?: LocalizedText;
   minimum_level?: number;
 }
 
@@ -240,6 +265,8 @@ export interface PackLevel {
     translation: LocalizedText;
     transliteration?: string;
   }>;
+  /** Story chapter containing this level's fiction, lesson and mission. */
+  chapter_id?: string;
   unlock_requires: PackLevelRequirements;
   fight: PackFightRules;
 }
@@ -251,7 +278,14 @@ export interface PackEnemy {
   max_energy: number;
   reward_coins: number;
   preferred_focus: PackTrainingFocus;
-  sprite: "goblin" | "bat" | "troll" | "dragon" | "wizard" | "blob";
+  /** Pack-defined visual key. Existing keys map to rows in the shared monster sheet. */
+  sprite: string;
+  /** Optional explicit row in the shared monster sheet, allowing new levels to reuse or add visuals without code changes. */
+  sprite_row?: number;
+  visual_variant?: string;
+  scale?: number;
+  /** CSS/Phaser hexadecimal tint, for example 0x9b6cff or #9b6cff. */
+  tint?: string | number;
   semantic_tags: string[];
   skill_weaknesses?: PackHeroStatKey[];
 }
@@ -625,7 +659,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       if (item.difficulty !== undefined && (typeof item.difficulty !== "number" || item.difficulty < 1)) errors.push(`items[${index}].difficulty must be a positive number when provided.`);
       if (item.complexity !== undefined && (typeof item.complexity !== "number" || item.complexity < 0)) errors.push(`items[${index}].complexity must be a non-negative number when provided.`);
       if (!Array.isArray(item.tags)) errors.push(`items[${index}].tags must be an array.`);
-      else for (const tag of item.tags) if (controlledTags.size > 0 && !controlledTags.has(String(tag))) warnings.push(`items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
+      else for (const tag of item.tags) if (controlledTags.size > 0 && !isControlledOrDynamicTag(String(tag), controlledTags)) warnings.push(`items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
       if (!Array.isArray(item.audio)) errors.push(`items[${index}].audio must be an array, even if empty.`);
       else validateAudioReferences(item.audio, `items[${index}].audio`, errors, warnings);
       if (isObject(item.translations)) {
@@ -647,6 +681,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       requireString(letter, "sound", errors, `letters[${index}]`);
       if (!isObject(letter.names)) errors.push(`letters[${index}].names must be a localized text object.`);
       if (Array.isArray(letter.audio)) validateAudioReferences(letter.audio, `letters[${index}].audio`, errors, warnings);
+      if (Array.isArray(letter.sound_audio)) validateAudioReferences(letter.sound_audio, `letters[${index}].sound_audio`, errors, warnings);
       if (letter.review_status !== "approved") warnings.push(`letters[${index}] is not approved yet: ${id ?? "unknown id"}`);
     }
   }
@@ -677,7 +712,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       if (grammar.difficulty !== undefined && (typeof grammar.difficulty !== "number" || grammar.difficulty < 1)) errors.push(`grammar_items[${index}].difficulty must be a positive number when provided.`);
       if (grammar.complexity !== undefined && (typeof grammar.complexity !== "number" || grammar.complexity < 0)) errors.push(`grammar_items[${index}].complexity must be a non-negative number when provided.`);
       if (!Array.isArray(grammar.tags)) errors.push(`grammar_items[${index}].tags must be an array.`);
-      else for (const tag of grammar.tags) if (controlledTags.size > 0 && !controlledTags.has(String(tag))) warnings.push(`grammar_items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
+      else for (const tag of grammar.tags) if (controlledTags.size > 0 && !isControlledOrDynamicTag(String(tag), controlledTags)) warnings.push(`grammar_items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
       if (!Array.isArray(grammar.audio)) errors.push(`grammar_items[${index}].audio must be an array, even if empty.`);
       else validateAudioReferences(grammar.audio, `grammar_items[${index}].audio`, errors, warnings);
       if (grammar.review_status !== "approved") warnings.push(`grammar_items[${index}] is not approved yet: ${id ?? "unknown id"}`);
@@ -696,6 +731,36 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
     }
   }
 
+  const story = isObject(pack.story) ? pack.story : undefined;
+  const storyChapters = story && Array.isArray(story.chapters) ? story.chapters : [];
+  if (storyChapters.length > 0) {
+    const chapterIds = new Set<string>();
+    for (const [index, chapter] of storyChapters.entries()) {
+      const path = `story.chapters[${index}]`;
+      if (!isObject(chapter)) { errors.push(`${path} must be an object.`); continue; }
+      requireString(chapter, "id", errors, path);
+      if (typeof chapter.id === "string") {
+        if (chapterIds.has(chapter.id)) errors.push(`${path}.id must be unique: ${chapter.id}.`);
+        chapterIds.add(chapter.id);
+      }
+      if (!isObject(chapter.title)) errors.push(`${path}.title must be localized text.`);
+      if (chapter.minimum_level !== undefined && (!Number.isInteger(chapter.minimum_level) || Number(chapter.minimum_level) < 0)) errors.push(`${path}.minimum_level must be a non-negative integer.`);
+      if (chapter.lesson !== undefined) {
+        if (!isObject(chapter.lesson)) errors.push(`${path}.lesson must be an object.`);
+        else {
+          if (!isObject(chapter.lesson.title)) errors.push(`${path}.lesson.title must be localized text.`);
+          if (!isObject(chapter.lesson.explanation)) errors.push(`${path}.lesson.explanation must be localized text.`);
+          if (chapter.lesson.examples !== undefined && !Array.isArray(chapter.lesson.examples)) errors.push(`${path}.lesson.examples must be an array.`);
+        }
+      }
+    }
+    const levels = Array.isArray(pack.levels) ? pack.levels : [];
+    for (const [index, level] of levels.entries()) {
+      if (!isObject(level)) continue;
+      if (typeof level.chapter_id === "string" && !chapterIds.has(level.chapter_id)) errors.push(`levels[${index}].chapter_id references unknown chapter: ${level.chapter_id}.`);
+    }
+  }
+
   if (Array.isArray(pack.levels)) {
     for (const [index, level] of pack.levels.entries()) {
       if (!isObject(level)) { errors.push(`levels[${index}] must be an object.`); continue; }
@@ -711,6 +776,9 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       if (!isObject(enemy)) { errors.push(`enemies[${index}] must be an object.`); continue; }
       requireString(enemy, "id", errors, `enemies[${index}]`);
       requireString(enemy, "name_key", errors, `enemies[${index}]`);
+      requireString(enemy, "sprite", errors, `enemies[${index}]`);
+      if (enemy.sprite_row !== undefined && (!Number.isInteger(enemy.sprite_row) || Number(enemy.sprite_row) < 0)) errors.push(`enemies[${index}].sprite_row must be a non-negative integer.`);
+      if (enemy.scale !== undefined && (typeof enemy.scale !== "number" || enemy.scale <= 0)) errors.push(`enemies[${index}].scale must be a positive number.`);
       if (!Array.isArray(enemy.semantic_tags)) errors.push(`enemies[${index}].semantic_tags must be an array.`);
     }
   }
@@ -794,6 +862,10 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
 
 export function getPackSummary(pack: LanguagePack): string {
   return `${pack.title}: ${pack.items.length} items, ${pack.lessons.length} lessons, ${pack.language.name_english}`;
+}
+
+function isControlledOrDynamicTag(tag: string, controlledTags: Set<string>): boolean {
+  return controlledTags.has(tag) || /^stage:\d+$/.test(tag);
 }
 
 function validateAudioReferences(audio: unknown[], path: string, errors: string[], warnings: string[]): void {
