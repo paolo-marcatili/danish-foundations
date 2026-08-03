@@ -185,8 +185,8 @@ async function playAudioElementAndWait(url: string): Promise<boolean> {
 
   return new Promise<boolean>((resolve) => {
     let settled = false;
-    let startTimer: ReturnType<typeof window.setTimeout> | null = null;
-    let hardTimer: ReturnType<typeof window.setTimeout> | null = null;
+    let startTimer: number | null = null;
+    let hardTimer: number | null = null;
 
     const cleanup = () => {
       if (startTimer !== null) window.clearTimeout(startTimer);
@@ -240,7 +240,7 @@ function speakAndWait(text: string | undefined, lang: string): Promise<boolean> 
   stopCurrentLearningAudio();
   return new Promise<boolean>((resolve) => {
     let settled = false;
-    let timeout: ReturnType<typeof window.setTimeout> | null = null;
+    let timeout: number | null = null;
     const utterance = new SpeechSynthesisUtterance(text ?? "");
 
     const finish = (completed: boolean) => {
