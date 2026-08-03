@@ -22,7 +22,7 @@ import {
   type TrainingFocus,
   type TrainingQuestion
 } from "@hero-lang/learning-engine";
-import { installAudioUnlock, isAudioEnabled, playLearningAudio, playSound, setAudioEnabled, setLearningAudioMode, unlockAudio } from "./audio";
+import { installAudioUnlock, isAudioEnabled, playLearningAudio, playSound, resetLearningAudioState, setAudioEnabled, setLearningAudioMode, unlockAudio } from "./audio";
 import { AdminPanel } from "./components/AdminPanel";
 import { EnergyBars } from "./components/EnergyBars";
 import { HeroStatsPanel } from "./components/HeroStatsPanel";
@@ -296,6 +296,7 @@ export default function App() {
   }, [activeProfileId, pack.pack_id, pack.version]);
 
   useEffect(() => {
+    resetLearningAudioState();
     if (!currentQuestion || !audioOn) return;
     if (currentQuestion.activity_type === "listen_and_choose" || currentQuestion.activity_type === "repeat_after_me") {
       const handle = window.setTimeout(() => {
@@ -311,8 +312,12 @@ export default function App() {
           }
         });
       }, 140);
-      return () => window.clearTimeout(handle);
+      return () => {
+        window.clearTimeout(handle);
+        resetLearningAudioState();
+      };
     }
+    return () => resetLearningAudioState();
   }, [currentQuestion?.id, audioOn, settings.audioMode]);
 
   function triggerAction(name: HeroActionName) {
@@ -333,6 +338,7 @@ export default function App() {
   }
 
   function setActiveProfileId(profileId: string) {
+    resetLearningAudioState();
     const latestProfiles = loadChildProfiles();
     const profile = profiles.find((candidate) => candidate.id === profileId) ?? latestProfiles.find((candidate) => candidate.id === profileId);
     if (profile && !profiles.some((candidate) => candidate.id === profile.id)) {
@@ -371,10 +377,36 @@ export default function App() {
   }
 
   async function toggleAudio() {
+    resetLearningAudioState();
     const next = !audioOn;
     await setAudioEnabled(next);
     setAudioOn(next);
     if (next) playSound("start");
+  }
+
+  function playSubmittedAnswerAudio(question: TrainingQuestion): Promise<boolean> {
+    resetLearningAudioState();
+    if (!audioOn || !isAudioEnabled()) return Promise.resolve(false);
+    const fallbackText = question.target_audio_text
+      ?? question.answer_explanation?.target
+      ?? question.options.find((option) => option.id === question.correct_option_id)?.label;
+    return playLearningAudio(
+      question.audio,
+      fallbackText,
+      question.target_audio_lang ?? pack.language.bcp47
+    );
+  }
+
+  function runAfterAnswerAudio(
+    playback: Promise<boolean>,
+    minimumFeedbackMs: number,
+    callback: () => void
+  ): void {
+    const startedAt = Date.now();
+    void playback.finally(() => {
+      const remaining = Math.max(0, minimumFeedbackMs - (Date.now() - startedAt));
+      window.setTimeout(callback, remaining);
+    });
   }
 
   function startTraining(focus: TrainingFocus) {
@@ -387,6 +419,7 @@ export default function App() {
       playSound("wrong");
       return;
     }
+    resetLearningAudioState();
     void unlockAudio();
     setNotice(null);
     setShopOpen(false);
@@ -424,6 +457,7 @@ export default function App() {
       statCap: settings.debugBypass ? Number.POSITIVE_INFINITY : getLevelStatCap(learnerState.level, pack)
     });
     playAnswerAudio(result, false);
+    const answerPlayback = playSubmittedAnswerAudio(trainingSession.question);
     triggerAction(result.correct ? getTrainingAction(trainingSession.focus) : randomFailAction());
 
     const answeredSession: TrainingSession = {
@@ -440,7 +474,7 @@ export default function App() {
     // Correct answers keep the quick automatic rhythm. After a mistake the
     // rich explanation remains on screen until the learner explicitly continues.
     if (result.correct) {
-      window.setTimeout(() => advanceTrainingAfterFeedback(answeredSession.question.id), 2300);
+      runAfterAnswerAudio(answerPlayback, 2300, () => advanceTrainingAfterFeedback(answeredSession.question.id));
     }
   }
 
@@ -509,6 +543,7 @@ export default function App() {
       setLearnerState(stateForRun);
     }
 
+    resetLearningAudioState();
     void unlockAudio();
     setNotice(null);
     setLabyrinthResult(null);
@@ -618,13 +653,14 @@ export default function App() {
     answered = appendLabyrinthLog(answered, result.correct ? "labyrinthLogCorrect" : "labyrinthLogWrong", result.correct ? {} : { hearts: heartLoss }, result.correct ? "success" : "danger");
 
     playAnswerAudio(result, false);
+    const answerPlayback = playSubmittedAnswerAudio(question);
     triggerAction(result.correct && focus ? getTrainingAction(focus) : randomFailAction());
     // Keep the short feedback state in memory only. The last stable question
     // remains in local storage, so closing the app during this pause cannot
     // leave the saved run permanently locked.
     setLabyrinthSession(answered);
 
-    window.setTimeout(() => {
+    runAfterAnswerAudio(answerPlayback, 2300, () => {
       if (nextHearts <= 0 && !settings.debugBypass) {
         const failedState = commitLabyrinthMemoryOnly(learnerState, answered.practiceState);
         if (activeProfile) saveLearnerState(pack, activeProfile.id, failedState);
@@ -692,15 +728,17 @@ export default function App() {
       });
       playSound("levelUp");
       window.setTimeout(() => triggerAction("victory"), 350);
-    }, 2300);
+    });
   }
 
   function pauseLabyrinth() {
+    resetLearningAudioState();
     setLabyrinthOpen(false);
     triggerAction("walk");
   }
 
   function abandonLabyrinth() {
+    resetLearningAudioState();
     if (!labyrinthSession || !activeProfile) return;
     if (!window.confirm(t(baseLanguage, "labyrinthAbandonConfirm"))) return;
     const abandonedState = commitLabyrinthMemoryOnly(learnerState, labyrinthSession.practiceState);
@@ -713,6 +751,7 @@ export default function App() {
 
   function startFight() {
     if (pathBusy) return;
+    resetLearningAudioState();
     void unlockAudio();
     const enemy = getEnemyForLevel(pack, learnerState.level);
     const gate = getFightGate(pack, learnerState, settings.debugBypass);
@@ -803,6 +842,7 @@ export default function App() {
 
     setLearnerState(result.updated_state);
     playAnswerAudio(result, true);
+    const answerPlayback = playSubmittedAnswerAudio(fightSession.question);
     triggerAction(result.correct ? getCorrectFightAction(fightSession.question.skill) : randomFailAction(true));
 
     setFightSession({
@@ -818,7 +858,7 @@ export default function App() {
       }
     });
 
-    window.setTimeout(() => {
+    runAfterAnswerAudio(answerPlayback, 2100, () => {
       if (nextEnemyEnergy <= 0 && nextIndex >= MIN_FIGHT_QUESTIONS) {
         triggerAction("monster_defeat");
         playSound("defeat");
@@ -859,10 +899,11 @@ export default function App() {
           question
         };
       });
-    }, 2100);
+    });
   }
 
   function handleReset() {
+    resetLearningAudioState();
     if (!activeProfile) return;
     const fresh = resetLearnerState(pack, activeProfile);
     setLearnerState(fresh);

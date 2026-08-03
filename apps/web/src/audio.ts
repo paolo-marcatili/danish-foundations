@@ -36,6 +36,7 @@ export function getLearningAudioMode(): "human_only" | "human_and_automatic" {
 }
 
 export function setLearningAudioMode(mode: "human_only" | "human_and_automatic"): void {
+  if (learningAudioMode !== mode) stopCurrentLearningAudio();
   learningAudioMode = mode;
   if (typeof window !== "undefined") {
     window.localStorage.setItem("hero-language-camp:learning-audio-mode", mode);
@@ -43,11 +44,18 @@ export function setLearningAudioMode(mode: "human_only" | "human_and_automatic")
 }
 
 export async function setAudioEnabled(nextEnabled: boolean): Promise<void> {
+  stopCurrentLearningAudio();
   enabled = nextEnabled;
+  unlocked = false;
   if (typeof window !== "undefined") {
     window.localStorage.setItem("hero-language-camp:audio", nextEnabled ? "on" : "off");
   }
   if (nextEnabled) await unlockAudio();
+}
+
+/** Clear only transient playback state. The learner's mute preference is preserved. */
+export function resetLearningAudioState(): void {
+  stopCurrentLearningAudio();
 }
 
 export async function unlockAudio(): Promise<boolean> {
@@ -122,36 +130,42 @@ export function playSound(name: SoundName): void {
 
 export async function playLearningAudio(audio: AudioReference[] | undefined, text: string | undefined, lang: string): Promise<boolean> {
   if (!enabled) return false;
-  await unlockAudio();
 
-  const preferred = chooseBestAudio(audio);
-  const language = langFromAudio(preferred, lang);
+  // Do not await AudioContext.resume() here. On iOS, awaiting before
+  // HTMLMediaElement.play() can consume the user-activation window from the tap.
+  void unlockAudio();
 
-  // Prefer a genuine Armenian system voice over legacy eSpeak previews. Neural
-  // course files and human recordings still take priority when available.
-  if (
-    learningAudioMode === "human_and_automatic" &&
-    preferred &&
-    preferred.source_type === "automated" &&
-    !isNeuralAudio(preferred) &&
-    hasVoiceForLanguage(language)
-  ) {
-    return speakAndWait(text ?? preferred.text, language);
+  const candidates = chooseAudioCandidates(audio);
+  for (const candidate of candidates) {
+    const language = langFromAudio(candidate, lang);
+
+    if (candidate.url.startsWith("browser-tts:")) {
+      if (await speakAndWait(text ?? candidate.text, language)) return true;
+      continue;
+    }
+
+    // Prefer a genuine Armenian system voice over legacy eSpeak previews, but
+    // still try the bundled recording if system speech fails.
+    if (
+      learningAudioMode === "human_and_automatic"
+      && candidate.source_type === "automated"
+      && !isNeuralAudio(candidate)
+      && hasVoiceForLanguage(language)
+      && await speakAndWait(text ?? candidate.text, language)
+    ) {
+      return true;
+    }
+
+    if (await playAudioElementAndWait(publicUrl(candidate.url))) return true;
   }
 
-  if (preferred?.url && !preferred.url.startsWith("browser-tts:")) {
-    const played = await playAudioElementAndWait(publicUrl(preferred.url));
-    if (played) return true;
-    // Browser audio can still fail before a user gesture or if the file is
-    // missing. Fall through to an installed Armenian voice when one exists.
-  }
-
-  if (!preferred && learningAudioMode === "human_only") {
+  if (learningAudioMode === "human_only") {
     if (import.meta.env.DEV) console.warn("No playable human learning audio was available.");
     return false;
   }
 
-  return speakAndWait(text ?? preferred?.text, language);
+  // Entries without a file can still use a genuine matching system voice.
+  return speakAndWait(text, lang);
 }
 
 /** Fire-and-forget speech helper retained for callers that do not need completion. */
@@ -163,26 +177,57 @@ export function speak(text: string | undefined, lang: string): boolean {
 
 async function playAudioElementAndWait(url: string): Promise<boolean> {
   stopCurrentLearningAudio();
-  const element = new Audio(url);
+  const element = new Audio();
   currentLearningAudio = element;
+  element.preload = "auto";
   element.volume = 0.9;
+  element.src = url;
 
   return new Promise<boolean>((resolve) => {
     let settled = false;
+    let startTimer: ReturnType<typeof window.setTimeout> | null = null;
+    let hardTimer: ReturnType<typeof window.setTimeout> | null = null;
+
+    const cleanup = () => {
+      if (startTimer !== null) window.clearTimeout(startTimer);
+      if (hardTimer !== null) window.clearTimeout(hardTimer);
+      element.removeEventListener("canplay", onPlaybackReady);
+      element.removeEventListener("playing", onPlaybackReady);
+      element.removeEventListener("ended", onEnded);
+      element.removeEventListener("error", onError);
+      element.removeEventListener("abort", onError);
+    };
     const finish = (completed: boolean) => {
       if (settled) return;
       settled = true;
-      element.removeEventListener("ended", onEnded);
-      element.removeEventListener("error", onError);
+      cleanup();
+      if (!completed) element.pause();
       if (currentLearningAudio === element) currentLearningAudio = null;
       if (currentLearningAudioFinish === finish) currentLearningAudioFinish = null;
       resolve(completed);
     };
+    const onPlaybackReady = () => {
+      if (startTimer !== null) {
+        window.clearTimeout(startTimer);
+        startTimer = null;
+      }
+    };
     const onEnded = () => finish(true);
     const onError = () => finish(false);
+
     currentLearningAudioFinish = finish;
+    element.addEventListener("canplay", onPlaybackReady, { once: true });
+    element.addEventListener("playing", onPlaybackReady, { once: true });
     element.addEventListener("ended", onEnded, { once: true });
     element.addEventListener("error", onError, { once: true });
+    element.addEventListener("abort", onError, { once: true });
+
+    // WebKit can occasionally emit neither success nor failure. Never leave the
+    // question button or session transition waiting forever.
+    startTimer = window.setTimeout(() => finish(false), 12_000);
+    hardTimer = window.setTimeout(() => finish(false), 90_000);
+
+    element.load();
     void element.play().catch(() => finish(false));
   });
 }
@@ -195,13 +240,19 @@ function speakAndWait(text: string | undefined, lang: string): Promise<boolean> 
   stopCurrentLearningAudio();
   return new Promise<boolean>((resolve) => {
     let settled = false;
+    let timeout: ReturnType<typeof window.setTimeout> | null = null;
+    const utterance = new SpeechSynthesisUtterance(text ?? "");
+
     const finish = (completed: boolean) => {
       if (settled) return;
       settled = true;
+      if (timeout !== null) window.clearTimeout(timeout);
+      utterance.onend = null;
+      utterance.onerror = null;
       if (currentSpeechFinish === finish) currentSpeechFinish = null;
       resolve(completed);
     };
-    const utterance = new SpeechSynthesisUtterance(text ?? "");
+
     utterance.lang = lang;
     utterance.rate = 0.88;
     utterance.pitch = 1;
@@ -212,7 +263,10 @@ function speakAndWait(text: string | undefined, lang: string): Promise<boolean> 
       finish(false);
     };
     currentSpeechFinish = finish;
-    window.speechSynthesis.cancel();
+    timeout = window.setTimeout(() => finish(false), 30_000);
+
+    // stopCurrentLearningAudio() already cancelled previous speech. A second
+    // immediate cancel can race with speak() in WebKit.
     window.speechSynthesis.speak(utterance);
   });
 }
@@ -230,28 +284,39 @@ function findVoiceForLanguage(lang: string): SpeechSynthesisVoice | undefined {
     ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(prefix));
 }
 
-function chooseBestAudio(audio: AudioReference[] | undefined): AudioReference | undefined {
-  if (!audio?.length) return undefined;
-  const playable = audio.filter((entry) => Boolean(entry.url) && entry.review_status !== "draft");
-  const pool = playable.length > 0 ? playable : audio.filter((entry) => Boolean(entry.url));
-  const humanApproved = pool.filter((entry) => entry.source_type === "human" && entry.review_status === "approved");
-  if (humanApproved.length > 0) return randomChoice(humanApproved);
-  const humanAny = pool.filter((entry) => entry.source_type === "human");
-  if (humanAny.length > 0) return randomChoice(humanAny);
+function chooseAudioCandidates(audio: AudioReference[] | undefined): AudioReference[] {
+  if (!audio?.length) return [];
 
-  if (learningAudioMode === "human_only") return undefined;
+  const entries = audio.filter((entry) => Boolean(entry.url));
+  const reviewed = entries.filter((entry) => entry.review_status !== "draft");
+  const pool = reviewed.length > 0
+    ? [...reviewed, ...entries.filter((entry) => entry.review_status === "draft")]
+    : entries;
+  const allowed = learningAudioMode === "human_only"
+    ? pool.filter((entry) => entry.source_type === "human")
+    : pool;
+  const seenUrls = new Set<string>();
 
-  const automated = pool.filter((entry) => entry.source_type === "automated");
-  const neural = automated.filter(isNeuralAudio);
-  if (neural.length > 0) return randomChoice(neural);
+  return allowed
+    .filter((entry) => {
+      if (seenUrls.has(entry.url)) return false;
+      seenUrls.add(entry.url);
+      return true;
+    })
+    .sort((left, right) => audioPriority(left) - audioPriority(right));
+}
 
-  const browserTts = pool.filter((entry) => entry.source_type === "browser_tts" || entry.url.startsWith("browser-tts:"));
-  const browserWithMatchingVoice = browserTts.find((entry) => hasVoiceForLanguage(langFromAudio(entry, "hy-AM")));
-  if (browserWithMatchingVoice) return browserWithMatchingVoice;
-
-  if (automated.length > 0) return randomChoice(automated);
-
-  return browserTts[0] ?? pool[0];
+function audioPriority(audio: AudioReference): number {
+  if (audio.source_type === "human" && audio.review_status === "approved") return 0;
+  if (audio.source_type === "human") return 1;
+  if (audio.source_type === "automated" && isNeuralAudio(audio)) return 2;
+  if (
+    (audio.source_type === "browser_tts" || audio.url.startsWith("browser-tts:"))
+    && hasVoiceForLanguage(langFromAudio(audio, "hy-AM"))
+  ) return 3;
+  if (audio.source_type === "automated") return 4;
+  if (audio.source_type === "browser_tts" || audio.url.startsWith("browser-tts:")) return 5;
+  return 6;
 }
 
 function isNeuralAudio(audio: AudioReference): boolean {
@@ -266,21 +331,27 @@ function langFromAudio(audio: AudioReference | undefined, fallback: string): str
   return fallback;
 }
 
-function randomChoice<T>(values: T[]): T {
-  return values[Math.floor(Math.random() * values.length)] ?? values[0];
-}
 
 function stopCurrentLearningAudio(): void {
+  const mediaFinish = currentLearningAudioFinish;
+  currentLearningAudioFinish = null;
   if (currentLearningAudio) {
     currentLearningAudio.pause();
-    currentLearningAudio.currentTime = 0;
+    try {
+      currentLearningAudio.currentTime = 0;
+    } catch {
+      // A not-yet-seekable iOS media element can reject a currentTime reset.
+    }
+    currentLearningAudio.removeAttribute("src");
+    currentLearningAudio.load();
     currentLearningAudio = null;
   }
-  currentLearningAudioFinish?.(false);
-  currentLearningAudioFinish = null;
-  if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
-  currentSpeechFinish?.(false);
+  mediaFinish?.(false);
+
+  const speechFinish = currentSpeechFinish;
   currentSpeechFinish = null;
+  if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  speechFinish?.(false);
 }
 
 function getAudioContext(): AudioContext | null {

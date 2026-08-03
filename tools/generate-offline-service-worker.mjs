@@ -185,6 +185,53 @@ async function findInAnyAppCache(request) {
   return undefined;
 }
 
+function parseSingleRange(rangeHeader, size) {
+  const match = /^bytes=(\\d*)-(\\d*)$/.exec(rangeHeader.trim());
+  if (!match || (!match[1] && !match[2])) return null;
+
+  let start;
+  let end;
+  if (!match[1]) {
+    const suffixLength = Number(match[2]);
+    if (!Number.isFinite(suffixLength) || suffixLength <= 0) return null;
+    start = Math.max(0, size - suffixLength);
+    end = size - 1;
+  } else {
+    start = Number(match[1]);
+    end = match[2] ? Number(match[2]) : size - 1;
+  }
+
+  if (!Number.isFinite(start) || !Number.isFinite(end) || start < 0 || start >= size || start > end) return null;
+  return { start, end: Math.min(end, size - 1) };
+}
+
+async function createPartialResponse(request, cachedResponse) {
+  const rangeHeader = request.headers.get("range");
+  if (!rangeHeader) return cachedResponse;
+
+  const body = await cachedResponse.arrayBuffer();
+  const range = parseSingleRange(rangeHeader, body.byteLength);
+  if (!range) {
+    return new Response(null, {
+      status: 416,
+      headers: { "Content-Range": "bytes */" + body.byteLength }
+    });
+  }
+
+  const partialBody = body.slice(range.start, range.end + 1);
+  const headers = new Headers(cachedResponse.headers);
+  headers.delete("Content-Encoding");
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Content-Range", "bytes " + range.start + "-" + range.end + "/" + body.byteLength);
+  headers.set("Content-Length", String(partialBody.byteLength));
+
+  return new Response(partialBody, {
+    status: 206,
+    statusText: "Partial Content",
+    headers
+  });
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(APP_CACHE);
@@ -220,13 +267,29 @@ self.addEventListener("fetch", (event) => {
   if (requestUrl.origin !== self.location.origin || !requestUrl.pathname.startsWith(APP_BASE)) return;
 
   event.respondWith((async () => {
+    const rangeHeader = event.request.headers.get("range");
+    if (rangeHeader) {
+      // Safari and other media engines request byte ranges. Cache Storage keeps
+      // the full 200 response, so construct the expected 206 response from it.
+      const cachedFullResponse = await findInAnyAppCache(event.request.url);
+      if (cachedFullResponse) return createPartialResponse(event.request, cachedFullResponse);
+
+      // Return network partial content directly. Cache.put() rejects 206
+      // responses, and that rejection must never cancel valid playback.
+      return fetch(event.request);
+    }
+
     const cached = await findInAnyAppCache(event.request);
     if (cached) return cached;
     try {
       const response = await fetch(event.request);
-      if (response.ok) {
+      if (response.ok && response.status !== 206) {
         const cache = await caches.open(/(^|\\/)audio\\//.test(requestUrl.pathname) ? AUDIO_CACHE : APP_CACHE);
-        await cache.put(event.request, response.clone());
+        try {
+          await cache.put(event.request, response.clone());
+        } catch {
+          // Network delivery is more important than opportunistic caching.
+        }
       }
       return response;
     } catch (error) {

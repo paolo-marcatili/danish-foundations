@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnswerOption, TrainingQuestion } from "@hero-lang/learning-engine";
 import { playLearningAudio, unlockAudio } from "../audio";
 import { t } from "../i18n";
@@ -54,10 +54,14 @@ export function QuestionCard({
   const [audioStarted, setAudioStarted] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [secondaryAudioPlaying, setSecondaryAudioPlaying] = useState(false);
+  const audioPlaybackSerial = useRef(0);
+  const secondaryPlaybackSerial = useRef(0);
   const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
   const tapOrderReady = selectedChips.length === expectedAnswerLength;
 
   useEffect(() => {
+    audioPlaybackSerial.current += 1;
+    secondaryPlaybackSerial.current += 1;
     setSelectedChips([]);
     setAudioPlaying(false);
     setSecondaryAudioPlaying(false);
@@ -87,26 +91,34 @@ export function QuestionCard({
   function playQuestionAudio() {
     if (audioPlaying) return;
     void unlockAudio();
+    const serial = ++audioPlaybackSerial.current;
     const wasReadyForAnswer = audioStarted;
     const playbackStartedAt = performance.now();
     setAudioPlaying(true);
-    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM").then((played) => {
-      setAudioPlaying(false);
-      if (played && !wasReadyForAnswer) {
-        setAudioStarted(true);
-        onAudioStarted?.();
-      } else if (played && wasReadyForAnswer) {
-        onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
-      }
-    });
+    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM")
+      .then((played) => {
+        if (serial !== audioPlaybackSerial.current) return;
+        if (played && !wasReadyForAnswer) {
+          setAudioStarted(true);
+          onAudioStarted?.();
+        } else if (played && wasReadyForAnswer) {
+          onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
+        }
+      })
+      .finally(() => {
+        if (serial === audioPlaybackSerial.current) setAudioPlaying(false);
+      });
   }
 
   function playSecondaryAudio() {
     if (secondaryAudioPlaying || !question.secondary_audio?.length) return;
     void unlockAudio();
+    const serial = ++secondaryPlaybackSerial.current;
     setSecondaryAudioPlaying(true);
     void playLearningAudio(question.secondary_audio, question.secondary_audio_text, question.target_audio_lang ?? "hy-AM")
-      .finally(() => setSecondaryAudioPlaying(false));
+      .finally(() => {
+        if (serial === secondaryPlaybackSerial.current) setSecondaryAudioPlaying(false);
+      });
   }
 
   return (
