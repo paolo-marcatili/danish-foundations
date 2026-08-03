@@ -1,0 +1,62 @@
+name: Generate Armenian neural audio
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Audio set to generate
+        required: true
+        default: sample
+        type: choice
+        options:
+          - sample
+          - core
+          - all
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Generate Armenian audio
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          AUDIO_SCOPE: ${{ inputs.scope }}
+        run: |
+          test -n "$AZURE_SPEECH_KEY" || (echo "Missing AZURE_SPEECH_KEY repository secret" && exit 1)
+          test -n "$AZURE_SPEECH_REGION" || (echo "Missing AZURE_SPEECH_REGION repository secret" && exit 1)
+          case "$AUDIO_SCOPE" in
+            sample) EXTRA_ARGS="--sample --force" ;;
+            all) EXTRA_ARGS="--all --force" ;;
+            *) EXTRA_ARGS="--force" ;;
+          esac
+          node tools/generate-automated-audio.mjs content-packs/hy-eastern-it $EXTRA_ARGS
+
+      - name: Package generated update
+        run: |
+          mkdir -p neural-audio-update/content-packs/hy-eastern-it/dictionary
+          mkdir -p neural-audio-update/content-packs/hy-eastern-it/audio
+          mkdir -p neural-audio-update/apps/web/public/content-packs/hy-eastern-it/audio
+          cp content-packs/hy-eastern-it/dictionary/*.jsonl neural-audio-update/content-packs/hy-eastern-it/dictionary/
+          cp -R content-packs/hy-eastern-it/audio/auto-neural neural-audio-update/content-packs/hy-eastern-it/audio/
+          cp -R apps/web/public/content-packs/hy-eastern-it/audio/auto-neural neural-audio-update/apps/web/public/content-packs/hy-eastern-it/audio/
+
+      - name: Upload generated audio update
+        uses: actions/upload-artifact@v4
+        with:
+          name: armenian-neural-audio-${{ inputs.scope }}
+          path: neural-audio-update
+          retention-days: 14

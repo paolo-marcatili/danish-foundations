@@ -1,4 +1,5 @@
 export type ReviewStatus = "draft" | "needs_native_speaker_review" | "approved";
+export type TranslationReviewStatus = "needs_review" | "reviewed";
 
 export type LearningSubject = "language" | "mental_math" | "other";
 
@@ -56,6 +57,8 @@ export interface AudioReference {
   voice?: string;
   text?: string;
   mime_type?: string;
+  generated_at?: string;
+  provider?: string;
   license: string;
   review_status: ReviewStatus;
 }
@@ -66,11 +69,15 @@ export interface LearningItem {
   target: string;
   translation: string;
   translations?: LocalizedText;
+  literal_translations?: LocalizedText;
+  translation_review_status?: Record<string, TranslationReviewStatus>;
   emoji?: string;
   transliteration?: string;
   ipa?: string;
   part_of_speech?: string;
-  difficulty: number;
+  /** Legacy import hint. Runtime sequencing is driven by controlled tags. */
+  difficulty?: number;
+  /** Legacy import hint. Runtime sequencing is driven by stage/tier tags. */
   complexity?: number;
   tags: string[];
   audio: AudioReference[];
@@ -92,6 +99,7 @@ export interface LetterItem {
   names: LocalizedText;
   sound: string;
   transliteration?: string;
+  tags?: string[];
   audio?: AudioReference[];
   similar_letter_ids?: string[];
   example_item_ids?: string[];
@@ -109,10 +117,14 @@ export interface GrammarItem {
   target_sentence: string;
   translation: string;
   translations?: LocalizedText;
+  literal_translations?: LocalizedText;
+  translation_review_status?: Record<string, TranslationReviewStatus>;
   /** Curated answer choices in each base language, used before automatic fallbacks. */
   translation_distractors?: LocalizedStringList;
   distractors: string[];
-  difficulty: number;
+  /** Legacy import hint. Runtime sequencing is driven by controlled tags. */
+  difficulty?: number;
+  /** Legacy import hint. Runtime sequencing is driven by stage/tier tags. */
   complexity?: number;
   tags: string[];
   audio: AudioReference[];
@@ -189,6 +201,10 @@ export interface PackTrainingOption {
   encounter: "training_dummy" | "shield_drill" | "rune_gate" | "echo_crystal" | "stone_lift" | "target_throw" | "puzzle_gate" | "letter_gate";
   encounter_label_key: string;
   icon: string;
+  stone_id?: string;
+  stone_label_key?: string;
+  stone_color?: string;
+  stone_icon?: string;
 }
 
 export interface PackLevelRequirements {
@@ -201,6 +217,7 @@ export interface PackLevelRequirements {
 export interface PackFightRules {
   min_questions: number;
   at_min_questions: number;
+  /** Par time for the optional speed bonus. It never invalidates an answer. */
   timer_seconds: number;
   max_questions?: number;
   max_mistakes_to_win?: number;
@@ -211,7 +228,18 @@ export interface PackLevel {
   number: number;
   title: string;
   stat_cap: number;
-  max_complexity: number;
+  /** Deprecated compatibility field. Content is introduced with stage:* tags. */
+  max_complexity?: number;
+  content_tags?: string[];
+  theme?: LocalizedText;
+  learning_goal?: LocalizedText;
+  grammar_title?: LocalizedText;
+  grammar_note?: LocalizedText;
+  grammar_examples?: Array<{
+    target: string;
+    translation: LocalizedText;
+    transliteration?: string;
+  }>;
   unlock_requires: PackLevelRequirements;
   fight: PackFightRules;
 }
@@ -594,7 +622,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       else itemIds.add(id);
       requireString(item, "target", errors, `items[${index}]`);
       requireString(item, "translation", errors, `items[${index}]`);
-      if (typeof item.difficulty !== "number" || item.difficulty < 1) errors.push(`items[${index}].difficulty must be a positive number.`);
+      if (item.difficulty !== undefined && (typeof item.difficulty !== "number" || item.difficulty < 1)) errors.push(`items[${index}].difficulty must be a positive number when provided.`);
       if (item.complexity !== undefined && (typeof item.complexity !== "number" || item.complexity < 0)) errors.push(`items[${index}].complexity must be a non-negative number when provided.`);
       if (!Array.isArray(item.tags)) errors.push(`items[${index}].tags must be an array.`);
       else for (const tag of item.tags) if (controlledTags.size > 0 && !controlledTags.has(String(tag))) warnings.push(`items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
@@ -646,7 +674,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
         }
       }
       if (!Array.isArray(grammar.distractors) || grammar.distractors.length === 0) errors.push(`grammar_items[${index}].distractors must contain at least one sentence.`);
-      if (typeof grammar.difficulty !== "number" || grammar.difficulty < 1) errors.push(`grammar_items[${index}].difficulty must be a positive number.`);
+      if (grammar.difficulty !== undefined && (typeof grammar.difficulty !== "number" || grammar.difficulty < 1)) errors.push(`grammar_items[${index}].difficulty must be a positive number when provided.`);
       if (grammar.complexity !== undefined && (typeof grammar.complexity !== "number" || grammar.complexity < 0)) errors.push(`grammar_items[${index}].complexity must be a non-negative number when provided.`);
       if (!Array.isArray(grammar.tags)) errors.push(`grammar_items[${index}].tags must be an array.`);
       else for (const tag of grammar.tags) if (controlledTags.size > 0 && !controlledTags.has(String(tag))) warnings.push(`grammar_items[${index}] uses tag not in controlled_tags: ${String(tag)}`);
@@ -698,7 +726,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
         labyrinthIds.add(labyrinth.id);
       }
       if (typeof labyrinth.enabled !== "boolean") errors.push(`${path}.enabled must be a boolean.`);
-      if (!Number.isInteger(labyrinth.minimum_level) || Number(labyrinth.minimum_level) < 1) errors.push(`${path}.minimum_level must be a positive integer.`);
+      if (!Number.isInteger(labyrinth.minimum_level) || Number(labyrinth.minimum_level) < 0) errors.push(`${path}.minimum_level must be a non-negative integer.`);
       if (!isObject(labyrinth.map)) errors.push(`${path}.map must be an object.`);
       else {
         if (!Number.isInteger(labyrinth.map.width) || Number(labyrinth.map.width) < 5) errors.push(`${path}.map.width must be an integer of at least 5.`);
@@ -807,8 +835,8 @@ function normalizeItem(item: LearningItem, sourceLanguage: string): LearningItem
   return {
     ...item,
     translations: { ...(item.translations ?? {}), [sourceLanguage]: item.translation },
-    difficulty: Number(item.difficulty ?? 1),
-    complexity: Number(item.complexity ?? item.difficulty ?? 1),
+    difficulty: item.difficulty === undefined ? undefined : Number(item.difficulty),
+    complexity: item.complexity === undefined ? undefined : Number(item.complexity),
     tags: Array.isArray(item.tags) ? item.tags : [],
     audio: Array.isArray(item.audio) ? item.audio : [],
     review_status: item.review_status ?? "draft"
@@ -819,6 +847,7 @@ function normalizeLetter(letter: LetterItem, sourceLanguage: string): LetterItem
   return {
     ...letter,
     names: { ...(letter.names ?? {}), [sourceLanguage]: getLocalizedText(letter.names, sourceLanguage, letter.sound) },
+    tags: Array.isArray(letter.tags) ? letter.tags : [],
     audio: Array.isArray(letter.audio) ? letter.audio : [],
     similar_letter_ids: Array.isArray(letter.similar_letter_ids) ? letter.similar_letter_ids : [],
     review_status: letter.review_status ?? "draft"
@@ -832,8 +861,8 @@ function normalizeGrammar(grammar: GrammarItem, sourceLanguage: string): Grammar
     prompt: { ...(grammar.prompt ?? {}), [sourceLanguage]: getLocalizedText(grammar.prompt, sourceLanguage, grammar.translation) },
     translation_distractors: normalizeLocalizedStringList(grammar.translation_distractors),
     distractors: Array.isArray(grammar.distractors) ? grammar.distractors : [],
-    difficulty: Number(grammar.difficulty ?? 1),
-    complexity: Number(grammar.complexity ?? grammar.difficulty ?? 1),
+    difficulty: grammar.difficulty === undefined ? undefined : Number(grammar.difficulty),
+    complexity: grammar.complexity === undefined ? undefined : Number(grammar.complexity),
     tags: Array.isArray(grammar.tags) ? grammar.tags : [],
     audio: Array.isArray(grammar.audio) ? grammar.audio : [],
     review_status: grammar.review_status ?? "draft"

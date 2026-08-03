@@ -49,9 +49,13 @@ function validateLanguagePack(value) {
     for (const field of ["id", "concept", "target", "translation", "review_status"]) requireString(item, `items[${index}].${field}`, errors, field);
     if (itemIds.has(item.id)) errors.push(`Duplicate item id: ${item.id}`);
     itemIds.add(item.id);
-    if (typeof item.difficulty !== "number" || item.difficulty < 1) errors.push(`items[${index}].difficulty must be positive.`);
+    if (item.difficulty !== undefined && (typeof item.difficulty !== "number" || item.difficulty < 1)) errors.push(`items[${index}].difficulty must be positive when provided.`);
     if (!Array.isArray(item.tags)) errors.push(`items[${index}].tags must be an array.`);
-    else for (const tag of item.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`items[${index}] uses uncontrolled tag: ${tag}`);
+    else {
+      for (const tag of item.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`items[${index}] uses uncontrolled tag: ${tag}`);
+      validateCurriculumTags(item, `items[${index}]`, errors);
+      if (item.tags.includes("tier:core") && item.translation_review_status?.it !== "reviewed") errors.push(`items[${index}] core Italian translation must be reviewed.`);
+    }
     if (!Array.isArray(item.audio)) errors.push(`items[${index}].audio must be an array.`);
     if (item.review_status !== "approved") warnings.push(`items[${index}] is not approved yet: ${item.id}`);
   }
@@ -66,6 +70,8 @@ function validateLanguagePack(value) {
     const duplicateVisible = [...letterIds].filter((id) => id !== letter.id).length;
     void duplicateVisible;
     if (!label) errors.push(`letters[${index}] must have a visible label.`);
+    if (Array.isArray(letter.tags)) validateCurriculumTags(letter, `letters[${index}]`, errors);
+    else errors.push(`letters[${index}].tags must be an array.`);
     if (letter.review_status !== "approved") warnings.push(`letters[${index}] is not approved yet: ${letter.id}`);
   }
 
@@ -83,7 +89,17 @@ function validateLanguagePack(value) {
     }
     if (!Array.isArray(grammar.distractors) || grammar.distractors.length === 0) errors.push(`grammar_items[${index}].distractors must be non-empty.`);
     if (!Array.isArray(grammar.tags)) errors.push(`grammar_items[${index}].tags must be an array.`);
-    else for (const tag of grammar.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`grammar_items[${index}] uses uncontrolled tag: ${tag}`);
+    else {
+      for (const tag of grammar.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`grammar_items[${index}] uses uncontrolled tag: ${tag}`);
+      validateCurriculumTags(grammar, `grammar_items[${index}]`, errors);
+      if (grammar.tags.includes("tier:core")) {
+        if (grammar.translation_review_status?.it !== "reviewed") errors.push(`grammar_items[${index}] core Italian translation must be reviewed.`);
+        const italianDistractors = grammar.translation_distractors?.it;
+        if (!Array.isArray(italianDistractors) || new Set(italianDistractors).size < 3 || italianDistractors.includes(grammar.translation)) {
+          errors.push(`grammar_items[${index}] core sentence must have three unique Italian distractors different from the answer.`);
+        }
+      }
+    }
     if (grammar.review_status !== "approved") warnings.push(`grammar_items[${index}] is not approved yet: ${grammar.id}`);
   }
 
@@ -112,7 +128,7 @@ function validateLanguagePack(value) {
       labyrinthIds.add(labyrinth.id);
     }
     if (typeof labyrinth.enabled !== "boolean") errors.push(`${path}.enabled must be a boolean.`);
-    if (!Number.isInteger(labyrinth.minimum_level) || labyrinth.minimum_level < 1) errors.push(`${path}.minimum_level must be a positive integer.`);
+    if (!Number.isInteger(labyrinth.minimum_level) || labyrinth.minimum_level < 0) errors.push(`${path}.minimum_level must be a non-negative integer.`);
     if (!isObject(labyrinth.map)) errors.push(`${path}.map must be an object.`);
     else {
       if (!Number.isInteger(labyrinth.map.width) || labyrinth.map.width < 5) errors.push(`${path}.map.width must be an integer of at least 5.`);
@@ -180,6 +196,16 @@ function validateLanguagePack(value) {
   }
 
   return { ok: errors.length === 0, errors, warnings };
+}
+
+function validateCurriculumTags(entry, path, errors) {
+  const tags = entry.tags ?? [];
+  const tiers = tags.filter((tag) => tag === "tier:core" || tag === "tier:extension");
+  if (tiers.length !== 1) errors.push(`${path} must have exactly one tier:core or tier:extension tag.`);
+  if (tiers[0] === "tier:core") {
+    const stages = tags.filter((tag) => /^stage:[0-8]$/.test(tag));
+    if (stages.length !== 1) errors.push(`${path} core content must have exactly one stage:0 through stage:8 tag.`);
+  }
 }
 
 function isObject(value) { return typeof value === "object" && value !== null && !Array.isArray(value); }

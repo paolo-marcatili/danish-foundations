@@ -23,6 +23,8 @@ let audioContext: AudioContext | null = null;
 let enabled = readAudioPreference();
 let unlocked = false;
 let currentLearningAudio: HTMLAudioElement | null = null;
+let currentLearningAudioFinish: ((completed: boolean) => void) | null = null;
+let currentSpeechFinish: ((completed: boolean) => void) | null = null;
 let learningAudioMode: "human_only" | "human_and_automatic" = readLearningAudioMode();
 
 export function isAudioEnabled(): boolean {
@@ -123,18 +125,25 @@ export async function playLearningAudio(audio: AudioReference[] | undefined, tex
   await unlockAudio();
 
   const preferred = chooseBestAudio(audio);
+  const language = langFromAudio(preferred, lang);
+
+  // Prefer a genuine Armenian system voice over legacy eSpeak previews. Neural
+  // course files and human recordings still take priority when available.
+  if (
+    learningAudioMode === "human_and_automatic" &&
+    preferred &&
+    preferred.source_type === "automated" &&
+    !isNeuralAudio(preferred) &&
+    hasVoiceForLanguage(language)
+  ) {
+    return speakAndWait(text ?? preferred.text, language);
+  }
+
   if (preferred?.url && !preferred.url.startsWith("browser-tts:")) {
-    try {
-      stopCurrentLearningAudio();
-      const element = new Audio(publicUrl(preferred.url));
-      currentLearningAudio = element;
-      element.volume = 0.9;
-      await element.play();
-      return true;
-    } catch {
-      // Browser audio can still fail before a user gesture or if the file is missing.
-      // Fall through to browser speech / audible cue.
-    }
+    const played = await playAudioElementAndWait(publicUrl(preferred.url));
+    if (played) return true;
+    // Browser audio can still fail before a user gesture or if the file is
+    // missing. Fall through to an installed Armenian voice when one exists.
   }
 
   if (!preferred && learningAudioMode === "human_only") {
@@ -142,35 +151,83 @@ export async function playLearningAudio(audio: AudioReference[] | undefined, tex
     return false;
   }
 
-  return speak(text ?? preferred?.text, langFromAudio(preferred, lang));
+  return speakAndWait(text ?? preferred?.text, language);
 }
 
+/** Fire-and-forget speech helper retained for callers that do not need completion. */
 export function speak(text: string | undefined, lang: string): boolean {
-  if (!enabled || !text || typeof window === "undefined") return false;
-  void unlockAudio();
+  if (!canSpeak(text, lang)) return false;
+  void speakAndWait(text, lang);
+  return true;
+}
 
-  if (!("speechSynthesis" in window)) {
-    return false;
-  }
+async function playAudioElementAndWait(url: string): Promise<boolean> {
+  stopCurrentLearningAudio();
+  const element = new Audio(url);
+  currentLearningAudio = element;
+  element.volume = 0.9;
 
-  try {
-    const utterance = new SpeechSynthesisUtterance(text);
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+    const finish = (completed: boolean) => {
+      if (settled) return;
+      settled = true;
+      element.removeEventListener("ended", onEnded);
+      element.removeEventListener("error", onError);
+      if (currentLearningAudio === element) currentLearningAudio = null;
+      if (currentLearningAudioFinish === finish) currentLearningAudioFinish = null;
+      resolve(completed);
+    };
+    const onEnded = () => finish(true);
+    const onError = () => finish(false);
+    currentLearningAudioFinish = finish;
+    element.addEventListener("ended", onEnded, { once: true });
+    element.addEventListener("error", onError, { once: true });
+    void element.play().catch(() => finish(false));
+  });
+}
+
+function speakAndWait(text: string | undefined, lang: string): Promise<boolean> {
+  if (!canSpeak(text, lang) || typeof window === "undefined") return Promise.resolve(false);
+  const matchingVoice = findVoiceForLanguage(lang);
+  if (!matchingVoice) return Promise.resolve(false);
+
+  stopCurrentLearningAudio();
+  return new Promise<boolean>((resolve) => {
+    let settled = false;
+    const finish = (completed: boolean) => {
+      if (settled) return;
+      settled = true;
+      if (currentSpeechFinish === finish) currentSpeechFinish = null;
+      resolve(completed);
+    };
+    const utterance = new SpeechSynthesisUtterance(text ?? "");
     utterance.lang = lang;
-    utterance.rate = 0.78;
-    utterance.pitch = 1.08;
-    const voices = window.speechSynthesis.getVoices();
-    const exactVoice = voices.find((voice) => voice.lang.toLowerCase() === lang.toLowerCase());
-    const looseVoice = voices.find((voice) => voice.lang.toLowerCase().startsWith(lang.slice(0, 2).toLowerCase()));
-    utterance.voice = exactVoice ?? looseVoice ?? null;
+    utterance.rate = 0.88;
+    utterance.pitch = 1;
+    utterance.voice = matchingVoice;
+    utterance.onend = () => finish(true);
     utterance.onerror = () => {
       if (import.meta.env.DEV) console.warn("Browser speech synthesis failed for", lang, text);
+      finish(false);
     };
+    currentSpeechFinish = finish;
     window.speechSynthesis.cancel();
     window.speechSynthesis.speak(utterance);
-    return true;
-  } catch {
-    return false;
-  }
+  });
+}
+
+function canSpeak(text: string | undefined, lang: string): boolean {
+  return Boolean(enabled && text && typeof window !== "undefined" && "speechSynthesis" in window && findVoiceForLanguage(lang));
+}
+
+function findVoiceForLanguage(lang: string): SpeechSynthesisVoice | undefined {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return undefined;
+  const voices = window.speechSynthesis.getVoices();
+  const normalized = lang.toLowerCase();
+  const prefix = normalized.slice(0, 2);
+  return voices.find((voice) => voice.lang.toLowerCase() === normalized)
+    ?? voices.find((voice) => voice.lang.toLowerCase().startsWith(prefix));
 }
 
 function chooseBestAudio(audio: AudioReference[] | undefined): AudioReference | undefined {
@@ -184,14 +241,22 @@ function chooseBestAudio(audio: AudioReference[] | undefined): AudioReference | 
 
   if (learningAudioMode === "human_only") return undefined;
 
+  const automated = pool.filter((entry) => entry.source_type === "automated");
+  const neural = automated.filter(isNeuralAudio);
+  if (neural.length > 0) return randomChoice(neural);
+
   const browserTts = pool.filter((entry) => entry.source_type === "browser_tts" || entry.url.startsWith("browser-tts:"));
   const browserWithMatchingVoice = browserTts.find((entry) => hasVoiceForLanguage(langFromAudio(entry, "hy-AM")));
   if (browserWithMatchingVoice) return browserWithMatchingVoice;
 
-  const automated = pool.filter((entry) => entry.source_type === "automated");
   if (automated.length > 0) return randomChoice(automated);
 
   return browserTts[0] ?? pool[0];
+}
+
+function isNeuralAudio(audio: AudioReference): boolean {
+  const description = `${audio.provider ?? ""} ${audio.engine ?? ""} ${audio.voice ?? ""}`.toLowerCase();
+  return description.includes("azure") || description.includes("neural");
 }
 
 function langFromAudio(audio: AudioReference | undefined, fallback: string): string {
@@ -206,10 +271,16 @@ function randomChoice<T>(values: T[]): T {
 }
 
 function stopCurrentLearningAudio(): void {
-  if (!currentLearningAudio) return;
-  currentLearningAudio.pause();
-  currentLearningAudio.currentTime = 0;
-  currentLearningAudio = null;
+  if (currentLearningAudio) {
+    currentLearningAudio.pause();
+    currentLearningAudio.currentTime = 0;
+    currentLearningAudio = null;
+  }
+  currentLearningAudioFinish?.(false);
+  currentLearningAudioFinish = null;
+  if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  currentSpeechFinish?.(false);
+  currentSpeechFinish = null;
 }
 
 function getAudioContext(): AudioContext | null {
@@ -275,12 +346,7 @@ function readLearningAudioMode(): "human_only" | "human_and_automatic" {
 }
 
 function hasVoiceForLanguage(lang: string): boolean {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-  const voices = window.speechSynthesis.getVoices();
-  if (voices.length === 0) return false;
-  const normalized = lang.toLowerCase();
-  const prefix = normalized.slice(0, 2);
-  return voices.some((voice) => voice.lang.toLowerCase() === normalized || voice.lang.toLowerCase().startsWith(prefix));
+  return Boolean(findVoiceForLanguage(lang));
 }
 
 declare global {

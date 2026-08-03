@@ -1,4 +1,4 @@
-import type { GrammarItem, LanguagePack, LearningItem, AudioReference, LocalizedText } from "@hero-lang/content-schema";
+import type { GrammarItem, LanguagePack, LearningItem, LetterItem, AudioReference, LocalizedText } from "@hero-lang/content-schema";
 
 export interface ContributionAudio {
   text?: string;
@@ -48,9 +48,11 @@ export function loadLocalPack(basePack: LanguagePack): LanguagePack {
     const parsed = JSON.parse(raw) as LanguagePack;
     if (parsed.pack_id !== basePack.pack_id) return basePack;
 
-    // Keep locally edited dictionary/audio content, while inheriting new
-    // versioned pack configuration (levels, UI text, labyrinths, etc.) that
-    // older browser snapshots may not contain.
+    // Curriculum v0.13.1 replaces legacy complexity sequencing with controlled
+    // stage/tier tags and corrected core translations. An older local snapshot
+    // must inherit those bundled fields, while preserving user-recorded audio
+    // and locally added dictionary entries.
+    const preferBundledCurriculum = compareVersions(parsed.version, "0.13.1") < 0;
     return {
       ...basePack,
       ...parsed,
@@ -58,8 +60,12 @@ export function loadLocalPack(basePack: LanguagePack): LanguagePack {
       // Local snapshots are intended to preserve contributed dictionary/audio
       // content, not pin the app to an older pack version.
       version: basePack.version,
-      ui_text: { ...(basePack.ui_text ?? {}), ...(parsed.ui_text ?? {}) },
-      controlled_tags: parsed.controlled_tags ?? basePack.controlled_tags,
+      ui_text: preferBundledCurriculum
+        ? basePack.ui_text
+        : { ...(basePack.ui_text ?? {}), ...(parsed.ui_text ?? {}) },
+      controlled_tags: preferBundledCurriculum
+        ? basePack.controlled_tags
+        : parsed.controlled_tags ?? basePack.controlled_tags,
       task_config: basePack.task_config ?? parsed.task_config,
       training_options: basePack.training_options ?? parsed.training_options,
       levels: basePack.levels ?? parsed.levels,
@@ -67,9 +73,9 @@ export function loadLocalPack(basePack: LanguagePack): LanguagePack {
       labyrinths: basePack.labyrinths ?? parsed.labyrinths,
       story: basePack.story ?? parsed.story,
       files: basePack.files ?? parsed.files,
-      items: parsed.items ?? basePack.items,
-      letters: parsed.letters ?? basePack.letters,
-      grammar_items: mergeLocalGrammarItems(basePack.grammar_items ?? [], parsed.grammar_items ?? [])
+      items: mergeLocalLearningItems(basePack.items, parsed.items ?? [], preferBundledCurriculum),
+      letters: mergeLocalLetters(basePack.letters ?? [], parsed.letters ?? [], preferBundledCurriculum),
+      grammar_items: mergeLocalGrammarItems(basePack.grammar_items ?? [], parsed.grammar_items ?? [], preferBundledCurriculum)
     };
   } catch {
     return basePack;
@@ -117,9 +123,7 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
         transliteration: contributionItem.transliteration,
         ipa: contributionItem.ipa,
         part_of_speech: contributionItem.part_of_speech,
-        difficulty: Number(contributionItem.difficulty || 1),
-        complexity: Number(contributionItem.complexity || contributionItem.difficulty || 1),
-        tags: Array.isArray(contributionItem.tags) && contributionItem.tags.length > 0 ? contributionItem.tags : ["community"],
+        tags: normalizeCurriculumTags(contributionItem.tags),
         audio: [],
         hard_distractor_ids: Array.isArray(contributionItem.hard_distractor_ids) ? contributionItem.hard_distractor_ids : [],
         review_status: contributionItem.review_status || "needs_native_speaker_review"
@@ -132,8 +136,6 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
       if (contributionItem.emoji) item.emoji = contributionItem.emoji;
       if (!item.transliteration && contributionItem.transliteration) item.transliteration = contributionItem.transliteration;
       if (!item.ipa && contributionItem.ipa) item.ipa = contributionItem.ipa;
-      if (contributionItem.difficulty) item.difficulty = Number(contributionItem.difficulty);
-      if (contributionItem.complexity || contributionItem.difficulty) item.complexity = Number(contributionItem.complexity || contributionItem.difficulty);
       item.tags = uniqueStrings([...(item.tags ?? []), ...(contributionItem.tags ?? [])]);
       summary.updatedItems += 1;
     }
@@ -157,9 +159,7 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
         translations: cleanTranslations(contributionGrammar.translations),
         translation_distractors: cleanLocalizedStringLists(contributionGrammar.translation_distractors),
         distractors: Array.isArray(contributionGrammar.distractors) ? contributionGrammar.distractors : makeSentenceDistractors(targetSentence),
-        difficulty: Number(contributionGrammar.difficulty || 1),
-        complexity: Number(contributionGrammar.complexity || contributionGrammar.difficulty || 1),
-        tags: Array.isArray(contributionGrammar.tags) && contributionGrammar.tags.length > 0 ? contributionGrammar.tags : ["community", "sentence_order"],
+        tags: normalizeCurriculumTags(contributionGrammar.tags, ["topic:sentences"]),
         audio: [],
         review_status: contributionGrammar.review_status || "needs_native_speaker_review"
       };
@@ -170,8 +170,6 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
       if (contributionGrammar.translation) grammar.translation = contributionGrammar.translation;
       const translationDistractors = cleanLocalizedStringLists(contributionGrammar.translation_distractors);
       if (translationDistractors) grammar.translation_distractors = { ...(grammar.translation_distractors ?? {}), ...translationDistractors };
-      if (contributionGrammar.difficulty) grammar.difficulty = Number(contributionGrammar.difficulty);
-      if (contributionGrammar.complexity || contributionGrammar.difficulty) grammar.complexity = Number(contributionGrammar.complexity || contributionGrammar.difficulty);
       grammar.tags = uniqueStrings([...(grammar.tags ?? []), ...(contributionGrammar.tags ?? [])]);
       grammar.distractors = uniqueStrings([...(grammar.distractors ?? []), ...(contributionGrammar.distractors ?? [])]);
       if (grammar.distractors.length === 0) grammar.distractors = makeSentenceDistractors(grammar.target_sentence);
@@ -187,21 +185,96 @@ export function mergeContributionIntoPack(pack: LanguagePack, contribution: Cont
   return { pack: nextPack, summary };
 }
 
-function mergeLocalGrammarItems(baseItems: GrammarItem[], localItems: GrammarItem[]): GrammarItem[] {
+function mergeLocalLearningItems(baseItems: LearningItem[], localItems: LearningItem[], preferBundled: boolean): LearningItem[] {
   const baseById = new Map(baseItems.map((item) => [item.id, item]));
   const merged = localItems.map((local) => {
     const base = baseById.get(local.id);
-    if (!base) return local;
+    if (!base) return { ...local, tags: normalizeCurriculumTags(local.tags) };
+    const value = preferBundled ? { ...local, ...base } : { ...base, ...local };
     return {
-      ...base,
-      ...local,
-      translations: { ...(base.translations ?? {}), ...(local.translations ?? {}) },
-      prompt: { ...(base.prompt ?? {}), ...(local.prompt ?? {}) },
-      translation_distractors: { ...(base.translation_distractors ?? {}), ...(local.translation_distractors ?? {}) }
+      ...value,
+      tags: preferBundled ? base.tags : normalizeCurriculumTags(local.tags ?? base.tags),
+      translations: preferBundled
+        ? { ...(local.translations ?? {}), ...(base.translations ?? {}) }
+        : { ...(base.translations ?? {}), ...(local.translations ?? {}) },
+      audio: mergeAudioReferences(base.audio, local.audio)
     };
   });
   const localIds = new Set(localItems.map((item) => item.id));
   return [...merged, ...baseItems.filter((item) => !localIds.has(item.id))];
+}
+
+function mergeLocalLetters(baseItems: LetterItem[], localItems: LetterItem[], preferBundled: boolean): LetterItem[] {
+  const baseById = new Map(baseItems.map((item) => [item.id, item]));
+  const merged = localItems.map((local) => {
+    const base = baseById.get(local.id);
+    if (!base) return local;
+    const value = preferBundled ? { ...local, ...base } : { ...base, ...local };
+    return { ...value, tags: preferBundled ? base.tags : local.tags ?? base.tags, audio: mergeAudioReferences(base.audio, local.audio) };
+  });
+  const localIds = new Set(localItems.map((item) => item.id));
+  return [...merged, ...baseItems.filter((item) => !localIds.has(item.id))];
+}
+
+function mergeLocalGrammarItems(baseItems: GrammarItem[], localItems: GrammarItem[], preferBundled: boolean): GrammarItem[] {
+  const baseById = new Map(baseItems.map((item) => [item.id, item]));
+  const merged = localItems.map((local) => {
+    const base = baseById.get(local.id);
+    if (!base) return { ...local, tags: normalizeCurriculumTags(local.tags, ["topic:sentences"]) };
+    const value = preferBundled ? { ...local, ...base } : { ...base, ...local };
+    return {
+      ...value,
+      tags: preferBundled ? base.tags : normalizeCurriculumTags(local.tags ?? base.tags, ["topic:sentences"]),
+      translations: preferBundled
+        ? { ...(local.translations ?? {}), ...(base.translations ?? {}) }
+        : { ...(base.translations ?? {}), ...(local.translations ?? {}) },
+      prompt: preferBundled
+        ? { ...(local.prompt ?? {}), ...(base.prompt ?? {}) }
+        : { ...(base.prompt ?? {}), ...(local.prompt ?? {}) },
+      translation_distractors: preferBundled
+        ? { ...(local.translation_distractors ?? {}), ...(base.translation_distractors ?? {}) }
+        : { ...(base.translation_distractors ?? {}), ...(local.translation_distractors ?? {}) },
+      audio: mergeAudioReferences(base.audio, local.audio)
+    };
+  });
+  const localIds = new Set(localItems.map((item) => item.id));
+  return [...merged, ...baseItems.filter((item) => !localIds.has(item.id))];
+}
+
+function mergeAudioReferences(baseAudio: AudioReference[] | undefined, localAudio: AudioReference[] | undefined): AudioReference[] {
+  const result: AudioReference[] = [];
+  const seen = new Set<string>();
+  for (const audio of [...(baseAudio ?? []), ...(localAudio ?? [])]) {
+    const key = `${audio.id}|${audio.url}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(audio);
+  }
+  return result;
+}
+
+function compareVersions(a: string | undefined, b: string): number {
+  const parse = (value: string | undefined) => String(value ?? "0.0.0").split(".").slice(0, 3).map((part) => Number.parseInt(part, 10) || 0);
+  const left = parse(a);
+  const right = parse(b);
+  for (let index = 0; index < 3; index += 1) {
+    if (left[index] !== right[index]) return left[index] - right[index];
+  }
+  return 0;
+}
+
+function normalizeCurriculumTags(
+  tags: string[] | undefined,
+  extras: string[] = [],
+  defaultTier: "core" | "extension" = "extension"
+): string[] {
+  const values = uniqueStrings([...(Array.isArray(tags) ? tags : []), ...extras]);
+  if (!values.some((tag) => tag.startsWith("stage:"))) values.unshift("stage:0");
+  // Imported or locally added material must not silently enter the active
+  // beginner syllabus. It remains visible in the dictionary as extension
+  // content until an editor deliberately marks it tier:core.
+  if (!values.some((tag) => tag.startsWith("tier:"))) values.push(`tier:${defaultTier}`);
+  return values;
 }
 
 function cleanLocalizedStringLists(value: GrammarItem["translation_distractors"] | undefined): GrammarItem["translation_distractors"] | undefined {

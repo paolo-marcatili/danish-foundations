@@ -45,6 +45,10 @@ export interface TrainingOption {
   icon: string;
   encounter: "training_dummy" | "shield_drill" | "rune_gate" | "echo_crystal" | "stone_lift" | "target_throw" | "puzzle_gate" | "letter_gate";
   encounterLabelKey: string;
+  stoneId: string;
+  stoneLabelKey: string;
+  stoneColor: string;
+  stoneIcon: string;
 }
 
 export interface ShopUiItem extends ShopItem {
@@ -90,10 +94,10 @@ export const DEFAULT_MAX_MISTAKES_FOR_TRAINING_COMPLETION = 3;
 export const MIN_FIGHT_QUESTIONS = 10;
 
 const FALLBACK_TRAINING_OPTIONS: TrainingOption[] = [
-  { focus: "vocabulary", titleKey: "vocabularyTitle", shortKey: "vocabularyShort", bodyKey: "vocabularyBody", stat: "strength", icon: "🥊", encounter: "training_dummy", encounterLabelKey: "vocabularyChallenge" },
-  { focus: "comprehension", titleKey: "comprehensionTitle", shortKey: "comprehensionShort", bodyKey: "comprehensionBody", stat: "defense", icon: "🛡️", encounter: "shield_drill", encounterLabelKey: "shieldChallenge" },
-  { focus: "grammar", titleKey: "grammarTitle", shortKey: "grammarShort", bodyKey: "grammarBody", stat: "precision", icon: "🎯", encounter: "rune_gate", encounterLabelKey: "runeChallenge" },
-  { focus: "pronunciation", titleKey: "pronunciationTitle", shortKey: "pronunciationShort", bodyKey: "pronunciationBody", stat: "stamina", icon: "💎", encounter: "echo_crystal", encounterLabelKey: "echoChallenge" }
+  { focus: "vocabulary", titleKey: "vocabularyTitle", shortKey: "vocabularyShort", bodyKey: "vocabularyBody", stat: "strength", icon: "🥊", encounter: "training_dummy", encounterLabelKey: "vocabularyChallenge", stoneId: "word-stone", stoneLabelKey: "wordStone", stoneColor: "red", stoneIcon: "🔺" },
+  { focus: "comprehension", titleKey: "comprehensionTitle", shortKey: "comprehensionShort", bodyKey: "comprehensionBody", stat: "defense", icon: "🛡️", encounter: "shield_drill", encounterLabelKey: "shieldChallenge", stoneId: "echo-stone", stoneLabelKey: "echoStone", stoneColor: "blue", stoneIcon: "🔷" },
+  { focus: "grammar", titleKey: "grammarTitle", shortKey: "grammarShort", bodyKey: "grammarBody", stat: "precision", icon: "🎯", encounter: "rune_gate", encounterLabelKey: "runeChallenge", stoneId: "rune-stone", stoneLabelKey: "runeStone", stoneColor: "gold", stoneIcon: "🟨" },
+  { focus: "pronunciation", titleKey: "pronunciationTitle", shortKey: "pronunciationShort", bodyKey: "pronunciationBody", stat: "stamina", icon: "💎", encounter: "echo_crystal", encounterLabelKey: "echoChallenge", stoneId: "crystal-stone", stoneLabelKey: "crystalStone", stoneColor: "green", stoneIcon: "💚" }
 ];
 
 export const LANDING_ACTIONS: Array<{ name: HeroActionName; labelKey: string }> = [
@@ -138,11 +142,25 @@ export function getFightTimerSeconds(pack: LanguagePack, level: number): number 
   return getLevelConfig(pack, level)?.fight.timer_seconds ?? pack.task_config?.timer_seconds ?? DEFAULT_FIGHT_TIMER_SECONDS;
 }
 
+export function getFightParTimeSeconds(question: { variant: string; activity_type: string; kind?: string }, pack: LanguagePack, level: number): number {
+  if (question.variant === "sentence_tap_order") return 40;
+  if (question.variant === "sentence_translation" || question.variant === "missing_word" || question.variant === "sentence_choice") return 25;
+  if (question.activity_type === "listen_and_choose") return 15;
+  if (question.kind === "letter") return 12;
+  return Math.max(12, getFightTimerSeconds(pack, level));
+}
+
+export function getSpeedBonusMultiplier(elapsedSeconds: number, parSeconds: number, enabled = true): number {
+  if (!enabled || parSeconds <= 0) return 1;
+  const remainingRatio = Math.max(0, Math.min(1, 1 - elapsedSeconds / parSeconds));
+  return 1 + remainingRatio * 0.35;
+}
+
 export function getEnemyForLevel(pack: LanguagePack, level: number): EnemyConfig {
   const enemies = pack.enemies ?? [];
   const found = enemies.find((enemy) => enemy.level === level) ?? enemies[enemies.length - 1];
   if (found) return toEnemyConfig(pack, found);
-  return { id: "mist_goblin", level: 1, nameKey: "mistGoblin", maxEnergy: 50, rewardCoins: 35, preferredFocus: "vocabulary", sprite: "goblin", requiredStats: {}, tags: ["basic"], skillWeaknesses: ["strength"] };
+  return { id: "mist_goblin", level: 0, nameKey: "mistGoblin", maxEnergy: 50, rewardCoins: 35, preferredFocus: "vocabulary", sprite: "goblin", requiredStats: {}, tags: ["basic"], skillWeaknesses: ["strength"] };
 }
 
 export function getVisibleShopItems(level: number, debugBypass = false): ShopUiItem[] {
@@ -216,8 +234,8 @@ export function getFightDamageForQuestion(questionStat: HeroStatKey, stats: Hero
   return estimateHeroDamage(stats, enemy.requiredStats, statCap, weaknessBoost).damage;
 }
 
-export function getFightDamageDetails(questionStat: HeroStatKey, stats: HeroStats, enemy: EnemyConfig, statCap: number) {
-  const weaknessBoost = enemy.skillWeaknesses.includes(questionStat) ? 1.12 : 1;
+export function getFightDamageDetails(questionStat: HeroStatKey, stats: HeroStats, enemy: EnemyConfig, statCap: number, speedMultiplier = 1) {
+  const weaknessBoost = (enemy.skillWeaknesses.includes(questionStat) ? 1.12 : 1) * Math.max(1, speedMultiplier);
   return estimateHeroDamage(stats, enemy.requiredStats, statCap, weaknessBoost);
 }
 
@@ -268,7 +286,11 @@ function toTrainingOption(option: PackTrainingOption): TrainingOption {
     stat: normalizeStat(option.stat),
     icon: option.icon,
     encounter: option.encounter,
-    encounterLabelKey: option.encounter_label_key
+    encounterLabelKey: option.encounter_label_key,
+    stoneId: option.stone_id ?? `${normalizeFocus(option.focus)}-stone`,
+    stoneLabelKey: option.stone_label_key ?? `${normalizeFocus(option.focus)}Stone`,
+    stoneColor: option.stone_color ?? "neutral",
+    stoneIcon: option.stone_icon ?? "◆"
   };
 }
 

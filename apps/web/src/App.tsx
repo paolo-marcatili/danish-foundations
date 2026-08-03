@@ -1,11 +1,15 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { AudioReference, LanguagePack, PackLabyrinthConfig } from "@hero-lang/content-schema";
-import { buildLanguagePackFromSources, getDefaultBaseLanguage, validateLanguagePack } from "@hero-lang/content-schema";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { AudioReference, LanguagePack, PackLabyrinthConfig, PackLevel } from "@hero-lang/content-schema";
+import { buildLanguagePackFromSources, getDefaultBaseLanguage, getLocalizedText, validateLanguagePack } from "@hero-lang/content-schema";
 import {
   answerQuestion,
   buyShopItem,
+  consumeLabyrinthDoorStones,
+  ensureLabyrinthDoorRequirement,
+  getLabyrinthDoorRequirement,
+  getMissingLabyrinthStones,
+  getLevelConfig,
   getLevelStatCap,
-  getMaxComplexityForLevel,
   getNextQuestion,
   hasEligibleQuestion,
   markEnemyDefeated,
@@ -25,6 +29,7 @@ import { HeroStatsPanel } from "./components/HeroStatsPanel";
 import { LabyrinthPanel } from "./components/LabyrinthPanel";
 import { PhaserWorld, type WorldEncounter } from "./components/PhaserWorld";
 import { QuestionCard } from "./components/QuestionCard";
+import { OfflineStatus } from "./components/OfflineStatus";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { ShopPanel } from "./components/ShopPanel";
 import { StoryPanel } from "./components/StoryPanel";
@@ -41,7 +46,8 @@ import {
   getFightMistakeDetails,
   getFightQuestionTarget,
   getFightMaxQuestions,
-  getFightTimerSeconds,
+  getFightParTimeSeconds,
+  getSpeedBonusMultiplier,
   getMaxMistakesForTrainingCompletion,
   getQuestionsPerTraining,
   getTrainingOptions,
@@ -90,6 +96,7 @@ import labyrinthsYaml from "../../../content-packs/hy-eastern-it/labyrinths.yaml
 import wordsJsonl from "../../../content-packs/hy-eastern-it/dictionary/words.jsonl?raw";
 import lettersJsonl from "../../../content-packs/hy-eastern-it/dictionary/letters.jsonl?raw";
 import sentencesJsonl from "../../../content-packs/hy-eastern-it/dictionary/sentences.jsonl?raw";
+import { useOfflineState } from "./offline";
 import "./App.css";
 
 const starterPack = buildLanguagePackFromSources({
@@ -117,6 +124,7 @@ interface FeedbackState {
   energyLoss?: number;
   absorbedDamage?: number;
   combatLabelKey?: string;
+  speedBonusPercent?: number;
 }
 
 interface NoticeState {
@@ -149,6 +157,8 @@ interface FightSession {
   questionsRequired: number;
   maxQuestions: number;
   timerSeconds: number;
+  questionStartedAt: number;
+  audioStartedAt?: number;
   question: TrainingQuestion;
   feedback: FeedbackState | null;
 }
@@ -171,6 +181,7 @@ export default function App() {
   const [activeProfileId, setActiveProfileIdState] = useState(() => loadActiveProfileId(loadChildProfiles()));
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId) ?? profiles[0];
   const [settings, setSettingsState] = useState<AppSettings>(() => loadAppSettings(pack));
+  const offlineState = useOfflineState();
   const [learnerState, setLearnerState] = useState<LearnerState>(() => loadLearnerState(pack, activeProfile ?? profiles[0]));
   const [trainingMenuOpen, setTrainingMenuOpen] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
@@ -206,9 +217,12 @@ export default function App() {
   const currentQuestion = trainingSession?.question ?? fightSession?.question ?? (labyrinthActive ? labyrinthSession?.currentQuestion : null) ?? null;
   const baseLanguage = getDefaultBaseLanguage(pack);
   const trainingOptions = useMemo(() => getTrainingOptions(pack), [pack]);
+  const labyrinthDoorRequirement = labyrinthConfig ? getLabyrinthDoorRequirement(learnerState, labyrinthConfig.id) : undefined;
+  const labyrinthMissingStones = labyrinthConfig ? getMissingLabyrinthStones(learnerState, labyrinthConfig.id) : [];
   const questionsPerTraining = getQuestionsPerTraining(pack);
   const maxMistakesForTraining = getMaxMistakesForTrainingCompletion(pack);
   const currentEnemy = getEnemyForLevel(pack, learnerState.level);
+  const currentLevelConfig = getLevelConfig(pack, learnerState.level);
   const encounter: WorldEncounter | null = pendingEncounter
     ? pendingEncounter.type === "fight"
       ? { type: "fight", enemy: pendingEncounter.enemy }
@@ -243,6 +257,11 @@ export default function App() {
     if (!activeProfile) return;
     saveLearnerState(pack, activeProfile.id, learnerState);
   }, [pack, activeProfile?.id, learnerState]);
+
+  useEffect(() => {
+    if (!labyrinthConfig || labyrinthSession?.configId === labyrinthConfig.id) return;
+    setLearnerState((previous) => ensureLabyrinthDoorRequirement(previous, labyrinthConfig.id));
+  }, [labyrinthConfig?.id, labyrinthSession?.configId]);
 
   useEffect(() => {
     saveChildProfiles(profiles);
@@ -280,7 +299,15 @@ export default function App() {
     if (currentQuestion.activity_type === "listen_and_choose" || currentQuestion.activity_type === "repeat_after_me") {
       const handle = window.setTimeout(() => {
         void playLearningAudio(currentQuestion.audio, currentQuestion.target_audio_text, currentQuestion.target_audio_lang ?? pack.language.bcp47).then((played) => {
-          if (!played && settings.debug) console.warn("Learning audio was unavailable for question", currentQuestion.id);
+          if (played) {
+            // Listening questions begin their optional speed bonus only after
+            // the first playback has finished. Replays never reset the timer.
+            setFightSession((previous) => previous?.question.id === currentQuestion.id && !previous.audioStartedAt
+              ? { ...previous, audioStartedAt: Date.now(), questionStartedAt: Date.now() }
+              : previous);
+          } else if (settings.debug) {
+            console.warn("Learning audio was unavailable for question", currentQuestion.id);
+          }
         });
       }, 140);
       return () => window.clearTimeout(handle);
@@ -421,27 +448,13 @@ export default function App() {
     if (!session || !session.locked || !session.feedback || session.question.id !== expectedQuestionId) return;
 
     const nextIndex = session.index + 1;
-    const outOfHearts = !settings.debugBypass && !session.feedback.correct && session.mistakeCount >= session.maxMistakes;
-    if (outOfHearts) {
-      triggerAction("fall");
-      playSound("wrong");
-      setLearnerState((previous) => commitPracticeMemoryOnly(previous, session.practiceState));
-      trainingSessionRef.current = null;
-      setTrainingSession(null);
-      return;
-    }
-
     if (nextIndex >= questionsPerTraining) {
-      const completed = settings.debugBypass || session.mistakeCount < session.maxMistakes;
-      if (completed) {
-        triggerAction("victory");
-        playSound("coin");
-        setLearnerState(markTrainingSessionCompleted(session.practiceState, session.focus, pack));
-      } else {
-        triggerAction("stumble");
-        playSound("wrong");
-        setLearnerState((previous) => commitPracticeMemoryOnly(previous, session.practiceState));
-      }
+      const awardAttributePoint = settings.debugBypass || session.mistakeCount < session.maxMistakes;
+      triggerAction(awardAttributePoint ? "victory" : "stumble");
+      playSound(awardAttributePoint ? "coin" : "wrong");
+      // Finishing the full ten-question session always earns its training stone.
+      // The attribute point still reflects performance.
+      setLearnerState(markTrainingSessionCompleted(session.practiceState, session.focus, pack, awardAttributePoint));
       trainingSessionRef.current = null;
       setTrainingSession(null);
       return;
@@ -472,6 +485,29 @@ export default function App() {
       return;
     }
 
+    const resuming = labyrinthSession?.configId === config.id;
+    let stateForRun = learnerState;
+    if (!resuming) {
+      const withRequirement = ensureLabyrinthDoorRequirement(learnerState, config.id);
+      const missing = getMissingLabyrinthStones(withRequirement, config.id);
+      if (missing.length > 0) {
+        if (withRequirement !== learnerState) setLearnerState(withRequirement);
+        setNotice({ titleKey: "labyrinthDoorLockedTitle", bodyKey: "labyrinthDoorLockedBody" });
+        setTrainingMenuOpen(true);
+        triggerAction("stumble");
+        playSound("wrong");
+        return;
+      }
+      const consumed = consumeLabyrinthDoorStones(withRequirement, config.id);
+      if (!consumed.ok) {
+        setLearnerState(withRequirement);
+        setNotice({ titleKey: "labyrinthDoorLockedTitle", bodyKey: "labyrinthDoorLockedBody" });
+        return;
+      }
+      stateForRun = consumed.state;
+      setLearnerState(stateForRun);
+    }
+
     void unlockAudio();
     setNotice(null);
     setLabyrinthResult(null);
@@ -484,9 +520,9 @@ export default function App() {
     setFightSession(null);
     setPendingEncounter(null);
 
-    let next = labyrinthSession?.configId === config.id
-      ? rebaseLabyrinthSession(labyrinthSession, learnerState)
-      : createLabyrinthSession(config, learnerState);
+    let next = resuming && labyrinthSession
+      ? rebaseLabyrinthSession(labyrinthSession, stateForRun)
+      : createLabyrinthSession(config, stateForRun);
     next = ensureLabyrinthQuestion(next, config);
     persistLabyrinthSession(next);
     setLabyrinthOpen(true);
@@ -707,6 +743,7 @@ export default function App() {
       const heroMaxEnergy = getFightHeroEnergy(pack, learnerState, enemy);
       const questionTarget = getFightQuestionTarget(pack, learnerState, enemy);
       const maxQuestions = Math.min(getFightMaxQuestions(pack, learnerState.level), Math.max(questionTarget + 5, MIN_FIGHT_QUESTIONS + 5));
+      const question = getNextQuestion(pack, learnerState, baseLanguage, focus, getFightSelection(pack, enemy, learnerState.level, settings.audioMode, focus));
       setFightSession({
         enemy,
         index: 0,
@@ -719,8 +756,10 @@ export default function App() {
         enemyMaxEnergy,
         questionsRequired: questionTarget,
         maxQuestions,
-        timerSeconds: getFightTimerSeconds(pack, learnerState.level),
-        question: getNextQuestion(pack, learnerState, baseLanguage, focus, getFightSelection(pack, enemy, learnerState.level, settings.audioMode, focus)),
+        timerSeconds: getFightParTimeSeconds(question, pack, learnerState.level),
+        questionStartedAt: Date.now(),
+        audioStartedAt: question.activity_type === "listen_and_choose" ? undefined : Date.now(),
+        question,
         feedback: null
       });
       setPendingEncounter((previous) => (previous?.key === pending.key ? null : previous));
@@ -728,26 +767,30 @@ export default function App() {
     }, 1100);
   }
 
-  const handleFightTimeout = useCallback(() => {
-    resolveFightAnswer("__timeout__", true);
-  }, [fightSession, learnerState, baseLanguage]);
-
   function handleFightAnswer(selectedOptionId: string) {
-    resolveFightAnswer(selectedOptionId, false);
+    resolveFightAnswer(selectedOptionId);
   }
 
-  function resolveFightAnswer(selectedOptionId: string, timedOut: boolean) {
+  function resolveFightAnswer(selectedOptionId: string) {
     if (!fightSession || fightSession.locked) return;
 
+    const timingStart = fightSession.question.activity_type === "listen_and_choose"
+      ? (fightSession.audioStartedAt ?? Date.now())
+      : fightSession.questionStartedAt;
+    const elapsedSeconds = Math.max(0, (Date.now() - timingStart) / 1000);
+    const speedMultiplier = getSpeedBonusMultiplier(elapsedSeconds, fightSession.timerSeconds, settings.speedBonusEnabled);
+    const speedBonusPercent = Math.max(0, Math.round((speedMultiplier - 1) * 100));
     const result = answerQuestion(fightSession.question, selectedOptionId, learnerState, {
       mode: "fight",
-      timedOut,
+      timedOut: false,
       enemyRequirements: fightSession.enemy.requiredStats,
       enemyLevel: fightSession.enemy.level,
       statCap: settings.debugBypass ? Number.POSITIVE_INFINITY : getLevelStatCap(learnerState.level, pack)
     });
-    const damageDetails = result.correct ? getFightDamageDetails(fightSession.question.stat, learnerState.hero_stats, fightSession.enemy, getLevelStatCap(learnerState.level, pack)) : null;
-    const mistakeDetails = result.correct ? null : getFightMistakeDetails(pack, learnerState, fightSession.enemy, timedOut);
+    const damageDetails = result.correct
+      ? getFightDamageDetails(fightSession.question.stat, learnerState.hero_stats, fightSession.enemy, getLevelStatCap(learnerState.level, pack), speedMultiplier)
+      : null;
+    const mistakeDetails = result.correct ? null : getFightMistakeDetails(pack, learnerState, fightSession.enemy, false);
     const calculatedDamage = damageDetails?.damage ?? 0;
     const calculatedEnergyLoss = mistakeDetails?.damage ?? 0;
     const rawEnemyEnergy = fightSession.enemyEnergy - calculatedDamage;
@@ -758,7 +801,6 @@ export default function App() {
     const nextMistakeCount = fightSession.mistakeCount + (result.correct ? 0 : 1);
 
     setLearnerState(result.updated_state);
-    if (timedOut) playSound("timeout");
     playAnswerAudio(result, true);
     triggerAction(result.correct ? getCorrectFightAction(fightSession.question.skill) : randomFailAction(true));
 
@@ -769,7 +811,10 @@ export default function App() {
       enemyEnergy: nextEnemyEnergy,
       correctCount: nextCorrectCount,
       mistakeCount: nextMistakeCount,
-      feedback: toFeedback(result, selectedOptionId, fightSession.question.correct_option_id, calculatedDamage, calculatedEnergyLoss, (damageDetails ?? mistakeDetails)?.absorbed ?? 0, (damageDetails ?? mistakeDetails)?.label_key)
+      feedback: {
+        ...toFeedback(result, selectedOptionId, fightSession.question.correct_option_id, calculatedDamage, calculatedEnergyLoss, (damageDetails ?? mistakeDetails)?.absorbed ?? 0, (damageDetails ?? mistakeDetails)?.label_key),
+        speedBonusPercent: result.correct ? speedBonusPercent : 0
+      }
     });
 
     window.setTimeout(() => {
@@ -796,6 +841,8 @@ export default function App() {
       setFightSession((previous) => {
         if (!previous) return previous;
         const focus = getFightFocus(previous.enemy, nextIndex, pack, result.updated_state.level, settings.audioMode);
+        const question = getNextQuestion(pack, result.updated_state, baseLanguage, focus, getFightSelection(pack, previous.enemy, result.updated_state.level, settings.audioMode, focus));
+        const startedAt = Date.now();
         return {
           ...previous,
           index: nextIndex,
@@ -805,7 +852,10 @@ export default function App() {
           heroEnergy: nextHeroEnergy,
           enemyEnergy: nextEnemyEnergy,
           feedback: null,
-          question: getNextQuestion(pack, result.updated_state, baseLanguage, focus, getFightSelection(pack, previous.enemy, result.updated_state.level, settings.audioMode, focus))
+          timerSeconds: getFightParTimeSeconds(question, pack, result.updated_state.level),
+          questionStartedAt: startedAt,
+          audioStartedAt: question.activity_type === "listen_and_choose" ? undefined : startedAt,
+          question
         };
       });
     }, 2100);
@@ -894,10 +944,29 @@ export default function App() {
     </section>
   ) : fightSession ? (
     <section className="session-panel-card fight-session-panel" aria-label={t(baseLanguage, "fightTitle")}>
-      <div className="session-heading"><span>{t(baseLanguage, "fightTitle")}</span><strong>{t(baseLanguage, fightSession.enemy.nameKey)}</strong><p>{t(baseLanguage, "fightHint")} {fightSession.timerSeconds}s · {t(baseLanguage, "mistakes")}: {fightSession.mistakeCount}.</p></div>
+      <div className="session-heading"><span>{t(baseLanguage, "fightTitle")}</span><strong>{t(baseLanguage, fightSession.enemy.nameKey)}</strong><p>{settings.speedBonusEnabled ? `${t(baseLanguage, "softTimerHint")} · ` : ""}{t(baseLanguage, "mistakes")}: {fightSession.mistakeCount}.</p></div>
       <EnergyBars language={baseLanguage} heroEnergy={fightSession.heroEnergy} heroMaxEnergy={fightSession.heroMaxEnergy} enemyName={t(baseLanguage, fightSession.enemy.nameKey)} enemyEnergy={fightSession.enemyEnergy} enemyMaxEnergy={fightSession.enemyMaxEnergy} />
       {fightSession.feedback ? <CombatFeedback language={baseLanguage} feedback={fightSession.feedback} /> : null}
-      <QuestionCard question={fightSession.question} language={baseLanguage} disabled={fightSession.locked} mode="fight" index={fightSession.index} total={fightSession.maxQuestions} timerSeconds={fightSession.timerSeconds} feedback={fightSession.feedback} onAnswer={handleFightAnswer} onTimeout={handleFightTimeout} />
+      <QuestionCard
+        question={fightSession.question}
+        language={baseLanguage}
+        disabled={fightSession.locked}
+        mode="fight"
+        index={fightSession.index}
+        total={fightSession.maxQuestions}
+        timerSeconds={settings.speedBonusEnabled ? fightSession.timerSeconds : 0}
+        feedback={fightSession.feedback}
+        onAnswer={handleFightAnswer}
+        audioHasStarted={Boolean(fightSession.audioStartedAt)}
+        onAudioStarted={() => setFightSession((previous) => previous ? { ...previous, audioStartedAt: Date.now(), questionStartedAt: Date.now() } : previous)}
+        onAudioReplayCompleted={(durationMs) => setFightSession((previous) => previous?.question.id === fightSession.question.id
+          ? {
+              ...previous,
+              questionStartedAt: previous.questionStartedAt + durationMs,
+              audioStartedAt: previous.audioStartedAt ? previous.audioStartedAt + durationMs : previous.audioStartedAt
+            }
+          : previous)}
+      />
       <div className="level-gate-note">{t(baseLanguage, "levelGate")} · {formatEnemyRequirements(fightSession.enemy, baseLanguage)}</div>
       {settings.debug ? <div className="level-gate-note debug-note">HP {fightSession.enemyEnergy}/{fightSession.enemyMaxEnergy} · Q {fightSession.index + 1}/{fightSession.maxQuestions} · target {fightSession.questionsRequired}</div> : null}
       <button type="button" className="ghost-button full-width" onClick={() => setFightSession(null)}>{t(baseLanguage, "backHome")}</button>
@@ -949,7 +1018,10 @@ export default function App() {
           state={learnerState}
           options={trainingOptions}
           labyrinthConfig={labyrinthConfig}
+          levelConfig={currentLevelConfig}
           hasSavedLabyrinth={Boolean(labyrinthSession)}
+          doorRequirement={labyrinthDoorRequirement?.required_stones ?? []}
+          missingStones={labyrinthMissingStones}
           onStart={startTraining}
           onStartLabyrinth={startLabyrinth}
           onClose={() => setTrainingMenuOpen(false)}
@@ -987,6 +1059,7 @@ export default function App() {
               <strong>{t(baseLanguage, "appTitle")}</strong>
             </div>
             <div className="top-controls">
+              <OfflineStatus state={offlineState} language={baseLanguage} />
               <button type="button" className="profile-pill" onClick={() => { setProfileSwitcherOpen((open) => !open); setSettingsOpen(false); setAdminOpen(false); setShopOpen(false); setTrainingMenuOpen(false); }}>{activeProfile.name}</button>
               <button type="button" className="icon-button" onClick={toggleAudio} aria-label={audioOn ? t(baseLanguage, "soundOn") : t(baseLanguage, "soundOff")}>
                 {audioOn ? "🔊" : "🔇"}
@@ -1067,7 +1140,10 @@ function TrainingPopover({
   state,
   options,
   labyrinthConfig,
+  levelConfig,
   hasSavedLabyrinth,
+  doorRequirement,
+  missingStones,
   onStart,
   onStartLabyrinth,
   onClose
@@ -1076,7 +1152,10 @@ function TrainingPopover({
   state: LearnerState;
   options: ReturnType<typeof getTrainingOptions>;
   labyrinthConfig: PackLabyrinthConfig | null;
+  levelConfig: PackLevel | undefined;
   hasSavedLabyrinth: boolean;
+  doorRequirement: TrainingFocus[];
+  missingStones: TrainingFocus[];
   onStart: (focus: TrainingFocus) => void;
   onStartLabyrinth: () => void;
   onClose: () => void;
@@ -1087,6 +1166,13 @@ function TrainingPopover({
         <span>{t(language, "chooseTraining")}</span>
         <strong>{t(language, "trainingMenuTitle")}</strong>
       </div>
+      {levelConfig ? (
+        <div className="training-level-guide">
+          <span>{getLocalizedText(levelConfig.theme, language, levelConfig.title)}</span>
+          <strong>{getLocalizedText(levelConfig.learning_goal, language, levelConfig.title)}</strong>
+          <p><b>{getLocalizedText(levelConfig.grammar_title, language, "")}</b> {getLocalizedText(levelConfig.grammar_note, language, "")}</p>
+        </div>
+      ) : null}
       <div className="training-bubble-grid">
         {options.map((option) => (
           <button key={option.focus} type="button" className="training-bubble" onClick={() => onStart(option.focus)}>
@@ -1094,13 +1180,23 @@ function TrainingPopover({
             <strong>{t(language, option.encounterLabelKey)}</strong>
             <small>{t(language, option.stat)}</small>
             <em>{state.hero_stats[option.stat]}</em>
+            <span className={`training-stone stone-${option.stoneColor}`} title={t(language, option.stoneLabelKey)}>
+              {option.stoneIcon} × {state.training_stones[option.focus] ?? 0}
+            </span>
           </button>
         ))}
         {labyrinthConfig ? (
-          <button type="button" className="training-bubble labyrinth-bubble" onClick={onStartLabyrinth}>
-            <span className="bubble-icon">🗺️</span>
+          <button type="button" className={`training-bubble labyrinth-bubble${!hasSavedLabyrinth && missingStones.length > 0 ? " locked" : ""}`} onClick={onStartLabyrinth}>
+            <span className="bubble-icon">{hasSavedLabyrinth ? "🗺️" : missingStones.length > 0 ? "🔒" : "🚪"}</span>
             <strong>{t(language, hasSavedLabyrinth ? "labyrinthResume" : "labyrinthShort")}</strong>
-            <small>{t(language, "labyrinthTraining")}</small>
+            <small>{hasSavedLabyrinth ? t(language, "labyrinthRunInProgress") : t(language, "labyrinthDoorNeeds")}</small>
+            <div className="door-stone-row" aria-label={t(language, "labyrinthDoorNeeds")}>
+              {doorRequirement.map((focus) => {
+                const option = options.find((candidate) => candidate.focus === focus);
+                const missing = missingStones.includes(focus);
+                return <span key={focus} className={`door-stone${missing ? " missing" : " ready"}`}>{option?.stoneIcon ?? "◆"}</span>;
+              })}
+            </div>
             <em>+1 × 4</em>
           </button>
         ) : null}
@@ -1271,6 +1367,7 @@ function CombatFeedback({ language, feedback }: { language: string; feedback: Fe
       <strong>{t(language, labelKey)}</strong>
       {hasDamage ? <span className="damage-number">💥 -{Math.floor(feedback.damage ?? 0)}</span> : null}
       {hasLoss ? <span className="damage-number">😵 -{Math.floor(feedback.energyLoss ?? 0)}</span> : null}
+      {feedback.correct && (feedback.speedBonusPercent ?? 0) > 0 ? <em>{t(language, "speedBonusEarned", { value: feedback.speedBonusPercent ?? 0 })}</em> : null}
       {absorbed > 0 ? <em>{t(language, "damageAbsorbed", { value: absorbed })}</em> : null}
     </div>
   );
@@ -1477,7 +1574,7 @@ function getLabyrinthSelection(
   focus: TrainingFocus
 ) {
   return {
-    maxComplexity: getMaxComplexityForLevel(level, pack),
+    stage: level,
     tags: config.semantic_tags,
     requireHumanAudio: requiresHumanAudioForFocus(focus, audioMode),
     requirePlayableAudio: requiresPlayableAudioForFocus(focus, audioMode)
@@ -1545,7 +1642,7 @@ function applyLabyrinthBonus(
 
 function getTrainingSelection(pack: LanguagePack, level: number, audioMode?: AppSettings["audioMode"], focus?: TrainingFocus) {
   return {
-    maxComplexity: getMaxComplexityForLevel(level, pack),
+    stage: level,
     requireHumanAudio: focus ? requiresHumanAudioForFocus(focus, audioMode) : false,
     requirePlayableAudio: focus ? requiresPlayableAudioForFocus(focus, audioMode) : false
   };
@@ -1553,7 +1650,7 @@ function getTrainingSelection(pack: LanguagePack, level: number, audioMode?: App
 
 function getFightSelection(pack: LanguagePack, enemy: EnemyConfig, level: number, audioMode?: AppSettings["audioMode"], focus?: TrainingFocus) {
   return {
-    maxComplexity: getMaxComplexityForLevel(level, pack),
+    stage: level,
     tags: enemy.tags,
     requireHumanAudio: focus ? requiresHumanAudioForFocus(focus, audioMode) : false,
     requirePlayableAudio: focus ? requiresPlayableAudioForFocus(focus, audioMode) : false

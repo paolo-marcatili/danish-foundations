@@ -177,7 +177,7 @@ function readOptional(path) {
 }
 
 function normalizeItem(item, sourceLanguage) {
-  return { ...item, translations: { ...(item.translations || {}), [sourceLanguage]: item.translation }, difficulty: Number(item.difficulty || 1), complexity: Number(item.complexity || item.difficulty || 1), tags: Array.isArray(item.tags) ? item.tags : [], audio: Array.isArray(item.audio) ? item.audio : [], review_status: item.review_status || "draft" };
+  return { ...item, translations: { ...(item.translations || {}), [sourceLanguage]: item.translation }, difficulty: item.difficulty === undefined ? undefined : Number(item.difficulty), complexity: item.complexity === undefined ? undefined : Number(item.complexity), tags: Array.isArray(item.tags) ? item.tags : [], audio: Array.isArray(item.audio) ? item.audio : [], review_status: item.review_status || "draft" };
 }
 
 function normalizeLetter(letter, sourceLanguage) {
@@ -185,7 +185,7 @@ function normalizeLetter(letter, sourceLanguage) {
 }
 
 function normalizeGrammar(grammar, sourceLanguage) {
-  return { ...grammar, translations: { ...(grammar.translations || {}), [sourceLanguage]: grammar.translation }, prompt: { ...(grammar.prompt || {}), [sourceLanguage]: grammar.prompt?.[sourceLanguage] || grammar.translation }, distractors: Array.isArray(grammar.distractors) ? grammar.distractors : [], difficulty: Number(grammar.difficulty || 1), complexity: Number(grammar.complexity || grammar.difficulty || 1), tags: Array.isArray(grammar.tags) ? grammar.tags : [], audio: Array.isArray(grammar.audio) ? grammar.audio : [], review_status: grammar.review_status || "draft" };
+  return { ...grammar, translations: { ...(grammar.translations || {}), [sourceLanguage]: grammar.translation }, prompt: { ...(grammar.prompt || {}), [sourceLanguage]: grammar.prompt?.[sourceLanguage] || grammar.translation }, distractors: Array.isArray(grammar.distractors) ? grammar.distractors : [], difficulty: grammar.difficulty === undefined ? undefined : Number(grammar.difficulty), complexity: grammar.complexity === undefined ? undefined : Number(grammar.complexity), tags: Array.isArray(grammar.tags) ? grammar.tags : [], audio: Array.isArray(grammar.audio) ? grammar.audio : [], review_status: grammar.review_status || "draft" };
 }
 
 function createLessonsFromItems(items, letters, grammarItems) {

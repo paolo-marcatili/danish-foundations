@@ -4,12 +4,11 @@ An open-source gamified learning prototype for low-resource, minority, heritage,
 
 The current MVP teaches **Eastern Armenian through Italian** with a mobile-friendly 2D pixel side-scroller. The project is intentionally structured so a community language can work with reviewed text and human audio even when commercial TTS, ASR, or pronunciation scoring is unavailable.
 
-## What is in the v0.12.1 family-testing build
+## What is in the v0.13.1 curriculum and offline build
 
-The v0.12.1 build integrates the stable contextual layout requested for family testing: the side-scroller remains fixed on the left with stats, task/story, training selection, and shop on the right; active training and fights replace the right column with questions. In the labyrinth, every active question temporarily replaces the adventure log while the map remains fixed. Device simulation is session-scoped and always provides an external exit control. Silent audio-dependent questions are filtered before selection, and the supplied labyrinth walls are included byte-for-byte.
+The v0.13.1 build adds a staged Level 0–8 curriculum, controlled `stage:*` and `tier:*` tags, training stones that unlock each labyrinth expedition, a soft fight speed bonus, and a generated service worker that caches the complete GitHub Pages build for offline use. Existing profiles migrate once from the old Level 1 start to the new Level 0 start without losing mastery, coins, inventory, or completed sessions.
 
-
-This version keeps the modular language-pack refactor and replaces the active game world with a Phaser 2D sprite/tile-style side-scroller.
+The stable contextual layout remains: the side-scroller stays visible beside training and fight questions, while labyrinth questions temporarily prioritize the encounter animation and question panel.
 
 - Default pack: `hy-eastern-it` = Eastern Armenian target language, Italian base/interface language.
 - The base language is no longer a separate gameplay setting; it belongs to the selected pack.
@@ -18,7 +17,7 @@ This version keeps the modular language-pack refactor and replaces the active ga
   - `interface.yaml` for all UI/menu text.
   - `tags.yaml` for controlled semantic tags.
   - `tasks.yaml` for training mappings and session settings.
-  - `levels.yaml` for stat caps, content complexity, fight timers, and fight-entry requirements.
+  - `levels.yaml` for staged learning goals, grammar guidance, stat caps, soft fight timing, and fight-entry requirements.
   - `enemies.yaml` for monsters, levels, tags, rewards, and preferred skills.
   - `story.yaml` for milestones and next tasks.
   - `labyrinths.yaml` for maze size, question budget, hearts, tags, and rewards.
@@ -29,7 +28,7 @@ This version keeps the modular language-pack refactor and replaces the active ga
   - Grammar -> Precision / Precisione.
   - Pronunciation -> Stamina / Resistenza.
   - Armenian letters are low-difficulty vocabulary practice.
-- Each training session is 10 questions by default, defined in `tasks.yaml`; too many mistakes means the session does not count and awards no attribute progress.
+- Each normal training session always runs for 10 questions. Finishing it awards the matching colored/shaped labyrinth stone; strong performance also awards the attribute point.
 - A fight can only start when the pack-defined minimum requirements are met.
 - Monsters now refuse fights when the child needs more full training sessions, coins, or stats.
 - Fight math uses linear stat caps and a sigmoid precision-vs-defense formula: strength is max damage, precision determines how close hits get to max, defense reduces incoming damage, and stamina is hero energy. Fights still cannot end before 10 answered questions.
@@ -37,8 +36,8 @@ This version keeps the modular language-pack refactor and replaces the active ga
 - Multiple child profiles are saved locally. Each child keeps separate level, coins, stats, inventory, mastery, defeated enemies, and path progress.
 - Clicking the hero name opens a quick hero/profile switcher.
 - Settings include profile management, hero appearance, graphics pack, audio mode, debug mode, reset progress, and dictionary editing.
-- Human-only lesson audio is the default. Automated audio/browser TTS can be enabled in Settings, but it is treated as a draft fallback.
-- Answers are now highlighted directly: correct options turn green, wrong selected options turn red, and the correct answer stays visible briefly before the next question.
+- Human-only lesson audio is the default. Automatic mode prefers human recordings, then Armenian neural files, then a genuine installed Armenian voice; it never deliberately falls back to an English/default voice.
+- Answers are highlighted directly. After a mistake, the rich Armenian/transliteration/Italian explanation remains until the learner presses Continue.
 - Fight feedback shows damage dealt, damage taken, and damage absorbed in a kid-friendly combat card.
 - The app remembers per-item practice history: last asked, last wrong, counts, mastery, streak, and next review time. Mistakes and due/old items are prioritized.
 - Low-level vocabulary supports an optional `emoji` field for children who cannot read yet.
@@ -47,7 +46,7 @@ This version keeps the modular language-pack refactor and replaces the active ga
 - A Phaser 2D side-scroller replaces the previous CSS/SVG path: sprite-sheet hero, parallax layers, fixed ground path, anchored objects, encounters on the path, and funny scenery.
 - The hero now uses seven independent 25-frame, 5 x 5 spritesheets for walking, two attacks, falling, energy, parry, and victory. Standing reuses walking frame 0; training loops use swing/parry/simple attack/energy.
 - The dragon companion now uses independent 25-frame walking and victory sheets. It loops while travelling and celebrates fight or labyrinth victories.
-- A fifth mixed-skill training option, **Labirinto**, opens a procedurally generated isometric enchanted-forest-ruins map with fog of war, connected painted paths, ruined walls, four learning runes, monster and trap encounters, hidden coin caches, healing fountains, reveal obelisks, five hearts, autosave, and a final treasure guardian. A successful run gives +1 to every non-capped stat, counts as one session, and may award coins or an unlocked item.
+- A mixed-skill reward activity, **Labirinto**, opens a procedurally generated isometric enchanted-forest-ruins map with fog of war, connected painted paths, ruined walls, four learning runes, monster and trap encounters, hidden coin caches, healing fountains, reveal obelisks, five hearts, autosave, and a final treasure guardian. A new run consumes a persistent random recipe of two or three different training stones. It contains 35–40 questions in total; success gives +1 to every non-capped stat, counts as one session, and may award coins or an unlocked item.
 - The labyrinth camera now follows the hero, showing roughly 5×5 rooms on desktop and 3×3 on mobile instead of shrinking the entire 7×7 maze. A collapsible minimap records explored rooms.
 - Maze walls are generated as stable canonical edges and depth-sorted between rear and front room contents. Four low single-edge wall images compose every possible wall combination, with a procedural dark edge beneath them for readability.
 - Labyrinth movement supports tapping rooms, an on-screen direction pad, arrow keys, and WASD. During questions, the map stays visible while the answer panel scrolls independently.
@@ -60,14 +59,14 @@ This version keeps the modular language-pack refactor and replaces the active ga
 - The Story/Task panel can expand into pack-authored chapters and reading passages.
 - Content import tools preserve user lesson sources, provenance, alternative meanings/transliterations, and a native-review report.
 
-The expanded draft pack contains 620 vocabulary/phrase entries, 260 sentence exercises, and all 39 modern Armenian letters. Existing human/automated preview files were preserved, but the importer does not synthesize new gameplay audio. The Armenian content is demo content and still needs fluent/native-speaker review.
+The expanded draft pack contains 629 vocabulary/phrase entries, 281 sentence exercises, and all 39 modern Armenian letters. Normal training uses a compact staged core; the broader imported dictionary remains visible as extension material until reviewed. Existing human/automated preview files were preserved, but the importer does not synthesize new gameplay audio. The Armenian content is demo content and still needs fluent/native-speaker review.
 
 ## Requirements
 
 - Node.js 20.19+ or 22.12+.
 - npm 10 or newer.
 - Git.
-- Optional: `espeak-ng` or `espeak` if you want to regenerate automated Armenian preview audio.
+- Optional: an Azure Speech resource if you want to generate the reviewed Armenian neural-audio candidate set described in `docs/ARMENIAN_NEURAL_AUDIO.md`.
 - The active renderer is Phaser 2D in `apps/web/src/components/PhaserWorld.tsx`.
 
 ## Most useful guides
@@ -105,7 +104,7 @@ apps/
     src/
       App.tsx                   Game state machine and overlays
       App.css                   Mobile UI, panels, bottom sheets, responsive layout
-      audio.ts                  Web Audio effects, local prompt audio, browser TTS fallback
+      audio.ts                  Web Audio effects and Armenian-safe lesson-audio selection
       gameConfig.ts             Pack-backed training, enemies, fight gates, shop data
       storage.ts                Local profiles, settings, and labyrinth persistence
       labyrinth.ts              Procedural maze, fog, encounters, and session state
@@ -153,7 +152,7 @@ docs/
   roadmap.md
 tools/
   validate-content.mjs         Validate modular language packs
-  generate-automated-audio.mjs Generate eSpeak/eSpeak NG preview audio
+  generate-automated-audio.mjs Generate Azure Armenian neural MP3 candidates
   merge-contribution.mjs       Merge admin-panel contribution JSON into JSONL files
   pack-utils.mjs               Node-side modular pack loader/writer helpers
 ```
@@ -165,7 +164,7 @@ Install Git LFS before the first `git add`; see `docs/git-first-setup.md` for th
 ```bash
 git init -b main
 git add .
-git commit -m "Initial Hero Language Camp v0.12.0"
+git commit -m "Hero Language Camp v0.13.1"
 ```
 
 Create an empty GitHub repository named `hero-language-camp`, then connect and push:
@@ -191,7 +190,8 @@ npm run preview            # Preview the production build
 npm run validate:content   # Validate the default language pack
 npm run typecheck          # Run TypeScript checks
 npm run check              # Validate content and typecheck
-npm run content:auto-audio # Regenerate automated preview audio for the default pack
+npm run content:restructure # Rebuild controlled curriculum tags and core sequencing
+npm run content:auto-audio # Generate Armenian neural audio (requires Azure credentials)
 npm run content:merge -- ./contribution.json # Merge admin-panel content/audio
 npm run assets:import-companion -- /path/to/dragon-sheets.zip # Normalize 25-frame dragon sheets
 npm run assets:generate-labyrinth-walls # Restore low single-edge labyrinth wall guides
@@ -213,7 +213,7 @@ To change training sessions:
 content-packs/hy-eastern-it/tasks.yaml
 ```
 
-To change stat caps, fight requirements, question counts, complexity, or timers:
+To change learning stages, grammar guidance, stat caps, fight requirements, or soft-timer defaults:
 
 ```text
 content-packs/hy-eastern-it/levels.yaml
@@ -248,7 +248,7 @@ The easiest path is the in-app admin page:
 1. Run `npm run dev`.
 2. Open Settings and press **Edit dictionary**.
 3. Choose Word or Sentence, or click an existing vocabulary row to load it.
-4. Add Armenian text, Italian meaning, transliteration, complexity, and tags.
+4. Add Armenian text, Italian meaning, transliteration, introduction stage, and controlled tags.
 5. Record audio and press **Stop**.
 6. With **Auto-save after Stop** enabled, the recording is merged immediately into the browser copy of the pack.
 7. Press **Export pack** or **Download contribution** to create a JSON file for Git/community review.

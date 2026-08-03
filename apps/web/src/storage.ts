@@ -48,6 +48,7 @@ export interface AppSettings {
   audioMode: LearningAudioMode;
   debug: boolean;
   debugBypass: boolean;
+  speedBonusEnabled: boolean;
   targetPackId: string;
   viewportPreset: ViewportPreset;
   showDeviceFrame: boolean;
@@ -108,6 +109,7 @@ export function loadAppSettings(pack: LanguagePack): AppSettings {
     audioMode: "human_only",
     debug: false,
     debugBypass: false,
+    speedBonusEnabled: true,
     targetPackId: pack.pack_id,
     viewportPreset: "auto",
     showDeviceFrame: false
@@ -137,6 +139,7 @@ export function loadAppSettings(pack: LanguagePack): AppSettings {
     audioMode: persisted.audioMode === "human_and_automatic" ? "human_and_automatic" : "human_only",
     debug: Boolean(persisted.debug),
     debugBypass: Boolean(persisted.debugBypass),
+    speedBonusEnabled: persisted.speedBonusEnabled !== false,
     targetPackId: typeof persisted.targetPackId === "string" ? persisted.targetPackId : pack.pack_id,
     viewportPreset: isViewportPreset(viewport.viewportPreset) ? viewport.viewportPreset : "auto",
     showDeviceFrame: Boolean(viewport.showDeviceFrame)
@@ -154,6 +157,7 @@ export function saveAppSettings(settings: AppSettings): void {
     audioMode: settings.audioMode,
     debug: settings.debug,
     debugBypass: settings.debugBypass,
+    speedBonusEnabled: settings.speedBonusEnabled,
     targetPackId: settings.targetPackId
   };
   window.localStorage.setItem(SETTINGS_KEY, JSON.stringify(persistentSettings));

@@ -27,7 +27,9 @@ interface QuestionCardProps {
   } | null;
   onAnswer: (selectedOptionId: string) => void;
   onContinue?: () => void;
-  onTimeout?: () => void;
+  onAudioStarted?: () => void;
+  onAudioReplayCompleted?: (durationMs: number) => void;
+  audioHasStarted?: boolean;
 }
 
 export function QuestionCard({
@@ -41,18 +43,24 @@ export function QuestionCard({
   feedback,
   onAnswer,
   onContinue,
-  onTimeout
+  onAudioStarted,
+  onAudioReplayCompleted,
+  audioHasStarted = false
 }: QuestionCardProps) {
-  const showTimer = mode === "fight" && onTimeout;
+  const showTimer = mode === "fight" && timerSeconds > 0;
   const showAudioButton = question.activity_type === "listen_and_choose";
   const isTapOrder = question.variant === "sentence_tap_order";
   const [selectedChips, setSelectedChips] = useState<AnswerOption[]>([]);
+  const [audioStarted, setAudioStarted] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
   const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
   const tapOrderReady = selectedChips.length === expectedAnswerLength;
 
   useEffect(() => {
     setSelectedChips([]);
-  }, [question.id]);
+    setAudioPlaying(false);
+    setAudioStarted(question.activity_type !== "listen_and_choose" || audioHasStarted);
+  }, [question.id, question.activity_type, audioHasStarted]);
 
   function handleChipTap(option: AnswerOption) {
     if (
@@ -75,8 +83,20 @@ export function QuestionCard({
   }
 
   function playQuestionAudio() {
+    if (audioPlaying) return;
     void unlockAudio();
-    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM");
+    const wasReadyForAnswer = audioStarted;
+    const playbackStartedAt = performance.now();
+    setAudioPlaying(true);
+    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM").then((played) => {
+      setAudioPlaying(false);
+      if (played && !wasReadyForAnswer) {
+        setAudioStarted(true);
+        onAudioStarted?.();
+      } else if (played && wasReadyForAnswer) {
+        onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
+      }
+    });
   }
 
   return (
@@ -91,15 +111,14 @@ export function QuestionCard({
       {showTimer ? (
         <QuestionTimer
           durationSeconds={timerSeconds}
-          active={!disabled}
-          resetKey={question.id}
-          onExpire={onTimeout}
-          label={t(language, "timer")}
+          active={!disabled && audioStarted && !audioPlaying}
+          resetKey={`${question.id}:${audioStarted ? "started" : "waiting"}`}
+          label={audioStarted ? t(language, "speedBonus") : t(language, "listenToStartBonus")}
         />
       ) : null}
 
       {showAudioButton ? (
-        <button type="button" className="audio-button" onClick={playQuestionAudio}>
+        <button type="button" className="audio-button" disabled={audioPlaying} onClick={playQuestionAudio}>
           {question.activity_type === "repeat_after_me" ? t(language, "listenAndRepeat") : t(language, "listen")}
         </button>
       ) : null}

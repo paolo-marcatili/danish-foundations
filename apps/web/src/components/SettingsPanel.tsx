@@ -152,6 +152,10 @@ export function SettingsPanel({
           </label>
         </div>
         <label className="toggle-row">
+          <input type="checkbox" checked={settings.speedBonusEnabled} onChange={(event: ChangeEvent<HTMLInputElement>) => onSettingsChange({ ...settings, speedBonusEnabled: event.target.checked })} />
+          <span>{t(language, "speedBonusSetting")}</span>
+        </label>
+        <label className="toggle-row">
           <input type="checkbox" checked={settings.debug} onChange={(event: ChangeEvent<HTMLInputElement>) => onSettingsChange({ ...settings, debug: event.target.checked })} />
           <span>{t(language, "debugMode")}</span>
         </label>

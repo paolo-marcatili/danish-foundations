@@ -1,11 +1,11 @@
 {
   "name": "@hero-lang/web",
-  "version": "0.12.1",
+  "version": "0.13.1",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "build": "node ../../tools/sync-content-pack.mjs ../../content-packs/hy-eastern-it public/content-packs/hy-eastern-it && tsc --noEmit -p tsconfig.json && vite build && node ../../tools/generate-offline-service-worker.mjs dist",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "dev:lan": "vite --host 0.0.0.0",

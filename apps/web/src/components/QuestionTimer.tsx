@@ -4,49 +4,50 @@ interface QuestionTimerProps {
   durationSeconds: number;
   active: boolean;
   resetKey: string;
-  onExpire: () => void;
   label: string;
 }
 
-export function QuestionTimer({ durationSeconds, active, resetKey, onExpire, label }: QuestionTimerProps) {
+/**
+ * A soft speed-bonus meter. Reaching zero never submits the question and never
+ * makes an answer wrong; it only means that the learner receives normal damage.
+ */
+export function QuestionTimer({ durationSeconds, active, resetKey, label }: QuestionTimerProps) {
   const [remaining, setRemaining] = useState(durationSeconds);
-  const onExpireRef = useRef(onExpire);
 
-  useEffect(() => {
-    onExpireRef.current = onExpire;
-  }, [onExpire]);
+  const previousTick = useRef<number | null>(null);
 
   useEffect(() => {
     setRemaining(durationSeconds);
-    if (!active) return;
+    previousTick.current = null;
+  }, [durationSeconds, resetKey]);
 
-    const startedAt = performance.now();
-    let expired = false;
+  useEffect(() => {
+    if (!active) {
+      previousTick.current = null;
+      return;
+    }
+
+    previousTick.current = performance.now();
     const interval = window.setInterval(() => {
-      const elapsed = (performance.now() - startedAt) / 1000;
-      const nextRemaining = Math.max(0, durationSeconds - elapsed);
-      setRemaining(nextRemaining);
-
-      if (!expired && nextRemaining <= 0) {
-        expired = true;
-        window.clearInterval(interval);
-        onExpireRef.current();
-      }
-    }, 80);
+      const now = performance.now();
+      const previous = previousTick.current ?? now;
+      previousTick.current = now;
+      setRemaining((value) => Math.max(0, value - (now - previous) / 1000));
+    }, 100);
 
     return () => window.clearInterval(interval);
-  }, [active, durationSeconds, resetKey]);
+  }, [active, resetKey]);
 
-  const percent = Math.max(0, Math.min(100, (remaining / durationSeconds) * 100));
+  const percent = Math.max(0, Math.min(100, (remaining / Math.max(1, durationSeconds)) * 100));
 
   return (
-    <div className="timer" aria-label={`${label}: ${Math.ceil(remaining)} seconds`}>
+    <div className="timer speed-bonus-meter" aria-label={`${label}: ${Math.ceil(remaining)} seconds`}>
       <div className="timer-topline">
         <span>{label}</span>
-        <strong>{Math.ceil(remaining)}s</strong>
+        <strong>{active ? `${Math.ceil(remaining)}s` : "—"}</strong>
       </div>
       <div className="timer-track">
-        <div className="timer-fill" style={{ width: `${percent}%` }} />
+        <div className="timer-fill" style={{ width: `${active ? percent : 100}%` }} />
       </div>
     </div>
   );

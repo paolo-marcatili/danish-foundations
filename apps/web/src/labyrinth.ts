@@ -157,11 +157,9 @@ export function createLabyrinthSession(
     random
   ).sort((a, b) => (distances.get(b.id) ?? 0) - (distances.get(a.id) ?? 0));
 
-  const targetQuestions = clampInt(
-    config.questions.target,
-    config.questions.minimum,
-    config.questions.maximum
-  );
+  const minimumQuestions = clampInt(config.questions.minimum, 1, config.questions.maximum);
+  const maximumQuestions = Math.max(minimumQuestions, Math.floor(config.questions.maximum));
+  const targetQuestions = minimumQuestions + Math.floor(random() * (maximumQuestions - minimumQuestions + 1));
   const minPerFocus = Math.max(1, Math.floor(config.questions.minimum_per_focus));
   const requestedMonsterCount = clampInt(config.questions.monster_encounters ?? 3, 1, 6);
   const requestedTrapCount = clampInt(config.events?.trap_encounters ?? 3, 0, 6);
@@ -321,14 +319,23 @@ export function moveLabyrinthSession(
   }
 
   if (!target.resolved && target.kind === "healing") {
+    if (moved.hearts >= moved.maxHearts) {
+      const lastEntry = moved.log[moved.log.length - 1];
+      moved = { ...moved, messageKey: "labyrinthHealingFull" };
+      if (lastEntry?.key !== "labyrinthLogHealingFull") {
+        moved = appendLabyrinthLog(moved, "labyrinthLogHealingFull", {}, "success");
+      }
+      // Do not resolve the fountain while hearts are full: the learner may
+      // return after taking damage later in the same expedition.
+      return { session: moved, event: "healing" };
+    }
     const cells = markCellResolved(session.cells, target.id);
-    const recovered = moved.hearts < moved.maxHearts;
     moved = appendLabyrinthLog({
       ...moved,
       cells,
       hearts: Math.min(moved.maxHearts, moved.hearts + 1),
-      messageKey: moved.hearts >= moved.maxHearts ? "labyrinthHealingFull" : "labyrinthHealingFound"
-    }, recovered ? "labyrinthLogHealing" : "labyrinthLogHealingFull", {}, "success");
+      messageKey: "labyrinthHealingFound"
+    }, "labyrinthLogHealing", {}, "success");
     return { session: moved, event: "healing" };
   }
 

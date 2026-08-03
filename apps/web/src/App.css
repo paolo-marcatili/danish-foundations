@@ -6099,3 +6099,126 @@ body {
 .labyrinth-shell.question-open .answer-gloss {
   padding: 3px 5px;
 }
+
+/* Curriculum, stone gate, offline installation, and soft-timer additions. */
+.training-stone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  min-width: 3.2rem;
+  padding: 0.18rem 0.42rem;
+  border-radius: 999px;
+  background: rgba(11, 19, 30, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-style: normal;
+  font-weight: 800;
+  font-size: 0.74rem;
+}
+
+.labyrinth-bubble.locked {
+  filter: saturate(0.78);
+}
+
+.door-stone-row {
+  display: flex;
+  justify-content: center;
+  gap: 0.35rem;
+  min-height: 1.45rem;
+}
+
+.door-stone {
+  display: inline-grid;
+  place-items: center;
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+}
+
+.door-stone.missing {
+  opacity: 0.34;
+  filter: grayscale(1);
+}
+
+.door-stone.ready {
+  box-shadow: 0 0 0.75rem rgba(255, 223, 111, 0.42);
+}
+
+.offline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 10.5rem;
+  padding: 0.34rem 0.55rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(7, 24, 23, 0.7);
+  color: inherit;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+button.offline-pill { cursor: pointer; }
+.offline-pill.ready { border-color: rgba(122, 235, 168, 0.55); }
+.offline-pill.update { border-color: rgba(255, 211, 92, 0.72); }
+
+.level-learning-card {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.65rem;
+  padding: 0.75rem;
+  border-radius: 0.85rem;
+  background: rgba(255, 248, 219, 0.08);
+  border: 1px solid rgba(255, 224, 139, 0.22);
+}
+
+.level-learning-card > span {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.75;
+}
+
+.level-learning-card > p { margin: 0; line-height: 1.35; }
+.grammar-example-list { display: grid; gap: 0.35rem; }
+.grammar-example {
+  display: grid;
+  gap: 0.12rem;
+  padding: 0.42rem 0.55rem;
+  border-radius: 0.55rem;
+  background: rgba(0, 0, 0, 0.16);
+}
+.grammar-example b { font-size: 1.03rem; }
+.grammar-example span { font-size: 0.78rem; opacity: 0.82; }
+
+.speed-bonus-meter .timer-fill { transition: width 0.1s linear; }
+
+@media (max-width: 720px) {
+  .offline-pill { max-width: 2.3rem; overflow: hidden; padding-inline: 0.45rem; }
+  .offline-pill.installing { max-width: 7.5rem; }
+}
+
+.training-level-guide {
+  display: grid;
+  gap: 0.28rem;
+  margin: 0.45rem 0 0.65rem;
+  padding: 0.62rem 0.72rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 248, 219, 0.09);
+  border: 1px solid rgba(255, 224, 139, 0.24);
+}
+
+.training-level-guide > span {
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+
+.training-level-guide > strong { font-size: 0.9rem; }
+.training-level-guide > p { margin: 0; font-size: 0.76rem; line-height: 1.35; }

@@ -1,6 +1,6 @@
 {
   "name": "hero-language-camp",
-  "version": "0.12.1",
+  "version": "0.13.1",
   "private": true,
   "type": "module",
   "description": "Open-source gamified learning prototype for low-resource and community languages.",
@@ -16,6 +16,7 @@
     "typecheck": "npm --workspaces --if-present run typecheck",
     "validate:content": "node tools/validate-content.mjs content-packs/hy-eastern-it",
     "check": "npm run validate:content && npm run typecheck",
+    "content:restructure": "python tools/restructure-hy-curriculum.py",
     "content:auto-audio": "node tools/generate-automated-audio.mjs content-packs/hy-eastern-it",
     "content:merge": "node tools/merge-contribution.mjs",
     "mobile:sync": "npm run build && npx cap sync",
@@ -42,7 +43,8 @@
     "content:expand": "python tools/content-import/expand_hy_it_pack.py",
     "dev:lan": "npm --workspace @hero-lang/web run dev:lan",
     "preview:lan": "npm --workspace @hero-lang/web run preview:lan",
-    "verify:release": "node tools/verify-release.mjs"
+    "verify:release": "node tools/verify-release.mjs",
+    "content:sync-web": "node tools/sync-content-pack.mjs content-packs/hy-eastern-it"
   },
   "engines": {
     "node": ">=20.19.0",
@@ -53,8 +55,5 @@
     "@capacitor/cli": "^8.0.0",
     "@capacitor/android": "^8.0.0",
     "@capacitor/ios": "^8.0.0"
-  },
-  "allowScripts": {
-    "fsevents@2.3.3": true
   }
 }

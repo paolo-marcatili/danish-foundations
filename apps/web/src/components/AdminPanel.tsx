@@ -28,8 +28,8 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
   const [translationDistractors, setTranslationDistractors] = useState("");
   const [emoji, setEmoji] = useState("");
   const [transliteration, setTransliteration] = useState("");
-  const [tags, setTags] = useState("community");
-  const [complexity, setComplexity] = useState(1);
+  const [tags, setTags] = useState("tier:core, topic:community");
+  const [stage, setStage] = useState(0);
   const [autoSaveAfterRecording, setAutoSaveAfterRecording] = useState(true);
   const [recordedAudio, setRecordedAudio] = useState<RecordedAudio | null>(null);
   const [recording, setRecording] = useState(false);
@@ -126,10 +126,11 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
 
     const cleanTarget = target.trim();
     const idSeed = slugify(transliteration || cleanTarget);
-    const parsedTags = tags.split(",").map((tag) => tag.trim()).filter(Boolean);
+    const enteredTags = tags.split(",").map((tag) => tag.trim()).filter(Boolean).filter((tag) => !tag.startsWith("stage:"));
+    const parsedTags = uniqueStrings([`stage:${Math.max(0, Math.min(8, Math.floor(stage || 0)))}`, ...enteredTags]);
+    if (!parsedTags.some((tag) => tag.startsWith("tier:"))) parsedTags.push("tier:core");
     const audio = recordedAudio ? [audioContribution(cleanTarget, recordedAudio)] : [];
     const parsedTranslationDistractors = uniqueStrings(translationDistractors.split(/\r?\n/));
-    const safeComplexity = Math.max(1, Math.min(10, Math.floor(complexity || 1)));
 
     return {
       schema_version: 1,
@@ -147,9 +148,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
               translations: { [pack.source_language]: italian.trim() },
               emoji: emoji.trim(),
               transliteration: transliteration.trim(),
-              difficulty: safeComplexity,
-              complexity: safeComplexity,
-              tags: parsedTags.length > 0 ? parsedTags : ["community"],
+              tags: parsedTags,
               review_status: "needs_native_speaker_review",
               audio
             }
@@ -165,9 +164,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
               translations: { [pack.source_language]: italian.trim() },
               translation_distractors: parsedTranslationDistractors.length > 0 ? { [pack.source_language]: parsedTranslationDistractors } : undefined,
               distractors: makeSentenceDistractors(cleanTarget),
-              difficulty: safeComplexity,
-              complexity: safeComplexity,
-              tags: parsedTags.length > 0 ? parsedTags : ["community", "sentence_order"],
+              tags: uniqueStrings([...parsedTags, "topic:sentences"]),
               review_status: "needs_native_speaker_review",
               audio
             }
@@ -216,8 +213,8 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
     setTranslationDistractors("");
     setEmoji(item.emoji ?? "");
     setTransliteration(item.transliteration ?? "");
-    setComplexity(item.complexity ?? item.difficulty ?? 1);
-    setTags((item.tags ?? []).join(", "));
+    setStage(stageFromTags(item.tags));
+    setTags((item.tags ?? []).filter((tag) => !tag.startsWith("stage:")).join(", "));
     setRecordedAudio(null);
     setMessage(t(language, "adminLoadedExisting"));
   }
@@ -229,8 +226,8 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
     setTranslationDistractors((item.translation_distractors?.[pack.source_language] ?? []).join("\n"));
     setEmoji("");
     setTransliteration("");
-    setComplexity(item.complexity ?? item.difficulty ?? 1);
-    setTags((item.tags ?? []).join(", "));
+    setStage(stageFromTags(item.tags));
+    setTags((item.tags ?? []).filter((tag) => !tag.startsWith("stage:")).join(", "));
     setRecordedAudio(null);
     setMessage(t(language, "adminLoadedExisting"));
   }
@@ -281,9 +278,9 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
           <input value={transliteration} onChange={(event: ChangeEvent<HTMLInputElement>) => setTransliteration(event.target.value)} placeholder="barev" />
         </label>
         <label>
-          <span>{t(language, "adminComplexity")}</span>
-          <select value={complexity} onChange={(event: ChangeEvent<HTMLSelectElement>) => setComplexity(Number(event.target.value))}>
-            {[1, 2, 3, 4, 5].map((value) => <option key={value} value={value}>{value}</option>)}
+          <span>{t(language, "adminStage")}</span>
+          <select value={stage} onChange={(event: ChangeEvent<HTMLSelectElement>) => setStage(Number(event.target.value))}>
+            {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((value) => <option key={value} value={value}>{value}</option>)}
           </select>
         </label>
         <label className="wide">
@@ -292,7 +289,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
         </label>
         {pack.controlled_tags && pack.controlled_tags.length > 0 ? (
           <div className="tag-chip-panel wide" aria-label={t(language, "adminTags")}>
-            {pack.controlled_tags.map((tag) => (
+            {pack.controlled_tags.filter((tag) => !tag.id.startsWith("stage:")).map((tag) => (
               <button key={tag.id} type="button" className={selectedTagSet.has(tag.id) ? "tag-chip active" : "tag-chip"} onClick={() => toggleTag(tag.id)} title={tag.description ?? tag.label}>
                 {tag.label}
               </button>
@@ -357,7 +354,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
               <button key={item.id} type="button" className="vocab-row clickable" onClick={() => loadWord(item)}>
                 <strong lang="hy">{item.target}</strong>
                 <span>{getItemTranslation(item, language)}</span>
-                <small>{t(language, "adminComplexityShort")} {item.complexity ?? item.difficulty ?? 1} · {item.tags?.slice(0, 2).join(", ")} · {human} human / {automated} auto</small>
+                <small>{t(language, "adminStageShort")} {stageFromTags(item.tags)} · {item.tags?.filter((tag) => !tag.startsWith("stage:")).slice(0, 2).join(", ")} · {human} human / {automated} auto</small>
               </button>
             );
           })}
@@ -368,7 +365,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
               <button key={item.id} type="button" className="vocab-row clickable sentence-row" onClick={() => loadSentence(item)}>
                 <strong lang="hy">{item.target_sentence}</strong>
                 <span>{getGrammarTranslation(item, language)}</span>
-                <small>{t(language, "adminComplexityShort")} {item.complexity ?? item.difficulty ?? 1} · {item.tags?.slice(0, 2).join(", ")} · {human} human / {automated} auto</small>
+                <small>{t(language, "adminStageShort")} {stageFromTags(item.tags)} · {item.tags?.filter((tag) => !tag.startsWith("stage:")).slice(0, 2).join(", ")} · {human} human / {automated} auto</small>
               </button>
             );
           })}
@@ -407,6 +404,11 @@ function formatSummary(summary: MergeSummary): Record<string, number> {
     grammar: summary.addedGrammar + summary.updatedGrammar,
     audio: summary.addedAudio + summary.addedBrowserTts
   };
+}
+
+function stageFromTags(tags: string[] | undefined): number {
+  const value = tags?.find((tag) => /^stage:\d+$/.test(tag));
+  return Math.max(0, Math.min(8, Number(value?.slice("stage:".length) ?? 0)));
 }
 
 function normalize(value: unknown): string {

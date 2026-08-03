@@ -11,6 +11,14 @@ import { getGrammarTranslation, getItemTranslation, getLetterLabel, getLocalized
 
 export type TrainingFocus = "vocabulary" | "comprehension" | "grammar" | "pronunciation";
 
+export type TrainingStoneInventory = Record<TrainingFocus, number>;
+
+export interface LabyrinthDoorRequirement {
+  config_id: string;
+  required_stones: TrainingFocus[];
+  created_at: string;
+}
+
 export type HeroStatKey = "strength" | "defense" | "precision" | "stamina";
 
 export interface HeroStats {
@@ -45,6 +53,7 @@ export interface GrammarMastery extends PracticeMemory {
 }
 
 export interface LearnerState {
+  curriculum_version: number;
   hero_name: string;
   level: number;
   xp: number;
@@ -59,6 +68,8 @@ export interface LearnerState {
   completed_training_sessions_by_level?: Record<string, Partial<Record<TrainingFocus, number>>>;
   completed_labyrinth_sessions?: number;
   completed_labyrinth_sessions_by_level?: Record<string, number>;
+  training_stones: TrainingStoneInventory;
+  labyrinth_door_requirements: Record<string, LabyrinthDoorRequirement>;
   inventory: string[];
   defeated_enemies: string[];
   path_seed: number;
@@ -121,6 +132,12 @@ export interface TrainingQuestion {
 }
 
 export interface QuestionSelectionOptions {
+  /** Current curriculum stage. Items use controlled tags such as stage:0. */
+  stage?: number;
+  /** Include tier:extension material. Normal training keeps this disabled. */
+  includeExtension?: boolean;
+  /** Probability of selecting earlier-stage review instead of current-stage material. */
+  reviewChance?: number;
   maxComplexity?: number;
   tags?: string[];
   requireHumanAudio?: boolean;
@@ -162,17 +179,23 @@ export interface ShopItem {
 export const HERO_STAT_KEYS: HeroStatKey[] = ["strength", "defense", "precision", "stamina"];
 
 const REVIEW_INTERVALS_MS = [5 * 60_000, 20 * 60_000, 24 * 60 * 60_000, 3 * 24 * 60 * 60_000, 7 * 24 * 60 * 60_000, 14 * 24 * 60 * 60_000];
+export const CURRENT_CURRICULUM_VERSION = 2;
+const LEVEL_ZERO_MIGRATION_VERSION = 1;
+export const TRAINING_STONE_CAP = 3;
+const TRAINING_FOCUSES: readonly TrainingFocus[] = ["vocabulary", "comprehension", "grammar", "pronunciation"];
 
 export function createInitialLearnerState(pack: LanguagePack, heroName = "Ani"): LearnerState {
   const baseStats: HeroStats = { strength: 1, defense: 1, precision: 1, stamina: 1 };
+  const pathSeed = Math.floor(Math.random() * 1_000_000);
 
   return {
+    curriculum_version: CURRENT_CURRICULUM_VERSION,
     hero_name: heroName,
-    level: 1,
+    level: 0,
     xp: 0,
     coins: 0,
     streak: 0,
-    max_energy: getMaxEnergy(1, baseStats),
+    max_energy: getMaxEnergy(0, baseStats),
     hero_stats: baseStats,
     mastery_by_item: Object.fromEntries(pack.items.map((item) => [item.id, createItemMastery(item.id)])),
     mastery_by_letter: Object.fromEntries((pack.letters ?? []).map((letter) => [letter.id, createLetterMastery(letter.id)])),
@@ -181,9 +204,11 @@ export function createInitialLearnerState(pack: LanguagePack, heroName = "Ani"):
     completed_training_sessions_by_level: {},
     completed_labyrinth_sessions: 0,
     completed_labyrinth_sessions_by_level: {},
+    training_stones: emptyTrainingStones(),
+    labyrinth_door_requirements: {},
     inventory: [],
     defeated_enemies: [],
-    path_seed: Math.floor(Math.random() * 1_000_000),
+    path_seed: pathSeed,
     path_distance: 0,
     total_training_sessions: 0
   };
@@ -193,7 +218,12 @@ export function normalizeLearnerState(pack: LanguagePack, maybeState: unknown, h
   const fresh = createInitialLearnerState(pack, heroName);
   if (!isObject(maybeState)) return fresh;
 
-  const level = Math.max(1, Math.floor(numberOr(maybeState.level, 1)));
+  const storedCurriculumVersion = Math.max(0, Math.floor(numberOr(maybeState.curriculum_version, 0)));
+  // Only curriculum version 0 used the old Level 1 starting point. Future
+  // curriculum migrations must not shift a learner down another level.
+  const migrateLegacyLevels = storedCurriculumVersion < LEVEL_ZERO_MIGRATION_VERSION;
+  const storedLevel = Math.max(0, Math.floor(numberOr(maybeState.level, migrateLegacyLevels ? 1 : 0)));
+  const level = migrateLegacyLevels ? Math.max(0, storedLevel - 1) : storedLevel;
   const oldStats = isObject(maybeState.hero_stats) ? maybeState.hero_stats : {};
   const heroStats: HeroStats = clampStatsToLevel(
     {
@@ -210,6 +240,7 @@ export function normalizeLearnerState(pack: LanguagePack, maybeState: unknown, h
   const completedLabyrinthSessions = Math.max(0, Math.floor(numberOr(maybeState.completed_labyrinth_sessions, 0)));
   return {
     ...fresh,
+    curriculum_version: CURRENT_CURRICULUM_VERSION,
     hero_name: typeof maybeState.hero_name === "string" && maybeState.hero_name.trim() ? maybeState.hero_name : fresh.hero_name,
     level,
     xp: Math.max(0, Math.floor(numberOr(maybeState.xp, 0))),
@@ -221,9 +252,11 @@ export function normalizeLearnerState(pack: LanguagePack, maybeState: unknown, h
     mastery_by_letter: mergeLetterMastery(fresh.mastery_by_letter, maybeState.mastery_by_letter),
     mastery_by_grammar: mergeGrammarMastery(fresh.mastery_by_grammar, maybeState.mastery_by_grammar),
     completed_training_sessions: completed,
-    completed_training_sessions_by_level: normalizeLevelTrainingCounts(maybeState.completed_training_sessions_by_level),
+    completed_training_sessions_by_level: normalizeLevelTrainingCounts(maybeState.completed_training_sessions_by_level, migrateLegacyLevels),
     completed_labyrinth_sessions: completedLabyrinthSessions,
-    completed_labyrinth_sessions_by_level: normalizeLevelLabyrinthCounts(maybeState.completed_labyrinth_sessions_by_level),
+    completed_labyrinth_sessions_by_level: normalizeLevelLabyrinthCounts(maybeState.completed_labyrinth_sessions_by_level, migrateLegacyLevels),
+    training_stones: normalizeTrainingStones(maybeState.training_stones),
+    labyrinth_door_requirements: normalizeLabyrinthDoorRequirements(maybeState.labyrinth_door_requirements),
     inventory: stringArray(maybeState.inventory),
     defeated_enemies: stringArray(maybeState.defeated_enemies),
     path_seed: Math.floor(numberOr(maybeState.path_seed, fresh.path_seed)),
@@ -233,8 +266,8 @@ export function normalizeLearnerState(pack: LanguagePack, maybeState: unknown, h
 }
 
 export function getNextQuestion(pack: LanguagePack, state: LearnerState, baseLanguage = "it", focus: TrainingFocus = "vocabulary", selection: QuestionSelectionOptions = {}): TrainingQuestion {
-  if (focus === "vocabulary" && (pack.letters?.length ?? 0) > 0 && shouldUseLetterQuestion(state, selection)) {
-    return getLetterQuestion(pack, state, baseLanguage);
+  if (focus === "vocabulary" && getLetterCandidatesForSelection(pack.letters ?? [], selection).length > 0 && shouldUseLetterQuestion(state, selection)) {
+    return getLetterQuestion(pack, state, baseLanguage, selection);
   }
 
   if (focus === "grammar" && (pack.grammar_items?.length ?? 0) > 0) {
@@ -250,7 +283,7 @@ export function hasEligibleQuestion(
   focus: TrainingFocus,
   selection: QuestionSelectionOptions = {}
 ): boolean {
-  if (focus === "vocabulary" && selection.includeLetters !== false && (pack.letters?.length ?? 0) > 0) return true;
+  if (focus === "vocabulary" && selection.includeLetters !== false && getLetterCandidatesForSelection(pack.letters ?? [], selection).length > 0) return true;
   if (focus === "grammar" && (pack.grammar_items?.length ?? 0) > 0) {
     return getGrammarCandidatesForSelection(pack.grammar_items ?? [], selection).length > 0;
   }
@@ -263,8 +296,12 @@ export function answerQuestion(
   state: LearnerState,
   context: { mode?: "training" | "fight"; timedOut?: boolean; enemyRequirements?: Partial<HeroStats>; enemyLevel?: number; statCap?: number; weaknessStats?: HeroStatKey[] } = {}
 ): AnswerResult {
-  const correct = selectedOptionId === question.correct_option_id && !context.timedOut;
-  const timedOut = Boolean(context.timedOut);
+  // The fight meter is deliberately soft: reaching zero may remove the speed
+  // bonus, but it never changes correctness or increases incoming damage. The
+  // optional timedOut flag remains in the public context for compatibility
+  // with older callers and is intentionally ignored.
+  const correct = selectedOptionId === question.correct_option_id;
+  const timedOut = false;
   const mode = context.mode ?? "training";
   const statName = question.stat;
   const cap = context.statCap ?? getLevelStatCap(state.level);
@@ -281,7 +318,7 @@ export function answerQuestion(
   const masteryUpdate = getMasteryUpdate(question, state, correct);
   const pathDelta = correct ? (mode === "fight" ? 16 : 8) : 2;
   const hit = estimateHeroDamage(nextStats, context.enemyRequirements, cap, context.weaknessStats?.includes(statName) ? 1.12 : 1);
-  const incoming = estimateMonsterDamage(state.hero_stats, context.enemyRequirements, cap, timedOut);
+  const incoming = estimateMonsterDamage(state.hero_stats, context.enemyRequirements, cap, false);
 
   const updated_state: LearnerState = {
     ...state,
@@ -318,7 +355,12 @@ export function answerQuestion(
   };
 }
 
-export function markTrainingSessionCompleted(state: LearnerState, focus: TrainingFocus, pack?: LanguagePack): LearnerState {
+export function markTrainingSessionCompleted(
+  state: LearnerState,
+  focus: TrainingFocus,
+  pack?: LanguagePack,
+  awardAttributePoint = true
+): LearnerState {
   const nextFocusCount = Math.floor(state.completed_training_sessions[focus] ?? 0) + 1;
   const completed_training_sessions = { ...state.completed_training_sessions, [focus]: nextFocusCount };
   const levelKey = String(state.level);
@@ -326,7 +368,13 @@ export function markTrainingSessionCompleted(state: LearnerState, focus: Trainin
   const nextLevelCounts = { ...previousLevelCounts, [focus]: Math.floor(previousLevelCounts[focus] ?? 0) + 1 };
   const completed_training_sessions_by_level = { ...(state.completed_training_sessions_by_level ?? {}), [levelKey]: nextLevelCounts };
   const stat = focusToStat(focus);
-  const nextStats = addStatGains(state.hero_stats, { [stat]: 1 }, state.level, getLevelStatCap(state.level, pack));
+  const nextStats = awardAttributePoint
+    ? addStatGains(state.hero_stats, { [stat]: 1 }, state.level, getLevelStatCap(state.level, pack))
+    : state.hero_stats;
+  const training_stones = {
+    ...state.training_stones,
+    [focus]: Math.min(TRAINING_STONE_CAP, Math.max(0, Math.floor(state.training_stones[focus] ?? 0)) + 1)
+  };
   return {
     ...state,
     completed_training_sessions,
@@ -334,8 +382,75 @@ export function markTrainingSessionCompleted(state: LearnerState, focus: Trainin
     total_training_sessions: getTotalTrainingSessions(completed_training_sessions, undefined, state.completed_labyrinth_sessions ?? 0),
     coins: state.coins + 2,
     hero_stats: nextStats,
+    training_stones,
     max_energy: getMaxEnergy(state.level, nextStats),
     path_distance: state.path_distance + 18
+  };
+}
+
+export function ensureLabyrinthDoorRequirement(
+  state: LearnerState,
+  configId: string
+): LearnerState {
+  const existing = state.labyrinth_door_requirements[configId];
+  if (existing && isValidDoorRequirement(existing, configId)) return state;
+  const completed = Math.max(0, Math.floor(state.completed_labyrinth_sessions ?? 0));
+  const totalSessions = Math.max(0, Math.floor(state.total_training_sessions ?? 0));
+  const seed = Math.abs(Math.floor(state.path_seed + completed * 997 + totalSessions * 31 + hashString(configId)));
+  const requiredCount = 2 + (seed % 2);
+  const required_stones = deterministicShuffle([...TRAINING_FOCUSES], seed).slice(0, requiredCount);
+  return {
+    ...state,
+    labyrinth_door_requirements: {
+      ...state.labyrinth_door_requirements,
+      [configId]: {
+        config_id: configId,
+        required_stones,
+        created_at: new Date().toISOString()
+      }
+    }
+  };
+}
+
+export function getLabyrinthDoorRequirement(
+  state: LearnerState,
+  configId: string
+): LabyrinthDoorRequirement | undefined {
+  const requirement = state.labyrinth_door_requirements[configId];
+  return requirement && isValidDoorRequirement(requirement, configId) ? requirement : undefined;
+}
+
+export function getMissingLabyrinthStones(
+  state: LearnerState,
+  configId: string
+): TrainingFocus[] {
+  const requirement = getLabyrinthDoorRequirement(state, configId);
+  if (!requirement) return [];
+  return requirement.required_stones.filter((focus) => (state.training_stones[focus] ?? 0) < 1);
+}
+
+export function consumeLabyrinthDoorStones(
+  state: LearnerState,
+  configId: string
+): { ok: boolean; state: LearnerState; missing: TrainingFocus[] } {
+  const requirement = getLabyrinthDoorRequirement(state, configId);
+  if (!requirement) return { ok: false, state, missing: [...TRAINING_FOCUSES] };
+  const missing = getMissingLabyrinthStones(state, configId);
+  if (missing.length > 0) return { ok: false, state, missing };
+  const training_stones = { ...state.training_stones };
+  for (const focus of requirement.required_stones) {
+    training_stones[focus] = Math.max(0, Math.floor(training_stones[focus] ?? 0) - 1);
+  }
+  const labyrinth_door_requirements = { ...state.labyrinth_door_requirements };
+  delete labyrinth_door_requirements[configId];
+  return {
+    ok: true,
+    missing: [],
+    state: {
+      ...state,
+      training_stones,
+      labyrinth_door_requirements
+    }
   };
 }
 
@@ -378,7 +493,8 @@ export function markLabyrinthCompleted(
 
 export function markEnemyDefeated(state: LearnerState, enemyId: string, bonusCoins: number, pack?: LanguagePack): LearnerState {
   const alreadyDefeated = state.defeated_enemies.includes(enemyId);
-  const nextLevel = alreadyDefeated ? state.level : state.level + 1;
+  const maxLevel = pack?.levels?.reduce((maximum, level) => Math.max(maximum, level.number), state.level + 1) ?? state.level + 1;
+  const nextLevel = alreadyDefeated ? state.level : Math.min(maxLevel, state.level + 1);
   const heroStats = clampStatsToLevel(state.hero_stats, nextLevel, pack);
 
   return {
@@ -508,9 +624,9 @@ function getItemQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: 
   };
 }
 
-function getLetterQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: string): TrainingQuestion {
-  const letters = pack.letters ?? [];
-  const letter = chooseWeakestLetter(letters, state);
+function getLetterQuestion(pack: LanguagePack, state: LearnerState, baseLanguage: string, selection: QuestionSelectionOptions): TrainingQuestion {
+  const letters = getLetterCandidatesForSelection(pack.letters ?? [], selection);
+  const letter = chooseWeakestLetter(letters, state, selection);
   const distractors = chooseLetterDistractors(letters, letter, 3, baseLanguage);
   const options = shuffle([
     { id: letter.id, label: getLetterAnswerLabel(letter, baseLanguage) },
@@ -668,18 +784,17 @@ function getGrammarQuestion(pack: LanguagePack, state: LearnerState, baseLanguag
 function shouldUseLetterQuestion(state: LearnerState, selection: QuestionSelectionOptions): boolean {
   if (selection.includeLetters === false) return false;
   if (selection.includeLetters === true) return true;
-  const maxComplexity = selection.maxComplexity ?? 1;
-  if (maxComplexity > 1) return false;
+  const stage = selection.stage ?? 0;
   const letterSeen = Object.values(state.mastery_by_letter).reduce((sum, entry) => sum + entry.seen_count, 0);
-  if (letterSeen < 12) return true;
-  return Math.random() < 0.25;
+  if (stage === 0 && letterSeen < 18) return true;
+  return Math.random() < (stage <= 2 ? 0.22 : 0.12);
 }
 
 function getItemQuestionVariant(item: LearningItem, focus: TrainingFocus): QuestionVariant {
   if (focus === "comprehension") return "audio_to_base";
   if (focus === "pronunciation") return item.syllables?.length ? "syllable_match" : "transliteration_match";
   if (focus === "grammar") return "target_to_base";
-  if (item.emoji && (item.complexity ?? item.difficulty ?? 1) <= 1) {
+  if (item.emoji && getContentStage(item) <= 1) {
     return Math.random() < 0.5 ? "target_to_visual" : "visual_to_target";
   }
   return Math.random() < 0.35 ? "base_to_target" : "target_to_base";
@@ -757,7 +872,7 @@ function getMasteryUpdate(question: TrainingQuestion, state: LearnerState, corre
 }
 
 function chooseWeakestItem(pack: LanguagePack, state: LearnerState, selection: QuestionSelectionOptions): LearningItem {
-  const source = getItemCandidatesForSelection(pack.items, selection);
+  const source = chooseStagePool(getItemCandidatesForSelection(pack.items, selection), selection);
   if (source.length === 0) {
     throw new Error("No eligible learning item for the requested question selection.");
   }
@@ -766,14 +881,15 @@ function chooseWeakestItem(pack: LanguagePack, state: LearnerState, selection: Q
   return pool[Math.floor(Math.random() * pool.length)] ?? source[0];
 }
 
-function chooseWeakestLetter(letters: LetterItem[], state: LearnerState): LetterItem {
-  const sorted = [...letters].sort((a, b) => compareMemoryScore(state.mastery_by_letter[a.id], state.mastery_by_letter[b.id]));
+function chooseWeakestLetter(letters: LetterItem[], state: LearnerState, selection: QuestionSelectionOptions): LetterItem {
+  const source = chooseStagePool(letters, selection);
+  const sorted = [...source].sort((a, b) => compareMemoryScore(state.mastery_by_letter[a.id], state.mastery_by_letter[b.id]));
   const pool = sorted.slice(0, Math.min(8, sorted.length));
-  return pool[Math.floor(Math.random() * pool.length)] ?? letters[0];
+  return pool[Math.floor(Math.random() * pool.length)] ?? source[0] ?? letters[0];
 }
 
 function chooseWeakestGrammar(grammarItems: GrammarItem[], state: LearnerState, selection: QuestionSelectionOptions): GrammarItem {
-  const source = getGrammarCandidatesForSelection(grammarItems, selection);
+  const source = chooseStagePool(getGrammarCandidatesForSelection(grammarItems, selection), selection);
   if (source.length === 0) throw new Error("No eligible grammar item for the requested question selection.");
   const sorted = [...source].sort((a, b) => compareMemoryScore(state.mastery_by_grammar[a.id], state.mastery_by_grammar[b.id]));
   const pool = sorted.slice(0, Math.min(10, sorted.length));
@@ -798,12 +914,17 @@ function filterItemsForSelection(items: LearningItem[], selection: QuestionSelec
   const maxComplexity = selection.maxComplexity ?? Number.POSITIVE_INFINITY;
   const tags = new Set((selection.tags ?? []).filter(Boolean));
   return items.filter((item) => {
+    if (!matchesCurriculumSelection(item, selection)) return false;
     if (getComplexity(item) > maxComplexity) return false;
     if (selection.requireHumanAudio && !hasHumanAudio(item.audio)) return false;
     if (selection.requirePlayableAudio && !hasPlayableAudio(item.audio)) return false;
     if (tags.size === 0) return true;
     return item.tags.some((tag) => tags.has(tag));
   });
+}
+
+function getLetterCandidatesForSelection(items: LetterItem[], selection: QuestionSelectionOptions): LetterItem[] {
+  return items.filter((item) => matchesCurriculumSelection(item, selection));
 }
 
 function getGrammarCandidatesForSelection(items: GrammarItem[], selection: QuestionSelectionOptions): GrammarItem[] {
@@ -817,6 +938,7 @@ function filterGrammarForSelection(items: GrammarItem[], selection: QuestionSele
   const maxComplexity = selection.maxComplexity ?? Number.POSITIVE_INFINITY;
   const tags = new Set((selection.tags ?? []).filter(Boolean));
   return items.filter((item) => {
+    if (!matchesCurriculumSelection(item, selection)) return false;
     if (getComplexity(item) > maxComplexity) return false;
     if (tags.size === 0) return true;
     return item.tags.some((tag) => tags.has(tag));
@@ -825,6 +947,39 @@ function filterGrammarForSelection(items: GrammarItem[], selection: QuestionSele
 
 function getComplexity(item: LearningItem | GrammarItem): number {
   return item.complexity ?? item.difficulty ?? 1;
+}
+
+function getContentStage(item: { tags?: string[]; complexity?: number; difficulty?: number }): number {
+  const stageTag = (item.tags ?? []).find((tag) => /^stage:\d+$/.test(tag));
+  if (stageTag) return Math.max(0, Number(stageTag.slice("stage:".length)));
+  return Math.max(0, Math.floor((item.complexity ?? item.difficulty ?? 1) - 1));
+}
+
+function matchesCurriculumSelection(
+  item: { tags?: string[]; complexity?: number; difficulty?: number },
+  selection: QuestionSelectionOptions
+): boolean {
+  const tags = item.tags ?? [];
+  if (!selection.includeExtension && tags.includes("tier:extension")) return false;
+  // A staged curriculum only admits explicitly curated core content. Untagged
+  // legacy/imported entries stay dictionary-only until an editor assigns a
+  // tier:core tag, preventing accidental Level 0 leakage.
+  if (!selection.includeExtension && selection.stage !== undefined && !tags.includes("tier:core")) return false;
+  if (selection.stage !== undefined && getContentStage(item) > selection.stage) return false;
+  return true;
+}
+
+function chooseStagePool<T extends { tags?: string[]; complexity?: number; difficulty?: number }>(
+  values: T[],
+  selection: QuestionSelectionOptions
+): T[] {
+  const stage = selection.stage;
+  if (values.length <= 1 || stage === undefined) return values;
+  const current = values.filter((value) => getContentStage(value) === stage);
+  const review = values.filter((value) => getContentStage(value) < stage);
+  if (current.length === 0) return review.length > 0 ? review : values;
+  if (review.length === 0) return current;
+  return Math.random() < (selection.reviewChance ?? 0.3) ? review : current;
 }
 
 function hasHumanAudio(audio: AudioReference[] | undefined): boolean {
@@ -912,9 +1067,9 @@ function buildSentenceTransliteration(pack: LanguagePack, sentence: string): str
 }
 
 function getTapOrderDecoyCount(grammar: GrammarItem): number {
-  const complexity = getComplexity(grammar);
-  if (complexity <= 1) return 1;
-  if (complexity <= 3) return 2;
+  const stage = getContentStage(grammar);
+  if (stage <= 1) return 1;
+  if (stage <= 4) return 2;
   return 3;
 }
 
@@ -1054,7 +1209,7 @@ function similarityScore(a: LearningItem, b: LearningItem): number {
   const bText = b.transliteration ?? b.target;
   const tagBonus = a.tags.some((tag) => b.tags.includes(tag)) ? -2 : 0;
   const visualBonus = a.emoji && a.emoji === b.emoji ? -1 : 0;
-  return levenshtein(aText, bText) + Math.abs(a.difficulty - b.difficulty) + tagBonus + visualBonus;
+  return levenshtein(aText, bText) + Math.abs(getComplexity(a) - getComplexity(b)) + tagBonus + visualBonus;
 }
 
 function hitLabel(multiplier: number): CombatBreakdown["label_key"] {
@@ -1191,24 +1346,106 @@ function mergeTrainingCounts(stored: unknown): Partial<Record<TrainingFocus, num
   };
 }
 
-function normalizeLevelTrainingCounts(stored: unknown): Record<string, Partial<Record<TrainingFocus, number>>> {
+function normalizeLevelTrainingCounts(stored: unknown, shiftLegacyLevels = false): Record<string, Partial<Record<TrainingFocus, number>>> {
   if (!isObject(stored)) return {};
   const result: Record<string, Partial<Record<TrainingFocus, number>>> = {};
   for (const [level, counts] of Object.entries(stored)) {
     if (!isObject(counts)) continue;
-    result[String(level)] = mergeTrainingCounts(counts);
+    const numericLevel = Math.max(0, Math.floor(numberOr(Number(level), 0)) - (shiftLegacyLevels ? 1 : 0));
+    const key = String(numericLevel);
+    const existing = result[key] ?? {};
+    const normalized = mergeTrainingCounts(counts);
+    result[key] = Object.fromEntries(TRAINING_FOCUSES.map((focus) => [
+      focus,
+      Math.max(0, Math.floor(existing[focus] ?? 0)) + Math.max(0, Math.floor(normalized[focus] ?? 0))
+    ]));
   }
   return result;
 }
 
 
-function normalizeLevelLabyrinthCounts(stored: unknown): Record<string, number> {
+function normalizeLevelLabyrinthCounts(stored: unknown, shiftLegacyLevels = false): Record<string, number> {
   if (!isObject(stored)) return {};
   const result: Record<string, number> = {};
   for (const [level, count] of Object.entries(stored)) {
-    result[String(level)] = Math.max(0, Math.floor(numberOr(count, 0)));
+    const numericLevel = Math.max(0, Math.floor(numberOr(Number(level), 0)) - (shiftLegacyLevels ? 1 : 0));
+    const key = String(numericLevel);
+    result[key] = Math.max(0, Math.floor(result[key] ?? 0)) + Math.max(0, Math.floor(numberOr(count, 0)));
   }
   return result;
+}
+
+function emptyTrainingStones(): TrainingStoneInventory {
+  return { vocabulary: 0, comprehension: 0, grammar: 0, pronunciation: 0 };
+}
+
+function normalizeTrainingStones(stored: unknown): TrainingStoneInventory {
+  if (!isObject(stored)) return emptyTrainingStones();
+  return {
+    vocabulary: clampStoneCount(stored.vocabulary),
+    comprehension: clampStoneCount(stored.comprehension),
+    grammar: clampStoneCount(stored.grammar),
+    pronunciation: clampStoneCount(stored.pronunciation)
+  };
+}
+
+function clampStoneCount(value: unknown): number {
+  return Math.min(TRAINING_STONE_CAP, Math.max(0, Math.floor(numberOr(value, 0))));
+}
+
+function normalizeLabyrinthDoorRequirements(stored: unknown): Record<string, LabyrinthDoorRequirement> {
+  if (!isObject(stored)) return {};
+  const normalized: Record<string, LabyrinthDoorRequirement> = {};
+  for (const [configId, value] of Object.entries(stored)) {
+    if (!isObject(value)) continue;
+    const required = focusArray(value.required_stones);
+    const candidate: LabyrinthDoorRequirement = {
+      config_id: typeof value.config_id === "string" ? value.config_id : configId,
+      required_stones: [...new Set(required)].slice(0, 3),
+      created_at: typeof value.created_at === "string" ? value.created_at : new Date().toISOString()
+    };
+    if (isValidDoorRequirement(candidate, configId)) normalized[configId] = candidate;
+  }
+  return normalized;
+}
+
+function isValidDoorRequirement(requirement: LabyrinthDoorRequirement, configId: string): boolean {
+  return requirement.config_id === configId
+    && requirement.required_stones.length >= 2
+    && requirement.required_stones.length <= 3
+    && new Set(requirement.required_stones).size === requirement.required_stones.length
+    && requirement.required_stones.every((focus) => TRAINING_FOCUSES.includes(focus));
+}
+
+function focusArray(value: unknown): TrainingFocus[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((focus): focus is TrainingFocus => typeof focus === "string" && TRAINING_FOCUSES.includes(focus as TrainingFocus));
+}
+
+function deterministicShuffle<T>(values: T[], seed: number): T[] {
+  const output = [...values];
+  let state = seed >>> 0;
+  const random = () => {
+    state += 0x6d2b79f5;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
+  for (let index = output.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1));
+    [output[index], output[swap]] = [output[swap], output[index]];
+  }
+  return output;
+}
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
 }
 
 export function getTotalTrainingSessions(
