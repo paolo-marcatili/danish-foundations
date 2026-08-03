@@ -6,7 +6,7 @@ on:
       scope:
         description: Audio set to generate
         required: true
-        default: sample
+        default: core
         type: choice
         options:
           - sample
