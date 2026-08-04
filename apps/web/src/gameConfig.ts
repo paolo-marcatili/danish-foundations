@@ -328,11 +328,29 @@ function toEnemyConfig(pack: LanguagePack, enemy: PackEnemy): EnemyConfig {
     scale: Math.max(0.6, Math.min(1.8, enemy.scale ?? 1)),
     tint: parseEnemyTint(enemy.tint),
     requiredStats,
-    tags: enemy.semantic_tags ?? [],
-    skillWeaknesses: (enemy.skill_weaknesses ?? []).map(normalizeStat)
+    tags: normalizeStringArray(enemy.semantic_tags),
+    skillWeaknesses: normalizeStringArray(enemy.skill_weaknesses).map(normalizeStat)
   };
 }
 
+function normalizeStringArray(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((entry): entry is string => typeof entry === "string")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+  }
+  if (typeof value !== "string") return [];
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  const unwrapped = trimmed.startsWith("[") && trimmed.endsWith("]")
+    ? trimmed.slice(1, -1)
+    : trimmed;
+  return unwrapped
+    .split(",")
+    .map((entry) => entry.trim().replace(/^['"]|['"]$/g, ""))
+    .filter(Boolean);
+}
 
 function getLegacyMonsterRow(sprite: string): number {
   return ({ goblin: 0, bat: 1, troll: 2, dragon: 3, wizard: 4, blob: 5 } as Record<string, number>)[sprite] ?? 0;

@@ -1,6 +1,6 @@
 {
   "name": "@hero-lang/danish-foundations",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@hero-lang/content-schema": "0.2.0",
-    "@hero-lang/foundations-engine": "0.1.0",
+    "@hero-lang/foundations-engine": "0.2.0",
     "@hero-lang/learning-engine": "0.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

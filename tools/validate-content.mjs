@@ -110,7 +110,7 @@ function validateLanguagePack(value) {
     for (const field of ["id", "domain", "review_status"]) requireString(problem, `${path}.${field}`, errors, field);
     if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
     mathIds.add(problem.id);
-    if (!["counting", "number_match", "number_order", "addition", "subtraction"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
+    if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
     if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
     if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
     if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);

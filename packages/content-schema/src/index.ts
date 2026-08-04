@@ -124,7 +124,7 @@ export interface LetterItem {
 }
 
 
-export type FoundationsMathDomain = "counting" | "number_match" | "number_order" | "addition" | "subtraction";
+export type FoundationsMathDomain = "counting" | "number_match" | "number_order" | "comparison" | "addition" | "subtraction";
 
 export interface FoundationsMathProblem {
   id: string;
@@ -135,6 +135,8 @@ export interface FoundationsMathProblem {
   number_range?: { min: number; max: number };
   representation?: "objects" | "dots" | "numeral" | "number_line";
   object?: string;
+  /** Optional audio for the complete child-facing problem prompt. */
+  audio?: AudioReference[];
   tags: string[];
   review_status: ReviewStatus;
 }
@@ -610,10 +612,45 @@ function parseYamlScalar(value: string): unknown {
   if ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'"))) {
     try { return JSON.parse(trimmed); } catch { return trimmed.slice(1, -1); }
   }
-  if (trimmed.startsWith("[") || trimmed.startsWith("{")) {
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    try { return JSON.parse(trimmed); } catch {
+      const inner = trimmed.slice(1, -1).trim();
+      if (!inner) return [];
+      return splitYamlFlowValues(inner).map((entry) => parseYamlScalar(entry));
+    }
+  }
+  if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
     try { return JSON.parse(trimmed); } catch { return trimmed; }
   }
   return trimmed;
+}
+
+function splitYamlFlowValues(value: string): string[] {
+  const result: string[] = [];
+  let current = "";
+  let quote = "";
+  let depth = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const char = value[index];
+    if ((char === '"' || char === "'") && value[index - 1] !== "\\") {
+      if (!quote) quote = char;
+      else if (quote === char) quote = "";
+      current += char;
+      continue;
+    }
+    if (!quote) {
+      if (char === "[" || char === "{") depth += 1;
+      if (char === "]" || char === "}") depth = Math.max(0, depth - 1);
+      if (char === "," && depth === 0) {
+        result.push(current.trim());
+        current = "";
+        continue;
+      }
+    }
+    current += char;
+  }
+  if (current.trim()) result.push(current.trim());
+  return result;
 }
 
 function stripComment(raw: string): string {
@@ -757,7 +794,7 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
         if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
         mathIds.add(problem.id);
       }
-      if (!["counting", "number_match", "number_order", "addition", "subtraction"].includes(String(problem.domain))) errors.push(`${path}.domain is unsupported.`);
+      if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction"].includes(String(problem.domain))) errors.push(`${path}.domain is unsupported.`);
       if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
       if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
       if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
@@ -825,7 +862,16 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
       requireString(enemy, "sprite", errors, `enemies[${index}]`);
       if (enemy.sprite_row !== undefined && (!Number.isInteger(enemy.sprite_row) || Number(enemy.sprite_row) < 0)) errors.push(`enemies[${index}].sprite_row must be a non-negative integer.`);
       if (enemy.scale !== undefined && (typeof enemy.scale !== "number" || enemy.scale <= 0)) errors.push(`enemies[${index}].scale must be a positive number.`);
-      if (!Array.isArray(enemy.semantic_tags)) errors.push(`enemies[${index}].semantic_tags must be an array.`);
+      if (!Array.isArray(enemy.semantic_tags) || !enemy.semantic_tags.every((tag) => typeof tag === "string")) {
+        errors.push(`enemies[${index}].semantic_tags must be a string array.`);
+      }
+      const validStats = new Set(["strength", "defense", "precision", "stamina"]);
+      if (enemy.skill_weaknesses !== undefined && (
+        !Array.isArray(enemy.skill_weaknesses)
+        || !enemy.skill_weaknesses.every((stat) => typeof stat === "string" && validStats.has(stat))
+      )) {
+        errors.push(`enemies[${index}].skill_weaknesses must be an array of valid hero stats.`);
+      }
     }
   }
 
@@ -992,6 +1038,7 @@ function normalizeMathProblem(problem: FoundationsMathProblem): FoundationsMathP
     ...problem,
     operands: Array.isArray(problem.operands) ? problem.operands.map(Number) : undefined,
     result: Number(problem.result),
+    audio: Array.isArray(problem.audio) ? problem.audio : [],
     tags: Array.isArray(problem.tags) ? problem.tags : [],
     review_status: problem.review_status ?? "draft"
   };

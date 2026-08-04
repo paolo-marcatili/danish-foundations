@@ -49,29 +49,49 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const showTimer = mode === "fight" && timerSeconds > 0;
   const targetLanguage = question.target_audio_lang?.split("-")[0] ?? (/^[\u0530-\u058F]/.test(question.prompt) ? "hy" : undefined);
-  const showAudioButton = question.activity_type === "listen_and_choose" || Boolean(question.audio?.length);
+  const showInstructionAudioButton = Boolean(question.instruction_audio_text || question.instruction_audio?.length);
+  const showTargetAudioButton = question.allow_target_audio_before_answer !== false
+    && (question.activity_type === "listen_and_choose" || Boolean(question.audio?.length) || Boolean(question.target_audio_text));
   const isTapOrder = question.variant === "sentence_tap_order";
   const [selectedChips, setSelectedChips] = useState<AnswerOption[]>([]);
   const [audioStarted, setAudioStarted] = useState(false);
+  const [instructionAudioPlaying, setInstructionAudioPlaying] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [secondaryAudioPlaying, setSecondaryAudioPlaying] = useState(false);
+  const [narrationFailed, setNarrationFailed] = useState(false);
+  const instructionPlaybackSerial = useRef(0);
   const audioPlaybackSerial = useRef(0);
   const secondaryPlaybackSerial = useRef(0);
   const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
   const tapOrderReady = selectedChips.length === expectedAnswerLength;
+  const waitingForNarration = Boolean(question.requires_audio_before_answer) && !audioStarted;
+  const answerDisabled = disabled || waitingForNarration;
 
   useEffect(() => {
+    instructionPlaybackSerial.current += 1;
     audioPlaybackSerial.current += 1;
     secondaryPlaybackSerial.current += 1;
     setSelectedChips([]);
+    setInstructionAudioPlaying(false);
     setAudioPlaying(false);
     setSecondaryAudioPlaying(false);
-    setAudioStarted(question.activity_type !== "listen_and_choose" || audioHasStarted);
-  }, [question.id, question.activity_type, audioHasStarted]);
+    setNarrationFailed(false);
+    setAudioStarted(!question.requires_audio_before_answer || audioHasStarted);
+
+    if (!question.auto_narrate) return;
+    const handle = window.setTimeout(() => {
+      void playInstructionAudio();
+    }, 120);
+    return () => window.clearTimeout(handle);
+  }, [question.id]);
+
+  useEffect(() => {
+    if (audioHasStarted) setAudioStarted(true);
+  }, [audioHasStarted]);
 
   function handleChipTap(option: AnswerOption) {
     if (
-      disabled
+      answerDisabled
       || !isTapOrder
       || selectedChips.length >= expectedAnswerLength
       || selectedChips.some((chip) => chip.id === option.id)
@@ -80,13 +100,56 @@ export function QuestionCard({
   }
 
   function removeSelectedChip(optionId: string) {
-    if (disabled) return;
+    if (answerDisabled) return;
     setSelectedChips((previous) => previous.filter((chip) => chip.id !== optionId));
   }
 
   function submitTapOrder() {
-    if (disabled || !tapOrderReady) return;
+    if (answerDisabled || !tapOrderReady) return;
     onAnswer(selectedChips.map((chip) => chip.label).join(" "));
+  }
+
+
+  async function playInstructionAudio() {
+    if (instructionAudioPlaying) return;
+    void unlockAudio();
+    const serial = ++instructionPlaybackSerial.current;
+    const wasReadyForAnswer = audioStarted;
+    const playbackStartedAt = performance.now();
+    setInstructionAudioPlaying(true);
+    setNarrationFailed(false);
+
+    let instructionPlayed = true;
+    let targetPlayed = true;
+    try {
+      if (question.instruction_audio_text || question.instruction_audio?.length) {
+        instructionPlayed = await playLearningAudio(
+          question.instruction_audio,
+          question.instruction_audio_text,
+          question.instruction_audio_lang ?? question.target_audio_lang ?? "da-DK"
+        );
+      }
+      if (question.auto_play_target_audio) {
+        targetPlayed = await playLearningAudio(
+          question.audio,
+          question.target_audio_text,
+          question.target_audio_lang ?? "da-DK"
+        );
+      }
+    } finally {
+      if (serial !== instructionPlaybackSerial.current) return;
+      const played = instructionPlayed && targetPlayed;
+      // Never trap a child behind a failed system voice. The retry message stays
+      // visible, while the visual task remains usable with adult support.
+      setNarrationFailed(!played);
+      if (!wasReadyForAnswer) {
+        setAudioStarted(true);
+        onAudioStarted?.();
+      } else if (played) {
+        onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
+      }
+      setInstructionAudioPlaying(false);
+    }
   }
 
   function playQuestionAudio() {
@@ -101,6 +164,7 @@ export function QuestionCard({
         if (serial !== audioPlaybackSerial.current) return;
         if (played && !wasReadyForAnswer) {
           setAudioStarted(true);
+          setNarrationFailed(false);
           onAudioStarted?.();
         } else if (played && wasReadyForAnswer) {
           onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
@@ -134,17 +198,22 @@ export function QuestionCard({
       {showTimer ? (
         <QuestionTimer
           durationSeconds={timerSeconds}
-          active={!disabled && audioStarted && !audioPlaying}
+          active={!disabled && audioStarted && !instructionAudioPlaying && !audioPlaying}
           resetKey={`${question.id}:${audioStarted ? "started" : "waiting"}`}
           label={audioStarted ? t(language, "speedBonus") : t(language, "listenToStartBonus")}
         />
       ) : null}
 
-      {showAudioButton || question.secondary_audio?.length ? (
+      {showInstructionAudioButton || showTargetAudioButton || question.secondary_audio?.length ? (
         <div className="question-audio-actions">
-          {showAudioButton ? (
+          {showInstructionAudioButton ? (
+            <button type="button" className="audio-button instruction-audio-button" disabled={instructionAudioPlaying} onClick={() => void playInstructionAudio()}>
+              🔊 {t(language, "playInstruction")}
+            </button>
+          ) : null}
+          {showTargetAudioButton ? (
             <button type="button" className="audio-button" disabled={audioPlaying} onClick={playQuestionAudio}>
-              🔊 {question.kind === "letter"
+              ◉ {question.kind === "letter"
                 ? t(language, "playLetterAudio")
                 : question.activity_type === "repeat_after_me"
                   ? t(language, "listenAndRepeat")
@@ -155,11 +224,13 @@ export function QuestionCard({
           ) : null}
           {question.secondary_audio?.length ? (
             <button type="button" className="audio-button secondary-audio-button" disabled={secondaryAudioPlaying} onClick={playSecondaryAudio}>
-              ◉ {t(language, "playLetterSound")}
+              ◉ {t(language, question.secondary_audio_label_key ?? "playLetterSound")}
             </button>
           ) : null}
         </div>
       ) : null}
+      {waitingForNarration ? <p className="audio-required-hint">🔊 {t(language, "listenBeforeAnswer")}</p> : null}
+      {narrationFailed ? <p className="audio-required-hint audio-retry-hint">{t(language, "narrationRetryHint")}</p> : null}
 
       <div className={question.kind === "letter" ? "prompt letter-prompt" : "prompt"} lang={targetLanguage}>
         <FitText text={question.prompt} lang={targetLanguage} maxRem={question.kind === "letter" ? 5.6 : 3.2} minRem={question.kind === "letter" ? 2.1 : 1.05} />
@@ -176,7 +247,7 @@ export function QuestionCard({
                     key={chip.id}
                     type="button"
                     className="tap-order-selected-chip"
-                    disabled={disabled}
+                    disabled={answerDisabled}
                     onClick={() => removeSelectedChip(chip.id)}
                     title={t(language, "removeWord")}
                   >
@@ -197,7 +268,7 @@ export function QuestionCard({
                   key={option.id}
                   type="button"
                   className={`answer-button word-chip${used ? " chip-used" : ""}`}
-                  disabled={disabled || used || selectedChips.length >= expectedAnswerLength}
+                  disabled={answerDisabled || used || selectedChips.length >= expectedAnswerLength}
                   onClick={() => handleChipTap(option)}
                 >
                   <FitText text={option.label} lang={targetLanguage} maxRem={1.02} minRem={0.62} />
@@ -205,7 +276,7 @@ export function QuestionCard({
               );
             })}
           </div>
-          {!disabled ? (
+          {!answerDisabled ? (
             <div className="tap-order-actions">
               <button
                 type="button"
@@ -226,7 +297,7 @@ export function QuestionCard({
               <button
                 type="button"
                 className="primary-button compact-button tap-order-check"
-                disabled={!tapOrderReady}
+                disabled={answerDisabled || !tapOrderReady}
                 onClick={submitTapOrder}
               >
                 {t(language, "checkAnswer")}
@@ -245,7 +316,7 @@ export function QuestionCard({
                 key={option.id}
                 type="button"
                 className={answerClass}
-                disabled={disabled}
+                disabled={answerDisabled}
                 onClick={() => onAnswer(option.id)}
               >
                 <FitText text={option.label} lang={/^[\u0530-\u058F]/.test(option.label) ? "hy" : undefined} maxRem={1.02} minRem={0.62} />

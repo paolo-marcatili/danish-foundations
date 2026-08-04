@@ -2,8 +2,8 @@ title:
   da: Ord- og Talheltene
   it: Gli eroi delle parole e dei numeri
 opening:
-  da: I hvert kapitel hjælper helten med at få bogstaver og tal tilbage til kongeriget.
-  it: In ogni capitolo l’eroe aiuta a riportare lettere e numeri nel regno.
+  da: Bogstaver og tal er blevet spredt ud over kongeriget. I hvert kapitel hjælper helten med at samle dem og bruge dem til at læse, tælle og regne.
+  it: Lettere e numeri sono stati dispersi nel regno. In ogni capitolo l’eroe li raccoglie e impara a usarli per leggere, contare e calcolare.
 milestones: []
 chapters:
   - id: chapter_0_light_gate
@@ -12,45 +12,229 @@ chapters:
       da: Kapitel 0 · Lysets port
       it: Capitolo 0 · La porta della luce
     summary:
-      da: Lyt til de første bogstavlyde, byg små ord og tæl fra 0 til 5.
-      it: Ascolta i primi suoni, costruisci parole brevi e conta da 0 a 5.
+      da: Lyt til begyndelseslyde, find de første bogstaver og tæl fra 0 til 3.
+      it: Ascolta i suoni iniziali, trova le prime lettere e conta da 0 a 3.
     fiction:
-      da: 'En morgen er skiltene ved Lysets Port blevet helt tomme. Solvogteren kan ikke læse vejen, og hans fem lyssten ligger hulter til bulter. Helten må vække bogstaverne s, o, l, m og a og tælle stenene, før porten kan åbnes.'
-      it: 'Una mattina i cartelli della Porta della Luce sono diventati vuoti. Il guardiano non riesce più a leggere la strada e le sue cinque pietre luminose sono sparse. L’eroe deve risvegliare le lettere s, o, l, m e a e contare le pietre per aprire la porta.'
+      da: En morgen er skiltene ved Lysets Port blevet tomme. Solvogteren kan ikke se, hvilken vej der fører hjem, og tre lyssten ligger spredt på jorden. Helten må lytte nøje, vække bogstaverne s, o, l, m og a og tælle stenene, før porten åbner.
+      it: Una mattina i cartelli della Porta della Luce sono diventati vuoti. Il guardiano non sa più quale strada porti a casa e tre pietre luminose sono sparse a terra. L’eroe deve ascoltare con attenzione, risvegliare le lettere s, o, l, m e a e contare le pietre per aprire la porta.
     lesson:
       title:
-        da: Bogstaver bliver til ord, og tal fortæller hvor mange
-        it: Le lettere formano parole e i numeri indicano una quantità
+        da: Et bogstav har et navn og en lyd
+        it: Una lettera ha un nome e un suono
       objectives:
-        - da: Genkende de store og små former af S, O, L, M og A.
-          it: Riconoscere le forme maiuscole e minuscole di S, O, L, M e A.
-        - da: Lytte efter den første lyd og bygge ordene sol og lam.
-          it: Ascoltare il primo suono e costruire le parole sol e lam.
-        - da: Koble mængder fra 0 til 5 med de rigtige tal.
-          it: Collegare quantità da 0 a 5 con il numero corretto.
-        - da: Lægge små grupper sammen og tage en lille gruppe væk.
-          it: Sommare piccoli gruppi e sottrarre una piccola quantità.
+        - da: Høre den første lyd i et kendt ord.
+          it: Riconoscere il primo suono di una parola conosciuta.
+        - da: Genkende store og små S, O, L, M og A.
+          it: Riconoscere S, O, L, M e A maiuscole e minuscole.
+        - da: Tælle mængder fra 0 til 3 ved at pege på én ting ad gangen.
+          it: Contare quantità da 0 a 3 indicando un elemento alla volta.
       explanation:
-        da: "Et bogstav har et navn og en lyd. Når vi sætter lydene s-o-l sammen, får vi ordet sol. Når vi tæller, peger vi på én ting ad gangen. Tallet 4 betyder altid fire ting, uanset om det er æbler, prikker eller lyssten. Plus samler grupper. Minus tager noget væk."
-        it: "Una lettera ha un nome e un suono. Unendo i suoni s-o-l otteniamo la parola sol. Quando contiamo, indichiamo un oggetto alla volta. Il numero 4 indica sempre quattro elementi, siano essi mele, punti o pietre luminose. Il più unisce gruppi; il meno toglie elementi."
+        da: Et bogstav har et navn, men når vi læser, lytter vi især efter dets lyd. Ordet sol begynder med s. Ordet lam begynder med l. Når du tæller, skal hver ting kun tælles én gang. Nul betyder, at der ikke er nogen.
+        it: Una lettera ha un nome, ma quando leggiamo ascoltiamo soprattutto il suo suono. La parola sol inizia con s. La parola lam inizia con l. Quando conti, ogni elemento va contato una sola volta. Zero significa che non ce ne sono.
       examples:
-        - target: S s · O o · L l
+        - target: S s · sol
           translation:
-            da: Store og små bogstaver hører sammen.
-            it: Le lettere maiuscole e minuscole corrispondono.
-        - target: s · o · l → sol
+            da: Ordet sol begynder med s.
+            it: La parola sol inizia con s.
+        - target: L l · lam
           translation:
-            da: Lydene kan sættes sammen til et ord.
-            it: I suoni possono essere uniti per formare una parola.
-        - target: ● ● ● + ● = 4
+            da: Ordet lam begynder med l.
+            it: La parola lam inizia con l.
+        - target: ● ● ● = 3
           translation:
-            da: Tre og én mere er fire.
-            it: Tre più uno fa quattro.
+            da: Tre prikker passer til tallet 3.
+            it: Tre punti corrispondono al numero 3.
       common_mistakes:
-        - da: Tæl langsomt og rør hver ting én gang, så du ikke tæller den samme to gange.
-          it: Conta lentamente e indica ogni oggetto una sola volta.
-        - da: Bogstavnavnet og bogstavlyden er ikke altid helt det samme.
-          it: Il nome della lettera e il suo suono non sono sempre identici.
+        - da: Bogstavets navn og bogstavets lyd er ikke altid det samme.
+          it: Il nome e il suono della lettera non sono sempre uguali.
+        - da: Peg på hver ting én gang, når du tæller.
+          it: Indica ogni elemento una sola volta mentre conti.
     mission:
-      da: Tænd de fem lyssten, læs skiltet SOL og hjælp vogteren med at tælle dem.
-      it: Accendi le cinque pietre, leggi la parola SOL e aiuta il guardiano a contarle.
+      da: Find de rigtige begyndelsesbogstaver, tænd tre lyssten og åbn porten.
+      it: Trova le lettere iniziali corrette, accendi tre pietre e apri la porta.
+
+  - id: chapter_1_sound_forest
+    minimum_level: 1
+    title:
+      da: Kapitel 1 · Klangskoven
+      it: Capitolo 1 · La foresta dei suoni
+    summary:
+      da: Mød i, n og t, byg korte ord og forbind tallene 0 til 5 med mængder.
+      it: Incontra i, n e t, costruisci parole brevi e collega i numeri da 0 a 5 alle quantità.
+    fiction:
+      da: Bag porten ligger Klangskoven. Træerne hvisker små ord, men vinden har blandet bogstaverne. En stol mangler sit navn, en is smelter, og nattens skilt er faldet fra hinanden. Helten må samle i, n og t og sætte bogstaverne i den rigtige rækkefølge.
+      it: Oltre la porta si trova la Foresta dei Suoni. Gli alberi sussurrano parole brevi, ma il vento ha mescolato le lettere. Una sedia ha perso il suo nome, un gelato si sta sciogliendo e il cartello della notte è caduto a pezzi. L’eroe deve raccogliere i, n e t e rimettere le lettere nell’ordine giusto.
+    lesson:
+      title:
+        da: Lyde kan sættes sammen til ord
+        it: I suoni possono essere uniti per formare parole
+      objectives:
+        - da: Genkende i, n og t og deres store former.
+          it: Riconoscere i, n e t e le loro forme maiuscole.
+        - da: Bygge og læse ord som is, lim, tal, nat, stol og ost.
+          it: Costruire e leggere parole come is, lim, tal, nat, stol e ost.
+        - da: Koble tallene 0 til 5 til de rigtige mængder.
+          it: Collegare i numeri da 0 a 5 alle quantità corrette.
+      explanation:
+        da: Når du bygger et ord, lytter du til lydene i rækkefølge. I ordet is kommer i først og s bagefter. I ordet nat kommer n, a og t. Et skrevet tal fortæller, hvor mange ting der er, også når tingene ser forskellige ud.
+        it: Quando costruisci una parola, ascolta i suoni nell’ordine corretto. Nella parola is viene prima i e poi s. Nella parola nat trovi n, a e t. Un numero scritto indica quanti elementi ci sono, anche se gli oggetti sono diversi.
+      examples:
+        - target: i · s → is
+          translation:
+            da: To bogstavlyde bliver til ordet is.
+            it: Due suoni formano la parola is.
+        - target: n · a · t → nat
+          translation:
+            da: Tre lyde bliver til ordet nat.
+            it: Tre suoni formano la parola nat.
+        - target: 5 ↔ ● ● ● ● ●
+          translation:
+            da: Tallet 5 passer til fem ting.
+            it: Il numero 5 corrisponde a cinque elementi.
+      common_mistakes:
+        - da: Start altid ved ordets første lyd og gå mod højre.
+          it: Inizia dal primo suono della parola e procedi verso destra.
+        - da: Tallet er ikke en tegning af tingene; det fortæller kun hvor mange.
+          it: Il numero non è il disegno degli oggetti; indica soltanto quanti sono.
+    mission:
+      da: Giv skovens ting deres ord tilbage, og læg fem lydfrø i de rigtige kurve.
+      it: Restituisci i nomi agli oggetti della foresta e metti cinque semi sonori nei cesti corretti.
+
+  - id: chapter_2_echo_meadow
+    minimum_level: 2
+    title:
+      da: Kapitel 2 · Ekkoengen
+      it: Capitolo 2 · Il prato dell’eco
+    summary:
+      da: Lær e, r og f, læs familieord og bliv sikker på mængder til 5.
+      it: Impara e, r e f, leggi parole della famiglia e consolida le quantità fino a 5.
+    fiction:
+      da: På Ekkoengen gentager vinden alt, hvad helten siger. En fe har gemt fem små klokker, men ekkoet blander ordene far, mor og ren. Helten må lytte til begyndelsen af hvert ord og tælle klokkerne uden at lade sig snyde af ekkoet.
+      it: Nel Prato dell’Eco il vento ripete tutto ciò che dice l’eroe. Una fata ha nascosto cinque campanelli, ma l’eco confonde le parole far, mor e ren. L’eroe deve ascoltare l’inizio di ogni parola e contare i campanelli senza farsi ingannare.
+    lesson:
+      title:
+        da: Brug kendte bogstaver i nye ord
+        it: Usa le lettere conosciute in parole nuove
+      objectives:
+        - da: Genkende e, r og f.
+          it: Riconoscere e, r e f.
+        - da: Læse og bygge fem, ren, far, mor, en og fe.
+          it: Leggere e costruire fem, ren, far, mor, en e fe.
+        - da: Genkende samme mængde på forskellige billeder.
+          it: Riconoscere la stessa quantità in immagini diverse.
+      explanation:
+        da: Nye ord bliver lettere, når nogle af bogstaverne allerede er kendte. I fem kender du allerede m. Nu føjer du f og e til. Nogle meget almindelige ord, som far og mor, skal både lydes og huskes som hele ord.
+        it: Le parole nuove diventano più facili quando alcune lettere sono già note. In fem conosci già m e aggiungi f ed e. Alcune parole molto comuni, come far e mor, vanno sia decodificate sia riconosciute come parole intere.
+      examples:
+        - target: f · e · m → fem
+          translation:
+            da: Bogstaverne danner både et ord og navnet på tallet 5.
+            it: Le lettere formano una parola che è anche il nome del numero 5.
+        - target: f · a · r → far
+          translation:
+            da: Far er et almindeligt ord, som vi møder tit.
+            it: Far è una parola comune che incontriamo spesso.
+        - target: 4 æbler = 4 stjerner
+          translation:
+            da: Mængden er den samme, selv om tingene er forskellige.
+            it: La quantità è uguale anche se gli oggetti sono diversi.
+      common_mistakes:
+        - da: Se på alle bogstaverne; gæt ikke kun ud fra det første.
+          it: Guarda tutte le lettere, non indovinare soltanto dalla prima.
+    mission:
+      da: Læs ekkoets ord og saml præcis fem klokker til feen.
+      it: Leggi le parole dell’eco e raccogli esattamente cinque campanelli per la fata.
+
+  - id: chapter_3_ten_steps
+    minimum_level: 3
+    title:
+      da: Kapitel 3 · Ti-trinnet
+      it: Capitolo 3 · I dieci gradini
+    summary:
+      da: Mød u, b og k, læs flere korte ord og arbejd med tallene til 10.
+      it: Incontra u, b e k, leggi altre parole brevi e lavora con i numeri fino a 10.
+    fiction:
+      da: "En gammel trappe fører op mod Ordtårnet. Den har ti trin, men nogle tal er forsvundet. På hvert trin står et lille billede: en mus, en bus, en bil eller en kat. Helten må læse skiltene og sætte tallene i den rigtige rækkefølge."
+      it: "Una vecchia scala conduce alla Torre delle Parole. Ha dieci gradini, ma alcuni numeri sono scomparsi. Su ogni gradino c’è una piccola immagine: un topo, un autobus, un’auto o un gatto. L’eroe deve leggere i cartelli e rimettere i numeri nell’ordine corretto."
+    lesson:
+      title:
+        da: Læs hele ordet, og brug talrækken
+        it: Leggi tutta la parola e usa la linea dei numeri
+      objectives:
+        - da: Genkende u, b og k.
+          it: Riconoscere u, b e k.
+        - da: Læse mus, bus, bil, kat, tak, buk og korn.
+          it: Leggere mus, bus, bil, kat, tak, buk e korn.
+        - da: Tælle og ordne tallene fra 0 til 10.
+          it: Contare e ordinare i numeri da 0 a 10.
+        - da: Lægge sammen og trække fra med synlige ting inden for 10.
+          it: Sommare e sottrarre con oggetti visibili entro il 10.
+      explanation:
+        da: Når ord bliver lidt længere, læser du stadig fra venstre mod højre. Del ordet op i små lydbidder, hvis det hjælper. På talrækken kommer hvert tal én plads efter det forrige. Plus samler to grupper. Minus fjerner en del af en gruppe.
+        it: Quando le parole diventano un po’ più lunghe, continua a leggere da sinistra a destra. Se serve, dividile in piccoli gruppi di suoni. Sulla linea dei numeri ogni numero viene dopo il precedente. Il più unisce due gruppi; il meno ne toglie una parte.
+      examples:
+        - target: m · u · s → mus
+          translation:
+            da: Læs én lyd ad gangen og saml dem til mus.
+            it: Leggi un suono alla volta e uniscili per formare mus.
+        - target: 5 · 6 · 7
+          translation:
+            da: 6 står mellem 5 og 7.
+            it: 6 si trova tra 5 e 7.
+        - target: 4 + 3 = 7
+          translation:
+            da: Fire og tre mere er syv.
+            it: Quattro più tre fa sette.
+      common_mistakes:
+        - da: Ved minus skal du starte med den første gruppe og tage den anden væk.
+          it: Nella sottrazione parti dal primo gruppo e togline il secondo.
+    mission:
+      da: Genskab de ti trin, læs skiltene og nå frem til Ordtårnets dør.
+      it: Ricostruisci i dieci gradini, leggi i cartelli e raggiungi la porta della Torre delle Parole.
+
+  - id: chapter_4_word_tower
+    minimum_level: 4
+    title:
+      da: Kapitel 4 · Ordtårnet
+      it: Capitolo 4 · La torre delle parole
+    summary:
+      da: Lær h, p og v, læs flere ord og sammenlign mængder til 10.
+      it: Impara h, p e v, leggi altre parole e confronta quantità fino a 10.
+    fiction:
+      da: I Ordtårnet ligger bøgerne i to store bunker. Ordmagikeren siger, at den højeste bunke altid har flest bøger, men det passer ikke. Helten må læse ord som hus, pil, ven og hest og sammenligne mængderne omhyggeligt.
+      it: Nella Torre delle Parole i libri sono disposti in due grandi pile. Il mago sostiene che la pila più alta abbia sempre più libri, ma non è vero. L’eroe deve leggere parole come hus, pil, ven e hest e confrontare con attenzione le quantità.
+    lesson:
+      title:
+        da: Sammenlign ved at tælle eller parre tingene
+        it: Confronta contando o formando coppie
+      objectives:
+        - da: Genkende h, p og v.
+          it: Riconoscere h, p e v.
+        - da: Læse og bygge hus, pil, ven, hat, hop, pose, hest og vest.
+          it: Leggere e costruire hus, pil, ven, hat, hop, pose, hest e vest.
+        - da: Afgøre om der er flest til venstre, flest til højre eller lige mange.
+          it: Stabilire se ce ne sono di più a sinistra, a destra o in ugual numero.
+      explanation:
+        da: Du kan sammenligne to mængder ved at tælle dem eller ved at lave par. Hvis hver ting til venstre har en makker til højre, er der lige mange. Hvis der er ting til overs på den ene side, er der flest dér. Når du læser, skal alle bogstaverne passe til billedet.
+        it: Puoi confrontare due quantità contando oppure formando coppie. Se ogni elemento a sinistra ha un compagno a destra, le quantità sono uguali. Se avanzano elementi da una parte, lì ce ne sono di più. Quando leggi, tutte le lettere devono corrispondere all’immagine.
+      examples:
+        - target: h · u · s → hus
+          translation:
+            da: Bogstaverne h, u og s danner hus.
+            it: Le lettere h, u e s formano hus.
+        - target: ● ● ● = ● ● ●
+          translation:
+            da: Der er lige mange på begge sider.
+            it: Ci sono elementi in ugual numero sui due lati.
+        - target: ● ● ● ● > ● ●
+          translation:
+            da: Der er flest til venstre.
+            it: Ce ne sono di più a sinistra.
+      common_mistakes:
+        - da: En stor genstand tæller stadig kun som én genstand.
+          it: Un oggetto grande conta comunque come un solo oggetto.
+        - da: Sammenlign antallet, ikke hvor meget plads tingene fylder.
+          it: Confronta il numero, non lo spazio occupato dagli oggetti.
+    mission:
+      da: Læs tårnets ord, sammenlign bogbunkerne og afslør Ordmagikerens trick.
+      it: Leggi le parole della torre, confronta le pile di libri e scopri il trucco del mago.

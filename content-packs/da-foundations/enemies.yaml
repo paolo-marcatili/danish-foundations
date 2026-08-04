@@ -15,3 +15,71 @@ enemies:
     skill_weaknesses:
       - precision
       - defense
+
+  - id: sound_bat
+    level: 1
+    name_key: soundBat
+    max_energy: 110
+    reward_coins: 45
+    preferred_focus: vocabulary
+    sprite: bat
+    sprite_row: 1
+    visual_variant: echo
+    scale: 1.02
+    tint: "#b8d9ff"
+    semantic_tags:
+      - "encounter:sound"
+    skill_weaknesses:
+      - strength
+      - defense
+
+  - id: echo_troll
+    level: 2
+    name_key: echoTroll
+    max_energy: 150
+    reward_coins: 55
+    preferred_focus: comprehension
+    sprite: troll
+    sprite_row: 2
+    visual_variant: meadow
+    scale: 1.06
+    tint: "#b8efb4"
+    semantic_tags:
+      - "encounter:reading"
+    skill_weaknesses:
+      - defense
+      - strength
+
+  - id: ten_dragon
+    level: 3
+    name_key: tenDragon
+    max_energy: 195
+    reward_coins: 65
+    preferred_focus: pronunciation
+    sprite: dragon
+    sprite_row: 3
+    visual_variant: ten
+    scale: 1.08
+    tint: "#ffd18a"
+    semantic_tags:
+      - "encounter:math"
+    skill_weaknesses:
+      - stamina
+      - precision
+
+  - id: word_wizard
+    level: 4
+    name_key: wordWizard
+    max_energy: 245
+    reward_coins: 80
+    preferred_focus: comprehension
+    sprite: wizard
+    sprite_row: 4
+    visual_variant: tower
+    scale: 1.1
+    tint: "#d5b7ff"
+    semantic_tags:
+      - "encounter:word-tower"
+    skill_weaknesses:
+      - defense
+      - precision

@@ -300,6 +300,9 @@ export default function App() {
   useEffect(() => {
     resetLearningAudioState();
     if (!currentQuestion || !audioOn) return;
+    // The shared QuestionCard owns narrated Danish tasks so it can keep answers
+    // disabled until the complete instruction/target sequence has finished.
+    if (currentQuestion.auto_narrate) return () => resetLearningAudioState();
     if (currentQuestion.activity_type === "listen_and_choose" || currentQuestion.activity_type === "repeat_after_me") {
       const handle = window.setTimeout(() => {
         void playLearningAudio(currentQuestion.audio, currentQuestion.target_audio_text, currentQuestion.target_audio_lang ?? pack.language.bcp47).then((played) => {
@@ -1082,7 +1085,7 @@ export default function App() {
       ) : (
         <>
           <HeroStatsPanel state={learnerState} language={baseLanguage} statCap={getLevelStatCap(learnerState.level, pack)} />
-          <StoryPanel pack={pack} state={learnerState} language={baseLanguage} />
+          <StoryPanel pack={pack} state={learnerState} language={baseLanguage} alternateLanguage="it" alternateLanguageLabel="Italiano" />
         </>
       )}
     />

@@ -6585,3 +6585,45 @@ button.offline-pill { cursor: pointer; }
 .secondary-audio-button {
   background: rgba(236, 246, 255, 0.95);
 }
+
+.story-reader-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.story-language-toggle {
+  min-height: 2.5rem;
+  padding: 0.45rem 0.75rem;
+  border: 1px solid rgba(70, 46, 19, 0.2);
+  border-radius: 999px;
+  background: #fff;
+  color: #3e2b17;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.instruction-audio-button {
+  background: rgba(255, 244, 199, 0.98);
+}
+
+.audio-required-hint {
+  margin: 0.35rem 0 0;
+  color: #5b6470;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.audio-retry-hint {
+  color: #9b4a22;
+}
+
+@media (max-width: 620px) {
+  .story-language-toggle {
+    min-height: 2.25rem;
+    padding-inline: 0.6rem;
+    font-size: 0.7rem;
+  }
+}

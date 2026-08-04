@@ -1,0 +1,96 @@
+name: Generate Danish neural audio
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: Audio set to generate
+        required: true
+        default: sample
+        type: choice
+        options:
+          - sample
+          - core
+      voice:
+        description: Azure Danish voice
+        required: true
+        default: da-DK-ChristelNeural
+        type: choice
+        options:
+          - da-DK-ChristelNeural
+          - da-DK-JeppeNeural
+      rate:
+        description: SSML speaking-rate adjustment
+        required: true
+        default: -6%
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Show generation plan
+        env:
+          AUDIO_SCOPE: ${{ inputs.scope }}
+        run: |
+          if [ "$AUDIO_SCOPE" = "sample" ]; then EXTRA_ARGS="--sample"; else EXTRA_ARGS=""; fi
+          node tools/generate-danish-audio.mjs content-packs/da-foundations --plan $EXTRA_ARGS
+
+      - name: Generate Danish audio
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+          AZURE_SPEECH_VOICE: ${{ inputs.voice }}
+          AZURE_SPEECH_RATE: ${{ inputs.rate }}
+          AUDIO_SCOPE: ${{ inputs.scope }}
+        run: |
+          test -n "$AZURE_SPEECH_KEY" || (echo "Missing AZURE_SPEECH_KEY repository secret" && exit 1)
+          test -n "$AZURE_SPEECH_REGION" || (echo "Missing AZURE_SPEECH_REGION repository secret" && exit 1)
+          if [ "$AUDIO_SCOPE" = "sample" ]; then EXTRA_ARGS="--sample --force"; else EXTRA_ARGS="--force"; fi
+          node tools/generate-danish-audio.mjs content-packs/da-foundations $EXTRA_ARGS
+
+      - name: Validate updated pack
+        run: npm run check:danish
+
+      - name: Package generated update
+        env:
+          AUDIO_SCOPE: ${{ inputs.scope }}
+          AUDIO_VOICE: ${{ inputs.voice }}
+          AUDIO_RATE: ${{ inputs.rate }}
+        run: |
+          mkdir -p danish-audio-update/content-packs/da-foundations/dictionary
+          mkdir -p danish-audio-update/content-packs/da-foundations/curriculum
+          mkdir -p danish-audio-update/content-packs/da-foundations/audio
+          cp content-packs/da-foundations/dictionary/letters.jsonl danish-audio-update/content-packs/da-foundations/dictionary/
+          cp content-packs/da-foundations/dictionary/words.jsonl danish-audio-update/content-packs/da-foundations/dictionary/
+          cp content-packs/da-foundations/curriculum/math-problems.jsonl danish-audio-update/content-packs/da-foundations/curriculum/
+          cp -R content-packs/da-foundations/audio/auto-neural danish-audio-update/content-packs/da-foundations/audio/
+          cat > danish-audio-update/AUDIO_GENERATION.txt <<REPORT
+          Scope: $AUDIO_SCOPE
+          Voice: $AUDIO_VOICE
+          Rate: $AUDIO_RATE
+          Generated: $(date -u +%Y-%m-%dT%H:%M:%SZ)
+          MP3 files: $(find content-packs/da-foundations/audio/auto-neural -type f -name '*.mp3' | wc -l)
+          REPORT
+
+      - name: Upload generated audio update
+        uses: actions/upload-artifact@v4
+        with:
+          name: danish-neural-audio-${{ inputs.scope }}
+          path: danish-audio-update
+          retention-days: 14

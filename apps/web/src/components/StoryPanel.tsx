@@ -8,10 +8,14 @@ interface StoryPanelProps {
   pack: LanguagePack;
   state: LearnerState;
   language: string;
+  /** Optional adult-help language shown only inside the chapter reader. */
+  alternateLanguage?: string;
+  alternateLanguageLabel?: string;
 }
 
-export function StoryPanel({ pack, state, language }: StoryPanelProps) {
+export function StoryPanel({ pack, state, language, alternateLanguage, alternateLanguageLabel }: StoryPanelProps) {
   const [readerOpen, setReaderOpen] = useState(false);
+  const [readerLanguage, setReaderLanguage] = useState(language);
   const story = pack.story;
   const availableChapters = useMemo(
     () => (story?.chapters ?? []).filter((chapter) => chapter.minimum_level === undefined || state.level >= chapter.minimum_level),
@@ -25,6 +29,10 @@ export function StoryPanel({ pack, state, language }: StoryPanelProps) {
   useEffect(() => {
     if (currentChapter?.id) setExpandedChapterId(currentChapter.id);
   }, [currentChapter?.id]);
+
+  useEffect(() => {
+    if (readerOpen) setReaderLanguage(language);
+  }, [readerOpen, language]);
 
   useEffect(() => {
     if (!readerOpen) return;
@@ -76,12 +84,24 @@ export function StoryPanel({ pack, state, language }: StoryPanelProps) {
           <div className="story-reader-window">
             <header className="story-reader-header">
               <div>
-                <span>{t(language, "chapterReaderTitle")}</span>
-                <h2>{getLocalizedText(story.title, language, t(language, "story"))}</h2>
+                <span>{readerLabel(readerLanguage, language, "chapterReaderTitle")}</span>
+                <h2>{getLocalizedText(story.title, readerLanguage, readerLabel(readerLanguage, language, "story"))}</h2>
               </div>
-              <button type="button" className="story-reader-close" onClick={() => setReaderOpen(false)} aria-label={t(language, "close")}>×</button>
+              <div className="story-reader-header-actions">
+                {alternateLanguage ? (
+                  <button
+                    type="button"
+                    className="story-language-toggle"
+                    onClick={() => setReaderLanguage((current) => current === language ? alternateLanguage : language)}
+                    aria-label={readerLanguage === language ? (alternateLanguageLabel ?? alternateLanguage.toUpperCase()) : language.toUpperCase()}
+                  >
+                    {readerLanguage === language ? (alternateLanguageLabel ?? alternateLanguage.toUpperCase()) : language.toUpperCase()}
+                  </button>
+                ) : null}
+                <button type="button" className="story-reader-close" onClick={() => setReaderOpen(false)} aria-label={t(language, "close")}>×</button>
+              </div>
             </header>
-            <div className="story-reader-intro">{getLocalizedText(story.opening, language, "")}</div>
+            <div className="story-reader-intro">{getLocalizedText(story.opening, readerLanguage, "")}</div>
             <div className="story-chapter-list">
               {[...availableChapters].reverse().map((chapter) => {
                 const expanded = expandedChapterId === chapter.id;
@@ -94,11 +114,13 @@ export function StoryPanel({ pack, state, language }: StoryPanelProps) {
                       aria-expanded={expanded}
                       onClick={() => setExpandedChapterId(expanded ? undefined : chapter.id)}
                     >
-                      <span>{isCurrent ? t(language, "currentChapter") : t(language, "previousChapter")}</span>
-                      <strong>{getLocalizedText(chapter.title, language, chapter.id)}</strong>
+                      <span>{isCurrent
+                        ? readerLabel(readerLanguage, language, "currentChapter")
+                        : readerLabel(readerLanguage, language, "previousChapter")}</span>
+                      <strong>{getLocalizedText(chapter.title, readerLanguage, chapter.id)}</strong>
                       <em aria-hidden="true">{expanded ? "−" : "+"}</em>
                     </button>
-                    {expanded ? <ChapterContent chapter={chapter} language={language} /> : null}
+                    {expanded ? <ChapterContent chapter={chapter} language={readerLanguage} appLanguage={language} targetLanguage={pack.language.bcp47} /> : null}
                   </article>
                 );
               })}
@@ -110,19 +132,19 @@ export function StoryPanel({ pack, state, language }: StoryPanelProps) {
   );
 }
 
-function ChapterContent({ chapter, language }: { chapter: StoryChapter; language: string }) {
+function ChapterContent({ chapter, language, appLanguage, targetLanguage }: { chapter: StoryChapter; language: string; appLanguage: string; targetLanguage: string }) {
   const lesson = chapter.lesson;
   return (
     <div className="story-chapter-content">
       {chapter.fiction ? (
         <section className="story-fiction-section">
-          <div className="story-section-kicker">✦ {t(language, "chapterStory")}</div>
+          <div className="story-section-kicker">✦ {readerLabel(language, appLanguage, "chapterStory")}</div>
           {paragraphs(getLocalizedText(chapter.fiction, language, "")).map((paragraph, index) => <p key={`fiction:${index}`}>{paragraph}</p>)}
         </section>
       ) : null}
       {lesson ? (
         <section className="story-lesson-section">
-          <div className="story-section-kicker">📖 {t(language, "chapterLesson")}</div>
+          <div className="story-section-kicker">📖 {readerLabel(language, appLanguage, "chapterLesson")}</div>
           <h3>{getLocalizedText(lesson.title, language, "")}</h3>
           {lesson.objectives?.length ? (
             <ul className="story-objective-list">
@@ -134,7 +156,7 @@ function ChapterContent({ chapter, language }: { chapter: StoryChapter; language
             <div className="story-example-list">
               {lesson.examples.map((example) => (
                 <div key={example.target} className="story-example-card">
-                  <strong lang="hy">{example.target}</strong>
+                  <strong lang={targetLanguage}>{example.target}</strong>
                   {example.transliteration ? <span>{example.transliteration}</span> : null}
                   <p>{getLocalizedText(example.translation, language, "")}</p>
                   {example.note ? <small>{getLocalizedText(example.note, language, "")}</small> : null}
@@ -144,7 +166,7 @@ function ChapterContent({ chapter, language }: { chapter: StoryChapter; language
           ) : null}
           {lesson.common_mistakes?.length ? (
             <div className="story-mistakes-card">
-              <strong>{t(language, "watchOut")}</strong>
+              <strong>{readerLabel(language, appLanguage, "watchOut")}</strong>
               <ul>{lesson.common_mistakes.map((mistake, index) => <li key={`mistake:${index}`}>{getLocalizedText(mistake, language, "")}</li>)}</ul>
             </div>
           ) : null}
@@ -154,12 +176,40 @@ function ChapterContent({ chapter, language }: { chapter: StoryChapter; language
       ) : null}
       {chapter.mission ? (
         <section className="story-mission-card">
-          <div className="story-section-kicker">⚑ {t(language, "chapterMission")}</div>
+          <div className="story-section-kicker">⚑ {readerLabel(language, appLanguage, "chapterMission")}</div>
           <p>{getLocalizedText(chapter.mission, language, "")}</p>
         </section>
       ) : null}
     </div>
   );
+}
+
+const READER_LABELS: Record<string, Record<string, string>> = {
+  it: {
+    chapterReaderTitle: "Libro dei capitoli",
+    story: "Storia",
+    currentChapter: "Capitolo attuale",
+    previousChapter: "Capitolo precedente",
+    chapterStory: "Storia",
+    chapterLesson: "Lezione",
+    chapterMission: "Missione",
+    watchOut: "Attenzione"
+  },
+  en: {
+    chapterReaderTitle: "Chapter book",
+    story: "Story",
+    currentChapter: "Current chapter",
+    previousChapter: "Previous chapter",
+    chapterStory: "Story",
+    chapterLesson: "Lesson",
+    chapterMission: "Mission",
+    watchOut: "Watch out"
+  }
+};
+
+function readerLabel(displayLanguage: string, appLanguage: string, key: string): string {
+  if (displayLanguage === appLanguage) return t(appLanguage, key);
+  return READER_LABELS[displayLanguage]?.[key] ?? t(appLanguage, key);
 }
 
 function paragraphs(value: string): string[] {

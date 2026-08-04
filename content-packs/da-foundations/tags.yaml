@@ -1,25 +1,45 @@
 controlled_tags:
-  - id: stage:0
-    label: Første kapitel
-  - id: tier:core
-    label: Kernestof
-  - id: literacy:letter-name
-    label: Bogstavnavn
-  - id: literacy:letter-sound
-    label: Bogstavlyd
-  - id: literacy:decodable
-    label: Lydret ord
-  - id: topic:first-words
-    label: Første ord
-  - id: math:counting
-    label: Tælling
-  - id: math:number-match
-    label: Tal og mængde
-  - id: math:number-order
-    label: Talrække
-  - id: math:addition
-    label: Plus
-  - id: math:subtraction
-    label: Minus
-  - id: encounter:starter
-    label: Startområde
+  - id: "stage:0"
+    label: "Lysets port"
+  - id: "stage:1"
+    label: "Klangskoven"
+  - id: "stage:2"
+    label: "Ekkoengen"
+  - id: "stage:3"
+    label: "Ti-trinnet"
+  - id: "stage:4"
+    label: "Ordtårnet"
+  - id: "tier:core"
+    label: "Kernestof"
+  - id: "literacy:letter-name"
+    label: "Bogstavnavn"
+  - id: "literacy:letter-sound"
+    label: "Bogstavlyd"
+  - id: "literacy:decodable"
+    label: "Lydret ord"
+  - id: "literacy:high-frequency"
+    label: "Hyppigt ord"
+  - id: "topic:first-words"
+    label: "Første ord"
+  - id: "math:counting"
+    label: "Tælling"
+  - id: "math:number-match"
+    label: "Tal og mængde"
+  - id: "math:number-order"
+    label: "Talrække"
+  - id: "math:comparison"
+    label: "Flest og lige mange"
+  - id: "math:addition"
+    label: "Plus"
+  - id: "math:subtraction"
+    label: "Minus"
+  - id: "encounter:starter"
+    label: "Startområde"
+  - id: "encounter:sound"
+    label: "Lydområde"
+  - id: "encounter:reading"
+    label: "Læseområde"
+  - id: "encounter:math"
+    label: "Talområde"
+  - id: "encounter:word-tower"
+    label: "Ordtårn"

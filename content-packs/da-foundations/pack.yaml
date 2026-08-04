@@ -1,8 +1,8 @@
 pack_id: da-foundations
-version: 0.1.0
+version: 0.2.0
 subject: foundations
 title: Ord- og Talheltene
-description: En teknisk prototype til dansk læsestart og matematik for børn omkring 6 år.
+description: "Dansk læsestart og matematik: fem kapitler fra bogstavlyde til ord og tal fra 0 til 10."
 language:
   name_english: Danish
   name_native: Dansk

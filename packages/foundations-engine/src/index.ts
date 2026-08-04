@@ -64,6 +64,8 @@ const FOCUS_STAT: Record<TrainingFocus, HeroStatKey> = {
   pronunciation: "stamina"
 };
 
+const NUMBER_WORDS = ["nul", "en", "to", "tre", "fire", "fem", "seks", "syv", "otte", "ni", "ti"] as const;
+
 export function hasEligibleQuestion(
   pack: LanguagePack,
   focus: TrainingFocus,
@@ -72,7 +74,7 @@ export function hasEligibleQuestion(
   if (focus === "vocabulary") return filterLetters(pack.letters ?? [], selection).length >= 2;
   if (focus === "comprehension") return filterItems(pack.items, selection).length >= 1;
   const domains = focus === "grammar"
-    ? new Set(["counting", "number_match", "number_order"])
+    ? new Set(["counting", "number_match", "number_order", "comparison"])
     : new Set(["addition", "subtraction"]);
   return filterMathProblems(pack.math_problems ?? [], selection).some((problem) => domains.has(problem.domain));
 }
@@ -98,10 +100,23 @@ function getLetterQuestion(
 ): TrainingQuestion {
   const letters = filterLetters(pack.letters ?? [], selection);
   if (letters.length === 0) throw new Error("No Danish graphemes are available.");
-  const letter = chooseByMastery(letters, (entry) => state.mastery_by_letter[entry.id]?.mastery ?? 0);
-  const useAudio = Math.random() < 0.55;
+  const letter = chooseCurriculumValue(
+    letters,
+    selection,
+    (entry) => entry.tags ?? [],
+    (entry) => state.mastery_by_letter[entry.id]?.mastery ?? 0
+  );
+  // Sound-led recognition is the main beginner activity. Visual case matching
+  // remains useful, but is deliberately less frequent.
+  const useInitialSound = Math.random() < 0.75;
+  const lowercase = letter.lowercase ?? letter.character;
+  const uppercase = letter.uppercase ?? letter.character.toUpperCase();
+  const letterName = letter.spoken_name ?? getLocalizedText(letter.names, language, letter.character);
+  const example = findLetterExample(pack, letter);
 
-  if (useAudio) {
+  if (useInitialSound) {
+    const exampleWord = example?.target ?? letter.example_word ?? lowercase;
+    const instruction = `Lyt til ordet ${exampleWord}. Hvilket bogstav hører du først?`;
     const options = makeLetterOptions(letter, letters, (entry) => entry.lowercase ?? entry.character);
     return {
       id: `foundations:letter-sound:${letter.id}:${Date.now()}`,
@@ -111,23 +126,27 @@ function getLetterQuestion(
       stat: FOCUS_STAT.vocabulary,
       variant: "letter_sound",
       letter,
-      prompt: "🔊",
-      prompt_hint: "Lyt til bogstavlyden. Hvilket bogstav passer?",
+      prompt: example?.emoji ?? "👂",
+      prompt_hint: "Lyt til ordet, og find det første bogstav.",
       options,
       correct_option_id: optionId(letter.id),
-      correct_answer_label: letter.lowercase ?? letter.character,
+      correct_answer_label: lowercase,
       answer_explanation: {
-        target: `${letter.uppercase ?? letter.character} ${letter.lowercase ?? letter.character}`,
-        translation: `Bogstavet hedder ${getLocalizedText(letter.names, language, letter.spoken_name ?? letter.sound)}.`
+        target: `${uppercase} ${lowercase}`,
+        translation: `Ordet ${exampleWord} begynder med ${lowercase}. Bogstavet hedder ${letterName}.`
       },
-      target_audio_text: letter.sound,
+      ...narratedQuestion(instruction),
+      auto_play_target_audio: true,
+      target_audio_text: exampleWord,
       target_audio_lang: "da-DK",
-      audio: letter.sound_audio?.length ? letter.sound_audio : browserSpeech(letter.sound, `sound-${letter.id}`),
-      secondary_audio: letter.audio,
-      secondary_audio_text: letter.spoken_name ?? getLocalizedText(letter.names, language, letter.character)
+      audio: example?.audio?.length ? example.audio : browserSpeech(exampleWord, `example-${letter.id}`),
+      secondary_audio: letter.audio?.length ? letter.audio : browserSpeech(letterName, `name-${letter.id}`),
+      secondary_audio_text: letterName,
+      secondary_audio_label_key: "playLetterName"
     };
   }
 
+  const instruction = `Find det lille bogstav, der passer til det store bogstav ${letterName}.`;
   const options = makeLetterOptions(letter, letters, (entry) => entry.lowercase ?? entry.character);
   return {
     id: `foundations:letter-case:${letter.id}:${Date.now()}`,
@@ -137,20 +156,22 @@ function getLetterQuestion(
     stat: FOCUS_STAT.vocabulary,
     variant: "target_to_base",
     letter,
-    prompt: letter.uppercase ?? letter.character.toUpperCase(),
-    prompt_hint: "Find det lille bogstav, der passer til det store.",
+    prompt: `${uppercase}  →  ?`,
+    prompt_hint: "Find det samme bogstav i den lille form.",
     options,
     correct_option_id: optionId(letter.id),
-    correct_answer_label: letter.lowercase ?? letter.character,
+    correct_answer_label: lowercase,
     answer_explanation: {
-      target: `${letter.uppercase ?? letter.character} ${letter.lowercase ?? letter.character}`,
-      translation: `Stort og lille ${getLocalizedText(letter.names, language, letter.character)}.`
+      target: `${uppercase} ${lowercase}`,
+      translation: `Det store ${uppercase} og det lille ${lowercase} er det samme bogstav.`
     },
-    target_audio_text: letter.spoken_name ?? letter.character,
+    ...narratedQuestion(instruction),
+    target_audio_text: letterName,
     target_audio_lang: "da-DK",
-    audio: letter.audio?.length ? letter.audio : browserSpeech(letter.spoken_name ?? letter.character, `name-${letter.id}`),
-    secondary_audio: letter.sound_audio,
-    secondary_audio_text: letter.sound
+    audio: letter.audio?.length ? letter.audio : browserSpeech(letterName, `name-${letter.id}`),
+    secondary_audio: example?.audio,
+    secondary_audio_text: example?.target,
+    secondary_audio_label_key: "playExampleWord"
   };
 }
 
@@ -162,14 +183,22 @@ function getReadingQuestion(
 ): TrainingQuestion {
   const items = filterItems(pack.items, selection);
   if (items.length === 0) throw new Error("No Danish reading words are available.");
-  const item = chooseByMastery(items, (entry) => state.mastery_by_item[entry.id]?.mastery ?? 0);
-  const buildWord = Math.random() < 0.5 && (item.graphemes?.length ?? 0) >= 2;
+  const item = chooseCurriculumValue(
+    items,
+    selection,
+    (entry) => entry.tags,
+    (entry) => state.mastery_by_item[entry.id]?.mastery ?? 0
+  );
+  const buildWord = Math.random() < 0.48 && (item.graphemes?.length ?? 0) >= 2;
 
   if (buildWord) {
     const correctLetters = item.graphemes ?? [...item.target];
-    const knownLetters = (pack.letters ?? []).map((letter) => letter.lowercase ?? letter.character);
-    const decoy = shuffle(knownLetters.filter((letter) => !correctLetters.includes(letter))).slice(0, 1);
-    const chips = shuffle([...correctLetters.map((label, index) => ({ id: `${item.id}-${index}`, label })), ...decoy.map((label, index) => ({ id: `${item.id}-decoy-${index}`, label, is_hard_distractor: true }))]);
+    const knownLetters = filterLetters(pack.letters ?? [], selection).map((letter) => letter.lowercase ?? letter.character);
+    const decoys = shuffle(knownLetters.filter((letter) => !correctLetters.includes(letter))).slice(0, correctLetters.length >= 4 ? 2 : 1);
+    const chips = shuffle([
+      ...correctLetters.map((label, index) => ({ id: `${item.id}-${index}`, label })),
+      ...decoys.map((label, index) => ({ id: `${item.id}-decoy-${index}`, label, is_hard_distractor: true }))
+    ]);
     return {
       id: `foundations:build-word:${item.id}:${Date.now()}`,
       kind: "item",
@@ -179,27 +208,26 @@ function getReadingQuestion(
       variant: "sentence_tap_order",
       item,
       prompt: item.emoji ?? item.image ?? "🧩",
-      prompt_hint: `Byg ordet “${item.target}” med bogstaverne.`,
+      prompt_hint: "Byg ordet til billedet.",
       options: chips,
       correct_option_id: correctLetters.join(" "),
       correct_answer_label: item.target,
       expected_answer_length: correctLetters.length,
       answer_explanation: {
         target: item.target,
-        translation: item.translation
+        translation: getLocalizedText(item.translations, language, item.translation)
       },
+      ...narratedQuestion("Byg ordet, du hører."),
+      auto_play_target_audio: true,
       target_audio_text: item.target,
       target_audio_lang: "da-DK",
       audio: item.audio?.length ? item.audio : browserSpeech(item.target, `word-${item.id}`)
     };
   }
 
-  const distractors = shuffle(items.filter((candidate) => candidate.id !== item.id)).slice(0, 3);
+  const distractors = chooseWordDistractors(item, items, 3);
   const generated = [item, ...distractors];
-  while (generated.length < 4) {
-    const fake = makePseudoWord(item, generated.length);
-    generated.push(fake);
-  }
+  while (generated.length < 4) generated.push(makePseudoWord(item, generated.length));
   const options = shuffle(generated).map((candidate) => ({ id: optionId(candidate.id), label: candidate.target }));
   return {
     id: `foundations:picture-word:${item.id}:${Date.now()}`,
@@ -216,8 +244,9 @@ function getReadingQuestion(
     correct_answer_label: item.target,
     answer_explanation: {
       target: item.target,
-      translation: item.translation
+      translation: getLocalizedText(item.translations, language, item.translation)
     },
+    ...narratedQuestion("Se på billedet. Hvilket ord passer?"),
     target_audio_text: item.target,
     target_audio_lang: "da-DK",
     audio: item.audio?.length ? item.audio : browserSpeech(item.target, `word-${item.id}`)
@@ -231,9 +260,14 @@ function getNumberQuestion(
   selection: QuestionSelectionOptions
 ): TrainingQuestion {
   const candidates = filterMathProblems(pack.math_problems ?? [], selection)
-    .filter((problem) => problem.domain === "counting" || problem.domain === "number_match" || problem.domain === "number_order");
+    .filter((problem) => ["counting", "number_match", "number_order", "comparison"].includes(problem.domain));
   if (candidates.length === 0) throw new Error("No counting problems are available.");
-  const problem = chooseByMastery(candidates, (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0);
+  const problem = chooseCurriculumValue(
+    candidates,
+    selection,
+    (entry) => entry.tags,
+    (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0
+  );
   return mathQuestion(problem, "grammar", language);
 }
 
@@ -246,7 +280,12 @@ function getOperationQuestion(
   const candidates = filterMathProblems(pack.math_problems ?? [], selection)
     .filter((problem) => problem.domain === "addition" || problem.domain === "subtraction");
   if (candidates.length === 0) throw new Error("No arithmetic problems are available.");
-  const problem = chooseByMastery(candidates, (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0);
+  const problem = chooseCurriculumValue(
+    candidates,
+    selection,
+    (entry) => entry.tags,
+    (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0
+  );
   return mathQuestion(problem, "pronunciation", language);
 }
 
@@ -255,25 +294,45 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
   const result = problem.result;
   const object = problem.object ?? "●";
   const rangeMin = problem.number_range?.min ?? 0;
-  const rangeMax = problem.number_range?.max ?? 5;
+  const rangeMax = problem.number_range?.max ?? 10;
+  const instruction = getLocalizedText(problem.prompt, language, "Hvad er det rigtige svar?");
   const numberOptions = numericOptions(result, rangeMin, rangeMax);
-  let prompt = getLocalizedText(problem.prompt, language, "Hvor mange?");
+  let prompt = instruction;
   let promptHint = "Vælg det rigtige tal.";
   let options: AnswerOption[] = numberOptions.map((value) => ({ id: optionId(String(value)), label: String(value) }));
   let activity: ActivityType = "visual_match";
   let variant: QuestionVariant = "target_to_base";
+  let correctOptionId = optionId(String(result));
+  let correctAnswerLabel = String(result);
+  let explanationTarget = String(result);
+  let answerAudioText = `Det rigtige svar er ${numberWord(result)}.`;
 
   if (problem.domain === "counting") {
     prompt = makeObjects(object, result);
     promptHint = "Tæl tingene. Hvor mange er der?";
+    answerAudioText = result === 1 ? "Der er en." : `Der er ${numberWord(result)}.`;
   } else if (problem.domain === "number_match") {
     prompt = String(result);
     promptHint = "Hvilken gruppe har så mange?";
-    options = shuffle(numberOptions).map((value) => ({ id: optionId(String(value)), label: makeObjects(object, value) || "0" }));
+    options = shuffle(numberOptions).map((value) => ({ id: optionId(String(value)), label: makeObjects(object, value) }));
   } else if (problem.domain === "number_order") {
     const operands = problem.operands ?? [Math.max(0, result - 1), result + 1];
     prompt = `${operands[0]}  •  ?  •  ${operands[1]}`;
     promptHint = "Hvilket tal mangler i rækken?";
+  } else if (problem.domain === "comparison") {
+    const [left = 0, right = 0] = problem.operands ?? [];
+    prompt = `${makeObjects(object, left)}   │   ${makeObjects(object, right)}`;
+    promptHint = "Hvilken side har flest, eller er der lige mange?";
+    options = shuffle([
+      { id: optionId("left"), label: "⬅️ Flere" },
+      { id: optionId("equal"), label: "⚖️ Lige mange" },
+      { id: optionId("right"), label: "Flere ➡️" }
+    ]);
+    const answer = result > 0 ? "left" : result < 0 ? "right" : "equal";
+    correctOptionId = optionId(answer);
+    correctAnswerLabel = answer === "left" ? "Flest til venstre" : answer === "right" ? "Flest til højre" : "Lige mange";
+    explanationTarget = `${left} ${comparisonSymbol(result)} ${right}`;
+    answerAudioText = answer === "left" ? "Der er flest til venstre." : answer === "right" ? "Der er flest til højre." : "Der er lige mange.";
   } else {
     const [left = 0, right = 0] = problem.operands ?? [];
     const sign = problem.domain === "addition" ? "+" : "−";
@@ -283,6 +342,10 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
       : "Tag den anden gruppe væk. Hvor mange er der tilbage?";
     activity = "visual_match";
     variant = "target_to_visual";
+    explanationTarget = `${left} ${sign} ${right} = ${result}`;
+    answerAudioText = problem.domain === "addition"
+      ? `${numberWord(left)} plus ${numberWord(right)} er ${numberWord(result)}.`
+      : `${numberWord(left)} minus ${numberWord(right)} er ${numberWord(result)}.`;
   }
 
   return {
@@ -296,15 +359,17 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
     prompt,
     prompt_hint: promptHint,
     options,
-    correct_option_id: optionId(String(result)),
-    correct_answer_label: String(result),
+    correct_option_id: correctOptionId,
+    correct_answer_label: correctAnswerLabel,
     answer_explanation: {
-      target: grammar.target_sentence,
-      translation: getLocalizedText(problem.prompt, language, grammar.translation)
+      target: explanationTarget,
+      translation: instruction
     },
-    target_audio_text: getLocalizedText(problem.prompt, language, grammar.translation),
+    ...narratedQuestion(instruction, problem.audio),
+    allow_target_audio_before_answer: false,
+    target_audio_text: answerAudioText,
     target_audio_lang: "da-DK",
-    audio: browserSpeech(getLocalizedText(problem.prompt, language, grammar.translation), `math-${problem.id}`)
+    audio: browserSpeech(answerAudioText, `math-answer-${problem.id}`)
   };
 }
 
@@ -314,20 +379,42 @@ function mathProblemToGrammar(problem: FoundationsMathProblem, language: string)
     ? `${left} + ${right} = ${problem.result}`
     : problem.domain === "subtraction"
       ? `${left} − ${right} = ${problem.result}`
-      : String(problem.result);
+      : problem.domain === "comparison"
+        ? `${left} ${comparisonSymbol(problem.result)} ${right}`
+        : String(problem.result);
   return {
     id: problem.id,
     prompt: problem.prompt,
     target_sentence: equation,
     translation: getLocalizedText(problem.prompt, language, equation),
     translations: problem.prompt,
-    distractors: numericOptions(problem.result, problem.number_range?.min ?? 0, problem.number_range?.max ?? 5)
+    distractors: numericOptions(problem.result, problem.number_range?.min ?? 0, problem.number_range?.max ?? 10)
       .filter((value) => value !== problem.result)
       .map(String),
     tags: problem.tags,
-    audio: [],
+    audio: problem.audio ?? [],
     review_status: problem.review_status
   };
+}
+
+function narratedQuestion(instruction: string, audio?: AudioReference[]): Pick<TrainingQuestion,
+  "instruction_audio_text" | "instruction_audio_lang" | "instruction_audio" | "auto_narrate" | "requires_audio_before_answer"
+> {
+  return {
+    instruction_audio_text: instruction,
+    instruction_audio_lang: "da-DK",
+    instruction_audio: audio?.length ? audio : browserSpeech(instruction, `instruction-${hashText(instruction)}`),
+    auto_narrate: true,
+    requires_audio_before_answer: true
+  };
+}
+
+function findLetterExample(pack: LanguagePack, letter: LetterItem): LearningItem | undefined {
+  const explicitIds = letter.example_item_ids ?? [];
+  const explicit = explicitIds.map((id) => pack.items.find((item) => item.id === id)).find(Boolean);
+  if (explicit) return explicit;
+  const lowercase = letter.lowercase ?? letter.character;
+  return pack.items.find((item) => item.graphemes?.[0] === lowercase);
 }
 
 function filterLetters(letters: LetterItem[], selection: QuestionSelectionOptions): LetterItem[] {
@@ -335,7 +422,7 @@ function filterLetters(letters: LetterItem[], selection: QuestionSelectionOption
 }
 
 function filterItems(items: LearningItem[], selection: QuestionSelectionOptions): LearningItem[] {
-  return items.filter((item) => matchesStage(item.tags, selection.stage) && !item.tags.includes("tier:extension"));
+  return items.filter((item) => matchesStage(item.tags, selection.stage) && (selection.includeExtension || !item.tags.includes("tier:extension")));
 }
 
 function filterMathProblems(problems: FoundationsMathProblem[], selection: QuestionSelectionOptions): FoundationsMathProblem[] {
@@ -344,10 +431,30 @@ function filterMathProblems(problems: FoundationsMathProblem[], selection: Quest
 
 function matchesStage(tags: string[], stage: number | undefined): boolean {
   if (stage === undefined) return true;
-  const itemStage = tags.find((tag) => tag.startsWith("stage:"));
-  if (!itemStage) return stage === 0;
-  const value = Number(itemStage.slice("stage:".length));
-  return Number.isFinite(value) && value <= stage;
+  const itemStage = getStage(tags);
+  return itemStage <= stage;
+}
+
+function getStage(tags: string[]): number {
+  const tag = tags.find((candidate) => candidate.startsWith("stage:"));
+  if (!tag) return 0;
+  const value = Number(tag.slice("stage:".length));
+  return Number.isFinite(value) ? value : 0;
+}
+
+function chooseCurriculumValue<T>(
+  values: T[],
+  selection: QuestionSelectionOptions,
+  tags: (value: T) => string[],
+  mastery: (value: T) => number
+): T {
+  if (values.length === 0) throw new Error("Cannot choose from an empty curriculum pool.");
+  const stage = selection.stage;
+  if (stage === undefined) return chooseByMastery(values, mastery);
+  const current = values.filter((value) => getStage(tags(value)) === stage);
+  const review = values.filter((value) => getStage(tags(value)) < stage);
+  const useReview = review.length > 0 && (current.length === 0 || Math.random() < (selection.reviewChance ?? 0.3));
+  return chooseByMastery(useReview ? review : current.length > 0 ? current : values, mastery);
 }
 
 function makeLetterOptions(letter: LetterItem, letters: LetterItem[], label: (entry: LetterItem) => string): AnswerOption[] {
@@ -355,14 +462,22 @@ function makeLetterOptions(letter: LetterItem, letters: LetterItem[], label: (en
   return shuffle(choices).map((entry) => ({ id: optionId(entry.id), label: label(entry) }));
 }
 
+function chooseWordDistractors(item: LearningItem, items: LearningItem[], count: number): LearningItem[] {
+  const sameLength = items.filter((candidate) => candidate.id !== item.id && candidate.target.length === item.target.length);
+  const others = items.filter((candidate) => candidate.id !== item.id && !sameLength.some((same) => same.id === candidate.id));
+  return shuffle([...shuffle(sameLength), ...shuffle(others)]).slice(0, count);
+}
+
 function numericOptions(correct: number, min: number, max: number): number[] {
   const values = new Set<number>([correct]);
-  const candidates = shuffle(Array.from({ length: Math.max(1, max - min + 1) }, (_, index) => min + index).filter((value) => value !== correct));
+  const safeMin = Math.min(min, correct);
+  const safeMax = Math.max(max, correct);
+  const candidates = shuffle(Array.from({ length: Math.max(1, safeMax - safeMin + 1) }, (_, index) => safeMin + index).filter((value) => value !== correct));
   for (const value of candidates) {
     values.add(value);
     if (values.size >= 4) break;
   }
-  let extra = max + 1;
+  let extra = safeMax + 1;
   while (values.size < 4) values.add(extra++);
   return shuffle([...values]);
 }
@@ -386,7 +501,9 @@ function browserSpeech(text: string, id: string): AudioReference[] {
 
 function makePseudoWord(item: LearningItem, index: number): LearningItem {
   const letters = [...item.target];
-  const rotated = letters.length > 1 ? [...letters.slice(index % letters.length), ...letters.slice(0, index % letters.length)].join("") : `${item.target}${index}`;
+  const rotated = letters.length > 1
+    ? [...letters.slice(index % letters.length), ...letters.slice(0, index % letters.length)].join("")
+    : `${item.target}${index}`;
   return { ...item, id: `${item.id}-pseudo-${index}`, target: rotated === item.target ? [...letters].reverse().join("") : rotated };
 }
 
@@ -396,8 +513,22 @@ function chooseByMastery<T>(values: T[], mastery: (value: T) => number): T {
   return pool[Math.floor(Math.random() * pool.length)] ?? ranked[0];
 }
 
+function numberWord(value: number): string {
+  return NUMBER_WORDS[value] ?? String(value);
+}
+
+function comparisonSymbol(value: number): string {
+  return value > 0 ? ">" : value < 0 ? "<" : "=";
+}
+
 function optionId(value: string): string {
   return `answer:${value}`;
+}
+
+function hashText(value: string): string {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0;
+  return Math.abs(hash).toString(36);
 }
 
 function shuffle<T>(values: T[]): T[] {

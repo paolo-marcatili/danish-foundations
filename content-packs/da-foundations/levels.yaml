@@ -5,38 +5,39 @@ levels:
     content_tags:
       - "stage:0"
     theme:
-      da: Bogstaver, lyde og mængder fra 0 til 5
-      it: Lettere, suoni e quantità da 0 a 5
+      da: De første bogstaver og mængder fra 0 til 3
+      it: Le prime lettere e le quantità da 0 a 3
     learning_goal:
-      da: Genkend s, o, l, m og a; læs de første ord; tæl og regn med små mængder.
-      it: Riconoscere s, o, l, m e a; leggere le prime parole; contare e calcolare piccole quantità.
+      da: Lyt efter begyndelseslyde, genkend s, o, l, m og a, og tæl små mængder.
+      it: Ascoltare i suoni iniziali, riconoscere s, o, l, m e a e contare piccole quantità.
     chapter_id: chapter_0_light_gate
     unlock_requires:
-      completed_training_sessions: 4
-      answered_fight_questions: 8
+      completed_training_sessions: 6
+      answered_fight_questions: 10
       min_stats:
         strength: 1
         defense: 1
         precision: 1
         stamina: 1
     fight:
-      min_questions: 8
-      at_min_questions: 8
+      min_questions: 10
+      at_min_questions: 10
       timer_seconds: 20
-      max_questions: 16
+      max_questions: 18
       max_mistakes_to_win: 8
+
   - number: 1
-    title: Mere kommer snart
+    title: Klangskoven
     stat_cap: 8
     content_tags:
-      - "stage:0"
+      - "stage:1"
     theme:
-      da: Gentagelse og fri træning i prototypen
-      it: Ripasso e allenamento libero nel prototipo
+      da: Bogstaverne i, n og t, de første små ord og tallene til 5
+      it: Le lettere i, n e t, le prime parole brevi e i numeri fino a 5
     learning_goal:
-      da: Gentag de kendte bogstaver, ord og tal.
-      it: Ripassare lettere, parole e numeri già incontrati.
-    chapter_id: chapter_0_light_gate
+      da: Læs og byg korte ord som is, lim, tal og nat, og forbind tal med mængder til 5.
+      it: Leggere e costruire parole brevi come is, lim, tal e nat e collegare numeri e quantità fino a 5.
+    chapter_id: chapter_1_sound_forest
     unlock_requires:
       completed_training_sessions: 6
       answered_fight_questions: 10
@@ -48,6 +49,87 @@ levels:
     fight:
       min_questions: 10
       at_min_questions: 10
-      timer_seconds: 20
+      timer_seconds: 22
       max_questions: 18
       max_mistakes_to_win: 8
+
+  - number: 2
+    title: Ekkoengen
+    stat_cap: 11
+    content_tags:
+      - "stage:2"
+    theme:
+      da: Bogstaverne e, r og f, flere hverdagsord og sikker tælling til 5
+      it: Le lettere e, r e f, altre parole quotidiane e conteggio sicuro fino a 5
+    learning_goal:
+      da: Læs ord som fem, ren, far og mor, og øv tallene 0 til 5 på flere måder.
+      it: Leggere parole come fem, ren, far e mor e allenare i numeri da 0 a 5 in modi diversi.
+    chapter_id: chapter_2_echo_meadow
+    unlock_requires:
+      completed_training_sessions: 6
+      answered_fight_questions: 10
+      min_stats:
+        strength: 3
+        defense: 3
+        precision: 3
+        stamina: 3
+    fight:
+      min_questions: 10
+      at_min_questions: 10
+      timer_seconds: 22
+      max_questions: 20
+      max_mistakes_to_win: 8
+
+  - number: 3
+    title: Ti-trinnet
+    stat_cap: 14
+    content_tags:
+      - "stage:3"
+    theme:
+      da: Bogstaverne u, b og k, flere lydrette ord og tallene til 10
+      it: Le lettere u, b e k, altre parole decodificabili e i numeri fino a 10
+    learning_goal:
+      da: Læs ord som mus, bus, bil og kat, og tæl, ordn, læg sammen og træk fra inden for 10.
+      it: Leggere parole come mus, bus, bil e kat e contare, ordinare, sommare e sottrarre entro il 10.
+    chapter_id: chapter_3_ten_steps
+    unlock_requires:
+      completed_training_sessions: 7
+      answered_fight_questions: 10
+      min_stats:
+        strength: 4
+        defense: 4
+        precision: 4
+        stamina: 4
+    fight:
+      min_questions: 10
+      at_min_questions: 10
+      timer_seconds: 24
+      max_questions: 20
+      max_mistakes_to_win: 9
+
+  - number: 4
+    title: Ordtårnet
+    stat_cap: 17
+    content_tags:
+      - "stage:4"
+    theme:
+      da: Bogstaverne h, p og v, et større ordforråd og sammenligning af mængder
+      it: Le lettere h, p e v, un vocabolario più ampio e il confronto tra quantità
+    learning_goal:
+      da: Læs og byg ord som hus, pil, ven og hest, og afgør hvor der er flest, færrest eller lige mange.
+      it: Leggere e costruire parole come hus, pil, ven e hest e stabilire dove ce ne sono di più, di meno o in ugual numero.
+    chapter_id: chapter_4_word_tower
+    unlock_requires:
+      completed_training_sessions: 8
+      answered_fight_questions: 12
+      min_stats:
+        strength: 5
+        defense: 5
+        precision: 5
+        stamina: 5
+    fight:
+      min_questions: 12
+      at_min_questions: 12
+      timer_seconds: 25
+      max_questions: 22
+      max_mistakes_to_win: 9

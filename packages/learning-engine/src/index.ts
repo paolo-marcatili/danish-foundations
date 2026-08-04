@@ -126,10 +126,23 @@ export interface TrainingQuestion {
   correct_answer_label: string;
   expected_answer_length?: number;
   answer_explanation?: AnswerExplanation;
+  /** Spoken instruction for pre-readers. It is distinct from the target/answer audio. */
+  instruction_audio_text?: string;
+  instruction_audio_lang?: string;
+  instruction_audio?: AudioReference[];
+  /** Automatically attempt to narrate the task when the question appears. */
+  auto_narrate?: boolean;
+  /** Play target audio immediately after the spoken instruction. */
+  auto_play_target_audio?: boolean;
+  /** Keep answers disabled until the first required narration attempt finishes. */
+  requires_audio_before_answer?: boolean;
+  /** Hide answer-revealing target audio until feedback is shown. */
+  allow_target_audio_before_answer?: boolean;
   target_audio_text?: string;
   target_audio_lang?: string;
   secondary_audio?: AudioReference[];
   secondary_audio_text?: string;
+  secondary_audio_label_key?: string;
   audio?: AudioReference[];
 }
 
