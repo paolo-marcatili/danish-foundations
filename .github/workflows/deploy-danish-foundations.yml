@@ -1,4 +1,4 @@
-name: Deploy Danish Foundations to GitHub Pages
+name: Redirect Danish Foundations GitHub Pages
 
 on:
   push:
@@ -22,26 +22,13 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22.12.0
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Validate Danish curriculum
-        run: npm run check:danish
-
-      - name: Build Danish application for GitHub Pages
-        run: npm run build:danish
-        env:
-          GITHUB_PAGES: "true"
-          GITHUB_PAGES_BASE: "/danish-foundations/"
+      - name: Assemble redirect site
+        run: |
+          rm -rf redirect-site
+          mkdir -p redirect-site
+          cp -a deployment/danish-redirect/. redirect-site/
+          cp redirect-site/index.html redirect-site/404.html
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -49,7 +36,7 @@ jobs:
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: apps/danish-foundations/dist
+          path: redirect-site
 
   deploy:
     if: github.event.repository.name == 'danish-foundations'

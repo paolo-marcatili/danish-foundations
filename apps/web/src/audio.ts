@@ -1,6 +1,12 @@
 import type { AudioReference } from "@hero-lang/content-schema";
 import { publicUrl } from "./publicUrl";
 
+const STORAGE_NAMESPACE = import.meta.env.VITE_STORAGE_NAMESPACE || "hy-eastern-it";
+const AUDIO_PREFERENCE_KEY = `hero-language-camp:${STORAGE_NAMESPACE}:audio`;
+const LEARNING_AUDIO_MODE_KEY = `hero-language-camp:${STORAGE_NAMESPACE}:learning-audio-mode`;
+const LEGACY_AUDIO_PREFERENCE_KEY = "hero-language-camp:audio";
+const LEGACY_LEARNING_AUDIO_MODE_KEY = "hero-language-camp:learning-audio-mode";
+
 export type SoundName =
   | "correct"
   | "wrong"
@@ -47,7 +53,7 @@ export function setLearningAudioMode(mode: "human_only" | "human_and_automatic")
   if (learningAudioMode !== mode) stopCurrentLearningAudio();
   learningAudioMode = mode;
   if (typeof window !== "undefined") {
-    window.localStorage.setItem("hero-language-camp:learning-audio-mode", mode);
+    window.localStorage.setItem(LEARNING_AUDIO_MODE_KEY, mode);
   }
 }
 
@@ -56,7 +62,7 @@ export async function setAudioEnabled(nextEnabled: boolean): Promise<void> {
   enabled = nextEnabled;
   unlocked = false;
   if (typeof window !== "undefined") {
-    window.localStorage.setItem("hero-language-camp:audio", nextEnabled ? "on" : "off");
+    window.localStorage.setItem(AUDIO_PREFERENCE_KEY, nextEnabled ? "on" : "off");
   }
   if (nextEnabled) await unlockAudio();
 }
@@ -416,12 +422,24 @@ function playNoise(context: AudioContext, duration: number, volume: number, offs
 
 function readAudioPreference(): boolean {
   if (typeof window === "undefined") return true;
-  return window.localStorage.getItem("hero-language-camp:audio") !== "off";
+  const stored = readNamespacedPreference(AUDIO_PREFERENCE_KEY, LEGACY_AUDIO_PREFERENCE_KEY);
+  return stored !== "off";
 }
 
 function readLearningAudioMode(): "human_only" | "human_and_automatic" {
   if (typeof window === "undefined") return "human_only";
-  return window.localStorage.getItem("hero-language-camp:learning-audio-mode") === "human_and_automatic" ? "human_and_automatic" : "human_only";
+  return readNamespacedPreference(LEARNING_AUDIO_MODE_KEY, LEGACY_LEARNING_AUDIO_MODE_KEY) === "human_and_automatic"
+    ? "human_and_automatic"
+    : "human_only";
+}
+
+function readNamespacedPreference(key: string, legacyKey: string): string | null {
+  const stored = window.localStorage.getItem(key);
+  if (stored !== null) return stored;
+  if (STORAGE_NAMESPACE !== "hy-eastern-it") return null;
+  const legacy = window.localStorage.getItem(legacyKey);
+  if (legacy !== null) window.localStorage.setItem(key, legacy);
+  return legacy;
 }
 
 function hasVoiceForLanguage(lang: string): boolean {

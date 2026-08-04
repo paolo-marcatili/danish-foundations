@@ -3,6 +3,8 @@ import type { GrammarItem, LanguagePack, LearningItem } from "@hero-lang/content
 import { getGrammarTranslation, getItemTranslation } from "@hero-lang/content-schema";
 import type { ContentContribution, MergeSummary } from "../contentMerge";
 import { t } from "../i18n";
+import { speak, unlockAudio } from "../audio";
+import { publicUrl } from "../publicUrl";
 
 interface AdminPanelProps {
   pack: LanguagePack;
@@ -44,6 +46,16 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
   const existingItem = useMemo(() => pack.items.find((item) => normalize(item.target) === normalize(target)), [pack.items, target]);
   const existingGrammar = useMemo(() => (pack.grammar_items ?? []).find((item) => normalize(item.target_sentence) === normalize(target)), [pack.grammar_items, target]);
   const existing = kind === "word" ? existingItem : existingGrammar;
+  const existingAudio = (existing?.audio ?? []).filter((audio) => Boolean(audio.url));
+  const targetLanguageLabel = pack.language.name_native || pack.language.name_english;
+  const sourceLanguageLabel = pack.base_language?.name_native || pack.base_language?.name_english || pack.source_language;
+  const contentIdPrefix = slugify(pack.target_language.split("-")[0] || pack.pack_id);
+  const targetPlaceholder = kind === "word"
+    ? pack.items[0]?.target ?? ""
+    : pack.grammar_items?.[0]?.target_sentence ?? "";
+  const sourcePlaceholder = kind === "word"
+    ? pack.items[0]?.translations?.[pack.source_language] ?? pack.items[0]?.translation ?? ""
+    : pack.grammar_items?.[0]?.translations?.[pack.source_language] ?? pack.grammar_items?.[0]?.translation ?? "";
   const selectedTagSet = useMemo(() => new Set(tags.split(",").map((tag) => tag.trim()).filter(Boolean)), [tags]);
   const stageOptions = useMemo(() => {
     const configured = (pack.levels ?? []).map((level) => Math.max(0, Math.floor(level.number)));
@@ -53,17 +65,17 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
 
   const filteredItems = useMemo(() => {
     const needle = normalize(query);
-    const items = [...pack.items].sort((a, b) => a.target.localeCompare(b.target, "hy"));
+    const items = [...pack.items].sort((a, b) => a.target.localeCompare(b.target, pack.target_language));
     if (!needle) return items.slice(0, 100);
     return items.filter((item) => [item.target, item.transliteration, getItemTranslation(item, language), item.emoji, getItemTranslation(item, pack.source_language), ...(item.tags ?? [])].some((value) => normalize(value).includes(needle))).slice(0, 100);
-  }, [pack.items, query, language]);
+  }, [pack.items, pack.target_language, query, language]);
 
   const filteredGrammar = useMemo(() => {
     const needle = normalize(query);
-    const items = [...(pack.grammar_items ?? [])].sort((a, b) => a.target_sentence.localeCompare(b.target_sentence, "hy"));
+    const items = [...(pack.grammar_items ?? [])].sort((a, b) => a.target_sentence.localeCompare(b.target_sentence, pack.target_language));
     if (!needle) return items.slice(0, 100);
     return items.filter((item) => [item.target_sentence, getGrammarTranslation(item, language), getGrammarTranslation(item, pack.source_language), ...(item.translation_distractors?.[pack.source_language] ?? []), ...(item.tags ?? [])].some((value) => normalize(value).includes(needle))).slice(0, 100);
-  }, [pack.grammar_items, query, language]);
+  }, [pack.grammar_items, pack.target_language, query, language]);
 
   useEffect(() => {
     if (!recordedAudio || !autoSaveAfterRecording || !target.trim()) return;
@@ -147,7 +159,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
       items: kind === "word"
         ? [
             {
-              id: existingItem?.id ?? `hy_${idSeed}`,
+              id: existingItem?.id ?? `${contentIdPrefix}_${idSeed}`,
               target: cleanTarget,
               translation: italian.trim() || cleanTarget,
               translations: { [pack.source_language]: italian.trim() },
@@ -162,7 +174,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
       grammar_items: kind === "sentence"
         ? [
             {
-              id: existingGrammar?.id ?? `hy_sentence_${idSeed}`,
+              id: existingGrammar?.id ?? `${contentIdPrefix}_sentence_${idSeed}`,
               prompt: { [pack.source_language]: italian.trim() || cleanTarget },
               target_sentence: cleanTarget,
               translation: italian.trim() || cleanTarget,
@@ -253,12 +265,12 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
 
       <div className="admin-form-grid">
         <label>
-          <span>{kind === "word" ? t(language, "adminArmenianWord") : t(language, "adminArmenianSentence")}</span>
-          <input value={target} onChange={(event: ChangeEvent<HTMLInputElement>) => setTarget(event.target.value)} lang="hy" placeholder={kind === "word" ? "բարև" : "Սա իմ տունն է։"} />
+          <span>{targetLanguageLabel} · {kind === "word" ? t(language, "adminWord") : t(language, "adminSentence")}</span>
+          <input value={target} onChange={(event: ChangeEvent<HTMLInputElement>) => setTarget(event.target.value)} lang={pack.target_language} placeholder={targetPlaceholder} />
         </label>
         <label>
-          <span>{t(language, "adminItalian")}</span>
-          <input value={italian} onChange={(event: ChangeEvent<HTMLInputElement>) => setItalian(event.target.value)} placeholder="ciao" />
+          <span>{sourceLanguageLabel}</span>
+          <input value={italian} onChange={(event: ChangeEvent<HTMLInputElement>) => setItalian(event.target.value)} placeholder={sourcePlaceholder} />
         </label>
         {kind === "sentence" ? (
           <label className="wide">
@@ -308,11 +320,57 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
           {t(language, "adminDuplicateFound")} <strong>{existing.id}</strong>. {t(language, "adminDuplicateAudio")}
         </div>
       ) : null}
+      {existing ? (
+        <div className="recording-card existing-audio-card">
+          <div>
+            <span>{t(language, "adminExistingAudio")}</span>
+            <strong>
+              {existingAudio.length > 0
+                ? t(language, "adminExistingAudioCount", { count: existingAudio.length })
+                : t(language, "adminNoExistingAudio")}
+            </strong>
+          </div>
+          {existingAudio.length > 0 ? (
+            <div className="existing-audio-list">
+              {existingAudio.map((audio, index) => {
+                const sourceLabel = audio.source_type === "human"
+                  ? t(language, "adminAudioHuman")
+                  : audio.source_type === "browser_tts" || audio.url.startsWith("browser-tts:")
+                    ? t(language, "adminAudioBrowserTts")
+                    : t(language, "adminAudioAutomated");
+                const details = [audio.provider, audio.engine, audio.voice, audio.review_status].filter(Boolean).join(" · ");
+                return (
+                  <div className="existing-audio-row" key={`${audio.id}:${index}`}>
+                    <div className="existing-audio-meta">
+                      <strong>{sourceLabel}</strong>
+                      {details ? <small>{details}</small> : null}
+                    </div>
+                    {audio.url.startsWith("browser-tts:") ? (
+                      <button
+                        type="button"
+                        className="small-button"
+                        onClick={() => {
+                          void unlockAudio();
+                          speak(audio.text ?? target, audio.url.replace("browser-tts:", "") || pack.target_language);
+                        }}
+                      >
+                        🔊 {t(language, "adminPlayBrowserTts")}
+                      </button>
+                    ) : (
+                      <audio controls preload="metadata" src={publicUrl(audio.url)} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="recording-card">
         <div>
-          <span>{t(language, "adminAudio")}</span>
-          <strong>{recording ? t(language, "adminRecording") : recordedAudio ? t(language, "adminRecorded") : t(language, "adminNoRecording")}</strong>
+          <span>{t(language, "adminNewRecording")}</span>
+          <strong>{recording ? t(language, "adminRecording") : recordedAudio ? t(language, "adminRecorded") : t(language, "adminNoNewRecording")}</strong>
           {!recordedAudio ? <p>{t(language, "adminAutoAudioHint")}</p> : null}
         </div>
         <label className="toggle-row compact-toggle">
@@ -357,7 +415,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
             const automated = item.audio.filter((audio) => audio.source_type === "automated" || audio.source_type === "browser_tts").length;
             return (
               <button key={item.id} type="button" className="vocab-row clickable" onClick={() => loadWord(item)}>
-                <strong lang="hy">{item.target}</strong>
+                <strong lang={pack.target_language}>{item.target}</strong>
                 <span>{getItemTranslation(item, language)}</span>
                 <small>{t(language, "adminStageShort")} {stageFromTags(item.tags)} · {item.tags?.filter((tag) => !tag.startsWith("stage:")).slice(0, 2).join(", ")} · {human} human / {automated} auto</small>
               </button>
@@ -368,7 +426,7 @@ export function AdminPanel({ pack, language, onMergeContribution, onExportPack, 
             const automated = item.audio.filter((audio) => audio.source_type === "automated" || audio.source_type === "browser_tts").length;
             return (
               <button key={item.id} type="button" className="vocab-row clickable sentence-row" onClick={() => loadSentence(item)}>
-                <strong lang="hy">{item.target_sentence}</strong>
+                <strong lang={pack.target_language}>{item.target_sentence}</strong>
                 <span>{getGrammarTranslation(item, language)}</span>
                 <small>{t(language, "adminStageShort")} {stageFromTags(item.tags)} · {item.tags?.filter((tag) => !tag.startsWith("stage:")).slice(0, 2).join(", ")} · {human} human / {automated} auto</small>
               </button>

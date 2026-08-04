@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="refresh" content="4; url=https://paolo-marcatili.github.io/hero-language-camp/danish/" />
+  <title>Danish Foundations has moved</title>
+  <style>
+    :root { font-family: system-ui, sans-serif; color: #172033; background: #eaf7ff; }
+    body { min-height: 100vh; margin: 0; display: grid; place-items: center; padding: 24px; }
+    main { max-width: 620px; padding: 28px; border-radius: 24px; background: white; box-shadow: 0 18px 44px rgba(47,77,113,.18); text-align: center; }
+    a { color: #075b46; font-weight: 800; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Danish Foundations has moved</h1>
+    <p>The course is now part of the unified Learning Heroes site.</p>
+    <p><a id="destination" href="https://paolo-marcatili.github.io/hero-language-camp/danish/">Open the Danish course</a></p>
+  </main>
+  <script>
+    const destination = new URL("https://paolo-marcatili.github.io/hero-language-camp/danish/");
+    destination.search = window.location.search;
+    destination.hash = window.location.hash;
+    document.getElementById("destination").href = destination.href;
+
+    (async () => {
+      try {
+        const registrations = await navigator.serviceWorker?.getRegistrations?.() ?? [];
+        const oldScopePath = "/danish-foundations/";
+        await Promise.all(registrations
+          .filter((registration) => new URL(registration.scope).pathname.startsWith(oldScopePath))
+          .map((registration) => registration.unregister()));
+      } catch {}
+      try {
+        const keys = await caches?.keys?.() ?? [];
+        await Promise.all(keys.filter((key) => key.includes("danish-foundations")).map((key) => caches.delete(key)));
+      } catch {}
+      window.setTimeout(() => window.location.replace(destination.href), 250);
+    })();
+  </script>
+</body>
+</html>

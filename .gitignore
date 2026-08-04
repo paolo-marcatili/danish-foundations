@@ -47,3 +47,7 @@ apps/danish-foundations/public/audio/
 apps/danish-foundations/public/icons/
 apps/danish-foundations/public/content-packs/
 apps/danish-foundations/public/manifest.webmanifest
+# Generated unified GitHub Pages artifacts
+site/
+redirect-site/
+.pages-preview/

@@ -1185,7 +1185,6 @@ export default function App() {
               onActiveProfileChange={setActiveProfileId}
               onResetProgress={handleReset}
               onOpenDictionary={() => { setSettingsOpen(false); setAdminOpen(true); }}
-              showContentEditor={false}
               onClose={() => setSettingsOpen(false)}
             />
           ) : null}

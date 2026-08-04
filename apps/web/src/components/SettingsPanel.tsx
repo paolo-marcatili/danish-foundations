@@ -45,6 +45,12 @@ const VIEWPORT_PRESETS: Array<{ id: ViewportPreset; labelKey: string }> = [
   { id: "phone_landscape", labelKey: "viewportPhoneLandscape" }
 ];
 
+
+const COURSE_OPTIONS = [
+  { id: "hy-eastern-it", label: "Հայերեն · Eastern Armenian", href: import.meta.env.VITE_ARMENIAN_APP_URL },
+  { id: "da-foundations", label: "Dansk · Danish Foundations", href: import.meta.env.VITE_DANISH_APP_URL }
+] as const;
+
 export function SettingsPanel({
   pack,
   language,
@@ -60,6 +66,12 @@ export function SettingsPanel({
   onClose
 }: SettingsPanelProps) {
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId) ?? profiles[0];
+
+  function switchCourse(packId: string): void {
+    const selected = COURSE_OPTIONS.find((option) => option.id === packId);
+    if (!selected || !selected.href || selected.id === pack.pack_id) return;
+    window.location.assign(String(selected.href));
+  }
 
   function updateProfile(nextProfile: ChildProfile) {
     onProfilesChange(profiles.map((profile) => profile.id === nextProfile.id ? nextProfile : profile));
@@ -128,8 +140,8 @@ export function SettingsPanel({
         <div className="settings-row two-cols">
           <label>
             <span>{t(language, "languagePack")}</span>
-            <select value={pack.pack_id} disabled>
-              <option value={pack.pack_id}>{pack.title}</option>
+            <select value={pack.pack_id} onChange={(event: ChangeEvent<HTMLSelectElement>) => switchCourse(event.target.value)}>
+              {COURSE_OPTIONS.map((course) => <option key={course.id} value={course.id}>{course.label}</option>)}
             </select>
           </label>
           <label>

@@ -6656,3 +6656,41 @@ button.offline-pill { cursor: pointer; }
 .parent-session-grid span, .review-chip-list span { padding: 0.55rem 0.7rem; border-radius: 999px; background: rgba(255,255,255,0.09); text-align: center; }
 .review-chip-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 @media (max-width: 640px) { .parent-session-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* UNIFIED_LEARNING_MIGRATION_V2: dictionary audio preview */
+.existing-audio-card {
+  min-width: 0;
+}
+
+.existing-audio-list {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.existing-audio-row {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 9px;
+  border: 2px solid rgba(29, 49, 80, 0.1);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.existing-audio-meta {
+  display: grid;
+  gap: 2px;
+}
+
+.existing-audio-meta small {
+  color: #66758e;
+  overflow-wrap: anywhere;
+}
+
+.existing-audio-row audio {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+}
