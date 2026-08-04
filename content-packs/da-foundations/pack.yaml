@@ -1,8 +1,8 @@
 pack_id: da-foundations
-version: 0.2.0
+version: 0.4.0
 subject: foundations
 title: Ord- og Talheltene
-description: "Dansk læsestart og matematik: fem kapitler fra bogstavlyde til ord og tal fra 0 til 10."
+description: Dansk læsestart og matematik gennem 0. klasse og begyndelsen af 1. klasse.
 language:
   name_english: Danish
   name_native: Dansk
@@ -40,3 +40,4 @@ files:
   letters: dictionary/letters.jsonl
   sentences: dictionary/sentences.jsonl
   math_problems: curriculum/math-problems.jsonl
+  reading_problems: curriculum/reading-problems.jsonl

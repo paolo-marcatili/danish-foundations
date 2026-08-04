@@ -25,7 +25,6 @@ levels:
       timer_seconds: 20
       max_questions: 18
       max_mistakes_to_win: 8
-
   - number: 1
     title: Klangskoven
     stat_cap: 8
@@ -52,7 +51,6 @@ levels:
       timer_seconds: 22
       max_questions: 18
       max_mistakes_to_win: 8
-
   - number: 2
     title: Ekkoengen
     stat_cap: 11
@@ -79,7 +77,6 @@ levels:
       timer_seconds: 22
       max_questions: 20
       max_mistakes_to_win: 8
-
   - number: 3
     title: Ti-trinnet
     stat_cap: 14
@@ -106,7 +103,6 @@ levels:
       timer_seconds: 24
       max_questions: 20
       max_mistakes_to_win: 9
-
   - number: 4
     title: Ordtårnet
     stat_cap: 17
@@ -133,3 +129,237 @@ levels:
       timer_seconds: 25
       max_questions: 22
       max_mistakes_to_win: 9
+  - number: 5
+    title: Sætningsbroen
+    stat_cap: 20
+    content_tags:
+      - "stage:5"
+    theme:
+      da: Bogstaverne d, g og j, korte sætninger og talrækken til 10
+      it: Le lettere d, g e j, frasi brevi e la linea dei numeri fino a 10
+    learning_goal:
+      da: Læs og byg korte sætninger, og brug talrækken til at finde plus og minus.
+      it: Leggere e costruire frasi brevi e usare la linea dei numeri per addizioni e sottrazioni.
+    chapter_id: chapter_5_sentence_bridge
+    unlock_requires:
+      completed_training_sessions: 9
+      answered_fight_questions: 14
+      min_stats:
+        strength: 6
+        defense: 6
+        precision: 6
+        stamina: 6
+    fight:
+      min_questions: 14
+      at_min_questions: 14
+      timer_seconds: 26
+      max_questions: 24
+      max_mistakes_to_win: 10
+  - number: 6
+    title: Søen med ord
+    stat_cap: 23
+    content_tags:
+      - "stage:6"
+    theme:
+      da: Bogstaverne y, æ og ø, manglende ord og talvenner
+      it: Le lettere y, æ e ø, parole mancanti e coppie di numeri
+    learning_goal:
+      da: Læs små sætninger med y, æ og ø, og find talpar der tilsammen giver 5 eller 6.
+      it: Leggere brevi frasi con y, æ e ø e trovare coppie che formano 5 o 6.
+    chapter_id: chapter_6_word_lake
+    unlock_requires:
+      completed_training_sessions: 9
+      answered_fight_questions: 14
+      min_stats:
+        strength: 7
+        defense: 7
+        precision: 7
+        stamina: 7
+    fight:
+      min_questions: 14
+      at_min_questions: 14
+      timer_seconds: 26
+      max_questions: 24
+      max_mistakes_to_win: 10
+  - number: 7
+    title: Å-porten
+    stat_cap: 26
+    content_tags:
+      - "stage:7"
+    theme:
+      da: Bogstaverne å og c, hyppige ord og talvenner til 8
+      it: Le lettere å e c, parole frequenti e coppie fino a 8
+    learning_goal:
+      da: Mød de sidste centrale bogstaver, læs hyppige ord og find flere talvenner.
+      it: Incontrare le ultime lettere principali, leggere parole frequenti e trovare altre coppie numeriche.
+    chapter_id: chapter_7_aa_gate
+    unlock_requires:
+      completed_training_sessions: 9
+      answered_fight_questions: 14
+      min_stats:
+        strength: 8
+        defense: 8
+        precision: 8
+        stamina: 8
+    fight:
+      min_questions: 14
+      at_min_questions: 14
+      timer_seconds: 26
+      max_questions: 24
+      max_mistakes_to_win: 10
+  - number: 8
+    title: De små beskeder
+    stat_cap: 29
+    content_tags:
+      - "stage:8"
+    theme:
+      da: Hyppige småord, sætningsrækkefølge og blandet regning til 10
+      it: Parole frequenti, ordine della frase e calcolo misto fino a 10
+    learning_goal:
+      da: Læs beskeder med det, den, er, har, kan og ikke, og vælg regnestrategi.
+      it: Leggere messaggi con parole frequenti e scegliere una strategia di calcolo.
+    chapter_id: chapter_8_messages
+    unlock_requires:
+      completed_training_sessions: 10
+      answered_fight_questions: 15
+      min_stats:
+        strength: 9
+        defense: 9
+        precision: 9
+        stamina: 9
+    fight:
+      min_questions: 15
+      at_min_questions: 15
+      timer_seconds: 26
+      max_questions: 25
+      max_mistakes_to_win: 10
+  - number: 9
+    title: Fortællingens nøgle
+    stat_cap: 32
+    content_tags:
+      - "stage:9"
+    theme:
+      da: Korte tekster, forståelse og hverdagens regnehistorier
+      it: Testi brevi, comprensione e problemi quotidiani
+    learning_goal:
+      da: Læs en lille tekst, find svaret i teksten, og løs regnehistorier inden for 10.
+      it: Leggere un breve testo, trovare la risposta e risolvere problemi entro il 10.
+    chapter_id: chapter_9_story_key
+    unlock_requires:
+      completed_training_sessions: 10
+      answered_fight_questions: 15
+      min_stats:
+        strength: 10
+        defense: 10
+        precision: 10
+        stamina: 10
+    fight:
+      min_questions: 15
+      at_min_questions: 15
+      timer_seconds: 26
+      max_questions: 25
+      max_mistakes_to_win: 10
+  - number: 10
+    title: Skolestien
+    stat_cap: 35
+    content_tags:
+      - "stage:10"
+    theme:
+      da: Ord med to stavelser og tallene 11 til 20
+      it: Parole bisillabiche e numeri da 11 a 20
+    learning_goal:
+      da: Læs længere ord og sætninger, og forbind tallene 11 til 20 med mængder og talrækken.
+      it: Leggere parole e frasi più lunghe e collegare 11-20 a quantità e linea dei numeri.
+    chapter_id: chapter_10_school_path
+    unlock_requires:
+      completed_training_sessions: 10
+      answered_fight_questions: 16
+      min_stats:
+        strength: 11
+        defense: 11
+        precision: 11
+        stamina: 11
+    fight:
+      min_questions: 16
+      at_min_questions: 16
+      timer_seconds: 30
+      max_questions: 26
+      max_mistakes_to_win: 10
+  - number: 11
+    title: Historiehaven
+    stat_cap: 38
+    content_tags:
+      - "stage:11"
+    theme:
+      da: Minihistorier og talvenner til 10
+      it: Mini-storie e coppie numeriche fino a 10
+    learning_goal:
+      da: Læs tre sammenhængende sætninger, og brug talvenner til at regne smartere.
+      it: Leggere tre frasi collegate e usare le coppie numeriche per calcolare.
+    chapter_id: chapter_11_story_garden
+    unlock_requires:
+      completed_training_sessions: 10
+      answered_fight_questions: 16
+      min_stats:
+        strength: 12
+        defense: 12
+        precision: 12
+        stamina: 12
+    fight:
+      min_questions: 16
+      at_min_questions: 16
+      timer_seconds: 30
+      max_questions: 26
+      max_mistakes_to_win: 10
+  - number: 12
+    title: Skriveværkstedet
+    stat_cap: 41
+    content_tags:
+      - "stage:12"
+    theme:
+      da: Manglende bogstaver, sætningsbygning og regning til 20
+      it: Lettere mancanti, costruzione di frasi e calcolo fino a 20
+    learning_goal:
+      da: Byg og færdiggør ord og sætninger, og løs plus og minus inden for 20.
+      it: Completare parole e frasi e risolvere addizioni e sottrazioni entro il 20.
+    chapter_id: chapter_12_writing_workshop
+    unlock_requires:
+      completed_training_sessions: 11
+      answered_fight_questions: 17
+      min_stats:
+        strength: 12
+        defense: 12
+        precision: 12
+        stamina: 12
+    fight:
+      min_questions: 17
+      at_min_questions: 17
+      timer_seconds: 30
+      max_questions: 27
+      max_mistakes_to_win: 10
+  - number: 13
+    title: Den første bog
+    stat_cap: 44
+    content_tags:
+      - "stage:13"
+    theme:
+      da: Læsning med forståelse og blandede problemer
+      it: Lettura con comprensione e problemi misti
+    learning_goal:
+      da: Læs små fortællinger selvstændigt, svar på spørgsmål og vælg en regnestrategi.
+      it: Leggere brevi racconti, rispondere e scegliere una strategia di calcolo.
+    chapter_id: chapter_13_first_book
+    unlock_requires:
+      completed_training_sessions: 12
+      answered_fight_questions: 18
+      min_stats:
+        strength: 12
+        defense: 12
+        precision: 12
+        stamina: 12
+    fight:
+      min_questions: 18
+      at_min_questions: 18
+      timer_seconds: 30
+      max_questions: 28
+      max_mistakes_to_win: 10

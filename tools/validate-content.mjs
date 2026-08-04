@@ -25,7 +25,7 @@ if (result.warnings.length > 0) {
 }
 
 if (!result.ok) process.exit(1);
-console.log(`Content validation passed: ${pack.pack_id} (${pack.items.length} words, ${pack.grammar_items?.length ?? 0} sentences, ${pack.letters?.length ?? 0} letters, ${pack.math_problems?.length ?? 0} math problems)`);
+console.log(`Content validation passed: ${pack.pack_id} (${pack.items.length} words, ${pack.grammar_items?.length ?? 0} sentences, ${pack.letters?.length ?? 0} letters, ${pack.reading_problems?.length ?? 0} reading problems, ${pack.math_problems?.length ?? 0} math problems)`);
 
 function validateLanguagePack(value) {
   const errors = [];
@@ -110,11 +110,25 @@ function validateLanguagePack(value) {
     for (const field of ["id", "domain", "review_status"]) requireString(problem, `${path}.${field}`, errors, field);
     if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
     mathIds.add(problem.id);
-    if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
+    if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction", "number_bond", "story_problem"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
     if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
     if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
     if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
     else for (const tag of problem.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`${path} uses uncontrolled tag: ${tag}`);
+  }
+
+  const readingIds = new Set();
+  for (const [index, problem] of (value.reading_problems ?? []).entries()) {
+    const path = `reading_problems[${index}]`;
+    if (!isObject(problem)) { errors.push(`${path} must be an object.`); continue; }
+    for (const field of ["id", "domain", "text", "answer", "review_status"]) requireString(problem, `${path}.${field}`, errors, field);
+    if (readingIds.has(problem.id)) errors.push(`Duplicate reading problem id: ${problem.id}`);
+    readingIds.add(problem.id);
+    if (!["sentence_picture", "sentence_order", "missing_word", "missing_letter", "mini_story"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
+    if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
+    if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
+    else { for (const tag of problem.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`${path} uses uncontrolled tag: ${tag}`); validateCurriculumTags(problem, path, errors); }
+    if (problem.options !== undefined && (!Array.isArray(problem.options) || problem.options.some((entry) => typeof entry !== "string" || !entry.trim()))) errors.push(`${path}.options must contain non-empty strings.`);
   }
 
   for (const [index, level] of (value.levels ?? []).entries()) {
@@ -217,8 +231,8 @@ function validateCurriculumTags(entry, path, errors) {
   const tiers = tags.filter((tag) => tag === "tier:core" || tag === "tier:extension");
   if (tiers.length !== 1) errors.push(`${path} must have exactly one tier:core or tier:extension tag.`);
   if (tiers[0] === "tier:core") {
-    const stages = tags.filter((tag) => /^stage:[0-8]$/.test(tag));
-    if (stages.length !== 1) errors.push(`${path} core content must have exactly one stage:0 through stage:8 tag.`);
+    const stages = tags.filter((tag) => /^stage:(?:[0-9]|1[0-3])$/.test(tag));
+    if (stages.length !== 1) errors.push(`${path} core content must have exactly one stage:0 through stage:13 tag.`);
   }
 }
 

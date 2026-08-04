@@ -21,30 +21,34 @@ const files = pack.files || {};
 const paths = {
   words: join(target, files.words || "dictionary/words.jsonl"),
   letters: join(target, files.letters || "dictionary/letters.jsonl"),
-  math: join(target, files.math_problems || "curriculum/math-problems.jsonl")
+  math: join(target, files.math_problems || "curriculum/math-problems.jsonl"),
+  reading: join(target, files.reading_problems || "curriculum/reading-problems.jsonl")
 };
 const collections = {
   words: parseJsonl(readFileSync(paths.words, "utf8")),
   letters: parseJsonl(readFileSync(paths.letters, "utf8")),
-  math: parseJsonl(readFileSync(paths.math, "utf8"))
+  math: parseJsonl(readFileSync(paths.math, "utf8")),
+  reading: parseJsonl(readFileSync(paths.reading, "utf8"))
 };
 
 let queue = [
   ...collections.letters.map((entry) => ({ entry, id: entry.id, kind: "letter-name", text: getLetterName(entry), field: "audio" })),
   ...collections.words.map((entry) => ({ entry, id: entry.id, kind: "word", text: entry.target, field: "audio" })),
-  ...collections.math.map((entry) => ({ entry, id: entry.id, kind: "math-prompt", text: entry.prompt?.da, field: "audio" }))
+  ...collections.math.map((entry) => ({ entry, id: entry.id, kind: "math-prompt", text: entry.prompt?.da, field: "audio" })),
+  ...collections.reading.map((entry) => ({ entry, id: entry.id, kind: "reading", text: getReadingAudioText(entry), field: "audio" }))
 ].filter((item) => item.text && item.entry.tags?.includes("tier:core"));
 
 if (sampleOnly) {
   queue = [
     ...queue.filter((item) => item.kind === "letter-name").slice(0, 5),
     ...queue.filter((item) => item.kind === "word").slice(0, 8),
-    ...queue.filter((item) => item.kind === "math-prompt").slice(0, 8)
+    ...queue.filter((item) => item.kind === "math-prompt").slice(0, 8),
+    ...queue.filter((item) => item.kind === "reading").slice(0, 8)
   ];
 }
 
 const counts = queue.reduce((result, item) => ({ ...result, [item.kind]: (result[item.kind] ?? 0) + 1 }), {});
-console.log(`Danish audio plan: ${queue.length} files (${counts["letter-name"] ?? 0} letter names, ${counts.word ?? 0} words, ${counts["math-prompt"] ?? 0} math prompts).`);
+console.log(`Danish audio plan: ${queue.length} files (${counts["letter-name"] ?? 0} letter names, ${counts.word ?? 0} words, ${counts["math-prompt"] ?? 0} math prompts, ${counts.reading ?? 0} reading prompts).`);
 console.log("Isolated phonemes are intentionally excluded; use reviewed human recordings for those.");
 if (planOnly) process.exit(0);
 if (!key || !region) {
@@ -77,6 +81,7 @@ process.stdout.write("\n");
 writeFileSync(paths.letters, writeJsonl(collections.letters));
 writeFileSync(paths.words, writeJsonl(collections.words));
 writeFileSync(paths.math, writeJsonl(collections.math));
+writeFileSync(paths.reading, writeJsonl(collections.reading));
 console.log(`Danish neural audio metadata updated for ${queue.length} entries using ${voice}.`);
 
 async function synthesize(text) {
@@ -111,6 +116,13 @@ function replaceGeneratedAudio(item, fileName) {
     license: "generated-for-project-use-review-provider-terms",
     review_status: "draft"
   }, ...preserved];
+}
+
+function getReadingAudioText(entry) {
+  if (entry.domain === "sentence_order") return String(entry.answer || entry.text || "");
+  if (entry.domain === "missing_letter") return String(entry.text || "").replace("_", String(entry.answer || ""));
+  if (entry.domain === "missing_word") return String(entry.text || "").replace("___", String(entry.answer || ""));
+  return String(entry.text || "");
 }
 
 function getLetterName(entry) {

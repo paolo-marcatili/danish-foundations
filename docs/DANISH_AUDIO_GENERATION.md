@@ -1,6 +1,6 @@
 # Danish neural audio generation
 
-The Phase B app works immediately with an installed Danish browser voice. For consistent pronunciation and reliable offline playback, generate fixed Danish neural MP3 files after reviewing a small sample.
+The Phase C+D app works immediately with an installed Danish browser voice. For consistent pronunciation and reliable offline playback, generate fixed Danish neural MP3 files after reviewing a small sample.
 
 ## What the generator covers
 
@@ -8,7 +8,8 @@ The default `core` scope includes:
 
 - all introduced Danish letter **names**;
 - all staged Danish words;
-- the complete spoken prompts for structured mathematics problems.
+- the complete spoken prompts for structured mathematics problems;
+- the complete sentence, word-building, and mini-story reading prompts.
 
 It deliberately does **not** synthesize isolated phonemes such as `/s/` or `/m/`. Speech engines often turn isolated phonemes into letter names or unnatural sounds. Those should be short human recordings reviewed by a Danish early-literacy teacher.
 
@@ -82,5 +83,7 @@ Review at least:
 - number words and arithmetic sentences;
 - question intonation;
 - whether `-6%` sounds clear without becoming unnaturally slow.
+
+The current plan contains 423 files: 25 letter names, 127 words, 196 mathematics prompts, and 75 reading prompts.
 
 Keep generated entries marked `draft` until pronunciation has been reviewed. Human recordings are preserved when the generator updates metadata.

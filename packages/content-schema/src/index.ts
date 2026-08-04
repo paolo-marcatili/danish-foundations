@@ -124,7 +124,41 @@ export interface LetterItem {
 }
 
 
-export type FoundationsMathDomain = "counting" | "number_match" | "number_order" | "comparison" | "addition" | "subtraction";
+export type FoundationsMathDomain =
+  | "counting"
+  | "number_match"
+  | "number_order"
+  | "comparison"
+  | "addition"
+  | "subtraction"
+  | "number_bond"
+  | "story_problem";
+
+export type FoundationsReadingDomain =
+  | "sentence_picture"
+  | "sentence_order"
+  | "missing_word"
+  | "missing_letter"
+  | "mini_story";
+
+export interface FoundationsReadingProblem {
+  id: string;
+  domain: FoundationsReadingDomain;
+  /** Text shown to the child: a word, sentence, or short story. */
+  text: string;
+  /** Complete narrated instruction or comprehension question. */
+  prompt: LocalizedText;
+  answer: string;
+  options?: string[];
+  /** Child-facing scene or object; emoji and public asset URLs are supported. */
+  image?: string;
+  /** Ordered word tiles for sentence construction. */
+  words?: string[];
+  /** Optional full reading audio; device speech remains the fallback. */
+  audio?: AudioReference[];
+  tags: string[];
+  review_status: ReviewStatus;
+}
 
 export interface FoundationsMathProblem {
   id: string;
@@ -135,6 +169,10 @@ export interface FoundationsMathProblem {
   number_range?: { min: number; max: number };
   representation?: "objects" | "dots" | "numeral" | "number_line";
   object?: string;
+  /** Operation used by contextual story problems. */
+  operation?: "addition" | "subtraction";
+  /** Whole value for number-bond activities. */
+  whole?: number;
   /** Optional audio for the complete child-facing problem prompt. */
   audio?: AudioReference[];
   tags: string[];
@@ -382,6 +420,7 @@ export interface PackFileMap {
   letters?: string;
   sentences?: string;
   math_problems?: string;
+  reading_problems?: string;
 }
 
 export interface LanguagePack {
@@ -404,6 +443,7 @@ export interface LanguagePack {
   letters?: LetterItem[];
   grammar_items?: GrammarItem[];
   math_problems?: FoundationsMathProblem[];
+  reading_problems?: FoundationsReadingProblem[];
   story?: StoryArc;
   ui_text?: Record<string, string>;
   controlled_tags?: ControlledTag[];
@@ -430,6 +470,7 @@ export interface ModularPackSources {
   lettersJsonl?: string;
   sentencesJsonl?: string;
   mathProblemsJsonl?: string;
+  readingProblemsJsonl?: string;
 }
 
 export interface ValidationResult {
@@ -453,6 +494,7 @@ export function buildLanguagePackFromSources(sources: ModularPackSources): Langu
   const letters = parseJsonl<LetterItem>(sources.lettersJsonl ?? "").map((letter) => normalizeLetter(letter, sourceLanguage));
   const grammarItems = parseJsonl<GrammarItem>(sources.sentencesJsonl ?? "").map((grammar) => normalizeGrammar(grammar, sourceLanguage));
   const mathProblems = parseJsonl<FoundationsMathProblem>(sources.mathProblemsJsonl ?? "").map(normalizeMathProblem);
+  const readingProblems = parseJsonl<FoundationsReadingProblem>(sources.readingProblemsJsonl ?? "").map(normalizeReadingProblem);
   const lessons = createLessonsFromItems(items, letters, grammarItems);
 
   return {
@@ -473,6 +515,7 @@ export function buildLanguagePackFromSources(sources: ModularPackSources): Langu
     letters,
     grammar_items: grammarItems,
     math_problems: mathProblems,
+    reading_problems: readingProblems,
     story: normalizeStory(storyDoc, sourceLanguage),
     ui_text: isObject(interfaceDoc.text) ? stringRecord(interfaceDoc.text) : {},
     controlled_tags: Array.isArray(tagsDoc.controlled_tags) ? tagsDoc.controlled_tags as ControlledTag[] : [],
@@ -794,10 +837,31 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
         if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
         mathIds.add(problem.id);
       }
-      if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction"].includes(String(problem.domain))) errors.push(`${path}.domain is unsupported.`);
+      if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction", "number_bond", "story_problem"].includes(String(problem.domain))) errors.push(`${path}.domain is unsupported.`);
       if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
       if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
       if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
+      if (problem.review_status !== "approved") warnings.push(`${path} is not approved yet: ${String(problem.id ?? "unknown id")}`);
+    }
+  }
+
+  if (Array.isArray(pack.reading_problems)) {
+    const readingIds = new Set<string>();
+    for (const [index, problem] of pack.reading_problems.entries()) {
+      const path = `reading_problems[${index}]`;
+      if (!isObject(problem)) { errors.push(`${path} must be an object.`); continue; }
+      requireString(problem, "id", errors, path);
+      if (typeof problem.id === "string") {
+        if (readingIds.has(problem.id)) errors.push(`Duplicate reading problem id: ${problem.id}`);
+        readingIds.add(problem.id);
+      }
+      if (!["sentence_picture", "sentence_order", "missing_word", "missing_letter", "mini_story"].includes(String(problem.domain))) errors.push(`${path}.domain is unsupported.`);
+      requireString(problem, "text", errors, path);
+      requireString(problem, "answer", errors, path);
+      if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
+      if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
+      if (problem.options !== undefined && (!Array.isArray(problem.options) || problem.options.some((value) => typeof value !== "string" || value.trim() === ""))) errors.push(`${path}.options must contain non-empty strings.`);
+      if (problem.words !== undefined && (!Array.isArray(problem.words) || problem.words.some((value) => typeof value !== "string" || value.trim() === ""))) errors.push(`${path}.words must contain non-empty strings.`);
       if (problem.review_status !== "approved") warnings.push(`${path} is not approved yet: ${String(problem.id ?? "unknown id")}`);
     }
   }
@@ -1038,6 +1102,17 @@ function normalizeMathProblem(problem: FoundationsMathProblem): FoundationsMathP
     ...problem,
     operands: Array.isArray(problem.operands) ? problem.operands.map(Number) : undefined,
     result: Number(problem.result),
+    audio: Array.isArray(problem.audio) ? problem.audio : [],
+    tags: Array.isArray(problem.tags) ? problem.tags : [],
+    review_status: problem.review_status ?? "draft"
+  };
+}
+
+function normalizeReadingProblem(problem: FoundationsReadingProblem): FoundationsReadingProblem {
+  return {
+    ...problem,
+    options: Array.isArray(problem.options) ? problem.options.map(String) : undefined,
+    words: Array.isArray(problem.words) ? problem.words.map(String) : undefined,
     audio: Array.isArray(problem.audio) ? problem.audio : [],
     tags: Array.isArray(problem.tags) ? problem.tags : [],
     review_status: problem.review_status ?? "draft"

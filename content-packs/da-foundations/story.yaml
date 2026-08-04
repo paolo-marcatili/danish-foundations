@@ -52,7 +52,6 @@ chapters:
     mission:
       da: Find de rigtige begyndelsesbogstaver, tænd tre lyssten og åbn porten.
       it: Trova le lettere iniziali corrette, accendi tre pietre e apri la porta.
-
   - id: chapter_1_sound_forest
     minimum_level: 1
     title:
@@ -99,7 +98,6 @@ chapters:
     mission:
       da: Giv skovens ting deres ord tilbage, og læg fem lydfrø i de rigtige kurve.
       it: Restituisci i nomi agli oggetti della foresta e metti cinque semi sonori nei cesti corretti.
-
   - id: chapter_2_echo_meadow
     minimum_level: 2
     title:
@@ -144,7 +142,6 @@ chapters:
     mission:
       da: Læs ekkoets ord og saml præcis fem klokker til feen.
       it: Leggi le parole dell’eco e raccogli esattamente cinque campanelli per la fata.
-
   - id: chapter_3_ten_steps
     minimum_level: 3
     title:
@@ -191,7 +188,6 @@ chapters:
     mission:
       da: Genskab de ti trin, læs skiltene og nå frem til Ordtårnets dør.
       it: Ricostruisci i dieci gradini, leggi i cartelli e raggiungi la porta della Torre delle Parole.
-
   - id: chapter_4_word_tower
     minimum_level: 4
     title:
@@ -238,3 +234,309 @@ chapters:
     mission:
       da: Læs tårnets ord, sammenlign bogbunkerne og afslør Ordmagikerens trick.
       it: Leggi le parole della torre, confronta le pile di libri e scopri il trucco del mago.
+  - id: chapter_5_sentence_bridge
+    minimum_level: 5
+    title:
+      da: Kapitel 5 · Sætningsbroen
+      it: Capitolo 5 · Il ponte delle frasi
+    summary:
+      da: Bogstaverne d, g og j danner nye ord og de første hele sætninger.
+      it: Le lettere d, g e j formano nuove parole e le prime frasi.
+    fiction:
+      da: En bro er dækket af løse ord. Hver planke ligger forkert, og kun en hel sætning kan holde helten oppe.
+      it: Un ponte è coperto di parole sparse. Solo una frase completa può reggere l'eroe.
+    lesson:
+      title:
+        da: En sætning fortæller noget helt
+        it: Una frase comunica un'idea completa
+      objectives:
+        - da: Bogstaverne d, g og j danner nye ord og de første hele sætninger.
+          it: Le lettere d, g e j formano nuove parole e le prime frasi.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: En sætning begynder med stort bogstav og slutter med punktum. Ordene skal stå i en rækkefølge, der giver mening. På talrækken kan du gå frem ved plus og tilbage ved minus.
+        it: Una frase inizia con la maiuscola e termina con il punto. Sulla linea dei numeri si va avanti col più e indietro col meno.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Byg tre sætninger og reparer broen.
+      it: Costruisci tre frasi e ripara il ponte.
+  - id: chapter_6_word_lake
+    minimum_level: 6
+    title:
+      da: Kapitel 6 · Søen med ord
+      it: Capitolo 6 · Il lago delle parole
+    summary:
+      da: Læs y, æ og ø i små sætninger og find manglende ord.
+      it: Leggere y, æ e ø in brevi frasi e trovare parole mancanti.
+    fiction:
+      da: Ved søen flyder ord på åkander. Nogle sætninger har mistet ét ord, og søens frøer kan kun hoppe videre, når det findes.
+      it: Sul lago le parole galleggiano sulle ninfee. Alcune frasi hanno perso una parola.
+    lesson:
+      title:
+        da: Brug hele sætningen som hjælp
+        it: Usa tutta la frase come indizio
+      objectives:
+        - da: Læs y, æ og ø i små sætninger og find manglende ord.
+          it: Leggere y, æ e ø in brevi frasi e trovare parole mancanti.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Når et ord mangler, skal både betydning og bogstaver passe. Talvenner er to dele, som tilsammen giver et helt tal.
+        it: Quando manca una parola devono corrispondere significato e lettere. Le coppie numeriche formano un numero intero.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Find de manglende ord og seks talvenner.
+      it: Trova le parole mancanti e sei coppie numeriche.
+  - id: chapter_7_aa_gate
+    minimum_level: 7
+    title:
+      da: Kapitel 7 · Å-porten
+      it: Capitolo 7 · La porta Å
+    summary:
+      da: Mød å og c, og øv ord som år, gå og cykel.
+      it: Incontrare å e c e allenare parole come år, gå e cykel.
+    fiction:
+      da: Den sidste bogstavport har to låse. Den ene ligner en lille ring over a, den anden bruges især i lånte ord.
+      it: "L'ultima porta delle lettere ha due serrature: å e c."
+    lesson:
+      title:
+        da: Nogle bogstaver kræver ekstra opmærksomhed
+        it: Alcune lettere richiedono attenzione
+      objectives:
+        - da: Mød å og c, og øv ord som år, gå og cykel.
+          it: Incontrare å e c e allenare parole come år, gå e cykel.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Å er sit eget bogstav. C kan lyde forskelligt i ord som cykel og cirkus. Brug ordets lyd og billedet sammen.
+        it: Å è una lettera distinta. C può avere suoni diversi; usa insieme suono e immagine.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Åbn begge låse og saml talvenner til otte.
+      it: Apri entrambe le serrature e trova coppie fino a otto.
+  - id: chapter_8_messages
+    minimum_level: 8
+    title:
+      da: Kapitel 8 · De små beskeder
+      it: Capitolo 8 · I piccoli messaggi
+    summary:
+      da: Læs hyppige småord og sæt ord i rigtig rækkefølge.
+      it: Leggere parole frequenti e ordinare le parole.
+    fiction:
+      da: Små beskeder dukker op på tårnets vægge. De korte ord ser simple ud, men de styrer hele meningen.
+      it: Piccoli messaggi compaiono sulle pareti della torre. Le parole brevi guidano il significato.
+    lesson:
+      title:
+        da: Hyppige ord skal genkendes sikkert
+        it: Le parole frequenti vanno riconosciute
+      objectives:
+        - da: Læs hyppige småord og sæt ord i rigtig rækkefølge.
+          it: Leggere parole frequenti e ordinare le parole.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Ord som det, den, er, har, kan, ikke, på, med og og møder du igen og igen. Læs dem i sætningen, ikke alene.
+        it: Parole frequenti come det, den, er e ikke vanno lette nel contesto.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Læs beskederne og vælg den rigtige vej.
+      it: Leggi i messaggi e scegli la strada.
+  - id: chapter_9_story_key
+    minimum_level: 9
+    title:
+      da: Kapitel 9 · Fortællingens nøgle
+      it: Capitolo 9 · La chiave del racconto
+    summary:
+      da: Læs korte tekster og find oplysninger, der står direkte i teksten.
+      it: Leggere testi brevi e trovare informazioni esplicite.
+    fiction:
+      da: En bog er låst med spørgsmål. Hver side giver et spor, men svaret findes kun, hvis helten husker det læste.
+      it: Un libro è chiuso da domande. La risposta è nel testo.
+    lesson:
+      title:
+        da: Læs først, find derefter svaret
+        it: Prima leggi, poi trova la risposta
+      objectives:
+        - da: Læs korte tekster og find oplysninger, der står direkte i teksten.
+          it: Leggere testi brevi e trovare informazioni esplicite.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: En kort tekst har personer, handlinger og steder. Læs spørgsmålet og gå tilbage til sætningen, hvor svaret står.
+        it: Un testo breve contiene persone, azioni e luoghi. Torna alla frase che contiene la risposta.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Læs to små historier og åbn bogen.
+      it: Leggi due storie e apri il libro.
+  - id: chapter_10_school_path
+    minimum_level: 10
+    title:
+      da: Kapitel 10 · Skolestien
+      it: Capitolo 10 · Il sentiero della scuola
+    summary:
+      da: Læs ord med to stavelser og arbejd med tallene 11 til 20.
+      it: Leggere parole bisillabiche e lavorare con 11-20.
+    fiction:
+      da: Skolestien har tyve sten. På hver sten står et længere ord eller et tal, og helten må tage dem i orden.
+      it: Il sentiero della scuola ha venti pietre con parole e numeri.
+    lesson:
+      title:
+        da: Del længere ord i små bidder
+        it: Dividi le parole lunghe
+      objectives:
+        - da: Læs ord med to stavelser og arbejd med tallene 11 til 20.
+          it: Leggere parole bisillabiche e lavorare con 11-20.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Ord som skole, pige, kanin og sommer kan deles i stavelser. Tallene 11 til 20 består af ti og nogle flere.
+        it: Parole come skole e kanin possono essere divise in sillabe. I numeri 11-20 sono dieci più altre unità.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Læs stiens ord og nå frem til tallet 20.
+      it: Leggi le parole e raggiungi il numero 20.
+  - id: chapter_11_story_garden
+    minimum_level: 11
+    title:
+      da: Kapitel 11 · Historiehaven
+      it: Capitolo 11 · Il giardino delle storie
+    summary:
+      da: Læs tre sætninger, og brug talvenner til 10.
+      it: Leggere tre frasi e usare coppie fino a 10.
+    fiction:
+      da: I haven vokser historier som blomster. Hver historie har en begyndelse, en midte og en slutning.
+      it: Nel giardino le storie crescono come fiori.
+    lesson:
+      title:
+        da: Sæt oplysninger sammen
+        it: Collega le informazioni
+      objectives:
+        - da: Læs tre sætninger, og brug talvenner til 10.
+          it: Leggere tre frasi e usare coppie fino a 10.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Når du læser flere sætninger, skal du huske hvem teksten handler om, hvad der sker, og hvornår. Talvenner til 10 hjælper med hurtig regning.
+        it: Con più frasi ricorda chi, cosa e quando. Le coppie fino a 10 aiutano il calcolo.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Læs historierne og få haven til at blomstre.
+      it: Leggi le storie e fai fiorire il giardino.
+  - id: chapter_12_writing_workshop
+    minimum_level: 12
+    title:
+      da: Kapitel 12 · Skriveværkstedet
+      it: Capitolo 12 · Il laboratorio di scrittura
+    summary:
+      da: Færdiggør ord og sætninger, og regn inden for 20.
+      it: Completare parole e frasi e calcolare entro 20.
+    fiction:
+      da: I værkstedet er bogstaver faldet ud af ordene. Helten får papir og blyant og reparerer dem ét tegn ad gangen.
+      it: Nel laboratorio alcune lettere sono cadute dalle parole.
+    lesson:
+      title:
+        da: Skrivning bygger på lyd og rækkefølge
+        it: La scrittura usa suoni e ordine
+      objectives:
+        - da: Færdiggør ord og sætninger, og regn inden for 20.
+          it: Completare parole e frasi e calcolare entro 20.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Lyt til ordet, sig lydene langsomt, og vælg det bogstav der mangler. En sætning skal have mellemrum og punktum.
+        it: Ascolta, segmenta i suoni e scegli la lettera mancante. Una frase usa spazi e punto.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Reparer værkstedets ord og løs fire regnestykker.
+      it: Ripara le parole e risolvi quattro calcoli.
+  - id: chapter_13_first_book
+    minimum_level: 13
+    title:
+      da: Kapitel 13 · Den første bog
+      it: Capitolo 13 · Il primo libro
+    summary:
+      da: Læs små fortællinger med forståelse og løs blandede problemer.
+      it: Leggere brevi racconti e risolvere problemi misti.
+    fiction:
+      da: Alle de samlede ord bliver til heltens første bog. Den sidste drage vil ikke kæmpe; den vil høre historien.
+      it: Tutte le parole diventano il primo libro dell'eroe. L'ultimo drago vuole ascoltare.
+    lesson:
+      title:
+        da: Læsning og regning bruges til at løse problemer
+        it: Lettura e matematica risolvono problemi
+      objectives:
+        - da: Læs små fortællinger med forståelse og løs blandede problemer.
+          it: Leggere brevi racconti e risolvere problemi misti.
+        - da: Forklar dit valg med ord eller billeder.
+          it: Spiegare la scelta con parole o immagini.
+      explanation:
+        da: Læs hele opgaven, find de vigtige oplysninger, og vælg derefter en strategi. Du må gerne læse igen.
+        it: Leggi tutto, trova le informazioni importanti e scegli una strategia. Puoi rileggere.
+      examples:
+        - target: Læs · tænk · svar
+          translation:
+            da: Tag én del ad gangen.
+            it: Affronta una parte alla volta.
+      common_mistakes:
+        - da: Gæt ikke ud fra det første tegn; brug hele ordet eller hele opgaven.
+          it: Non indovinare dal primo segno; usa tutta la parola o il problema.
+    mission:
+      da: Læs bogen højt og løs den sidste gåde.
+      it: Leggi il libro e risolvi l'ultimo enigma.

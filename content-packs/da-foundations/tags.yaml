@@ -1,45 +1,79 @@
 controlled_tags:
   - id: "stage:0"
-    label: "Lysets port"
+    label: Lysets port
   - id: "stage:1"
-    label: "Klangskoven"
+    label: Klangskoven
   - id: "stage:2"
-    label: "Ekkoengen"
+    label: Ekkoengen
   - id: "stage:3"
-    label: "Ti-trinnet"
+    label: Ti-trinnet
   - id: "stage:4"
-    label: "Ordtårnet"
+    label: Ordtårnet
   - id: "tier:core"
-    label: "Kernestof"
+    label: Kernestof
   - id: "literacy:letter-name"
-    label: "Bogstavnavn"
+    label: Bogstavnavn
   - id: "literacy:letter-sound"
-    label: "Bogstavlyd"
+    label: Bogstavlyd
   - id: "literacy:decodable"
-    label: "Lydret ord"
+    label: Lydret ord
   - id: "literacy:high-frequency"
-    label: "Hyppigt ord"
+    label: Hyppigt ord
   - id: "topic:first-words"
-    label: "Første ord"
+    label: Første ord
   - id: "math:counting"
-    label: "Tælling"
+    label: Tælling
   - id: "math:number-match"
-    label: "Tal og mængde"
+    label: Tal og mængde
   - id: "math:number-order"
-    label: "Talrække"
+    label: Talrække
   - id: "math:comparison"
-    label: "Flest og lige mange"
+    label: Flest og lige mange
   - id: "math:addition"
-    label: "Plus"
+    label: Plus
   - id: "math:subtraction"
-    label: "Minus"
+    label: Minus
   - id: "encounter:starter"
-    label: "Startområde"
+    label: Startområde
   - id: "encounter:sound"
-    label: "Lydområde"
+    label: Lydområde
   - id: "encounter:reading"
-    label: "Læseområde"
+    label: Læseområde
   - id: "encounter:math"
-    label: "Talområde"
+    label: Talområde
   - id: "encounter:word-tower"
-    label: "Ordtårn"
+    label: Ordtårn
+  - id: "stage:5"
+    label: Sætningsbroen
+  - id: "stage:6"
+    label: Søen med ord
+  - id: "stage:7"
+    label: Å-porten
+  - id: "stage:8"
+    label: De små beskeder
+  - id: "stage:9"
+    label: Fortællingens nøgle
+  - id: "stage:10"
+    label: Skolestien
+  - id: "stage:11"
+    label: Historiehaven
+  - id: "stage:12"
+    label: Skriveværkstedet
+  - id: "stage:13"
+    label: Den første bog
+  - id: "topic:school-reading"
+    label: Skoleord
+  - id: "reading:sentence_picture"
+    label: Sætning og billede
+  - id: "reading:sentence_order"
+    label: Byg sætning
+  - id: "reading:missing_word"
+    label: Manglende ord
+  - id: "reading:missing_letter"
+    label: Manglende bogstav
+  - id: "reading:mini_story"
+    label: Minihistorie
+  - id: "math:number_bond"
+    label: Talvenner
+  - id: "math:story_problem"
+    label: Regnehistorie

@@ -34,3 +34,74 @@ labyrinths:
         item_weight: 1
         coins_min: 8
         coins_max: 16
+  - id: sentence_bridge_maze
+    enabled: true
+    minimum_level: 5
+    map:
+      width: 8
+      height: 8
+      theme: word_bridge
+      reveal_mode: current_and_adjacent
+    questions:
+      minimum: 18
+      target: 20
+      maximum: 22
+      minimum_per_focus: 3
+      monster_encounters: 3
+    events:
+      trap_encounters: 1
+      cache_cells: 1
+      healing_cells: 1
+      reveal_cells: 1
+      trap_heart_loss: 1
+      cache_coins_min: 3
+      cache_coins_max: 7
+      reveal_radius: 2
+    hearts: 4
+    semantic_tags:
+      - "encounter:reading"
+    rewards:
+      attribute_points_each: 1
+      session_credit: 1
+      bonus:
+        none_weight: 5
+        coins_weight: 4
+        item_weight: 1
+        coins_min: 8
+        coins_max: 16
+  - id: first_book_maze
+    enabled: true
+    minimum_level: 10
+    map:
+      width: 9
+      height: 9
+      theme: story_garden
+      reveal_mode: current_and_adjacent
+    questions:
+      minimum: 22
+      target: 24
+      maximum: 26
+      minimum_per_focus: 4
+      monster_encounters: 4
+    events:
+      trap_encounters: 1
+      cache_cells: 1
+      healing_cells: 1
+      reveal_cells: 1
+      trap_heart_loss: 1
+      cache_coins_min: 3
+      cache_coins_max: 7
+      reveal_radius: 2
+    hearts: 4
+    semantic_tags:
+      - "encounter:reading"
+      - "encounter:math"
+    rewards:
+      attribute_points_each: 1
+      session_credit: 1
+      bonus:
+        none_weight: 5
+        coins_weight: 4
+        item_weight: 1
+        coins_min: 8
+        coins_max: 16

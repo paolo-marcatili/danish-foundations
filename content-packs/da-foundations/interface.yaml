@@ -90,13 +90,13 @@ text:
   vocabularyBody: Lyt til kendte ord, find begyndelsesbogstavet, og match store og små bogstaver.
   comprehensionTitle: Ord → Læseskjold
   comprehensionShort: Ord
-  comprehensionBody: Match billeder og ord, og byg lydrette ord med bogstavbrikker.
+  comprehensionBody: Læs ord og korte tekster, byg ord og sætninger, og svar på spørgsmål.
   grammarTitle: Tal → Talblik
   grammarShort: Tal
-  grammarBody: Tæl ting, match tal og mængder, ordn tal og sammenlign grupper.
+  grammarBody: Tæl, ordn tal, sammenlign mængder og arbejd med tallene op til 20.
   pronunciationTitle: Plus og minus → Regnekraft
   pronunciationShort: Regn
-  pronunciationBody: Læg grupper sammen og tag ting væk med tal fra 0 til 10.
+  pronunciationBody: Brug plus, minus, talvenner og små regnehistorier.
   vocabularyChallenge: Bogstavporten
   shieldChallenge: Ordbroen
   runeChallenge: Talrunen
@@ -125,7 +125,7 @@ text:
   grammarHint: Tæl og vælg det rigtige tal.
   letterHint: Lyt og find bogstavet.
   tapWordsInOrder: Tryk på bogstaverne i den rigtige rækkefølge.
-  wordsSelected: "{selected} af {total} brikker"
+  wordsSelected: '{selected} af {total} brikker'
   undoWord: Fortryd
   removeWord: Fjern
   resetOrder: Start forfra
@@ -150,7 +150,7 @@ text:
   monsterNeeds: Før kampen
   labyrinthTitle: Lyslabyrinten
   labyrinthShort: Labyrint
-  labyrinthBody: Brug træningssten til at åbne en kort labyrint med bogstaver og tal.
+  labyrinthBody: Brug træningssten til en blandet labyrint med læsning og matematik.
   labyrinthLocked: Døren mangler træningssten.
   labyrinthResume: Fortsæt labyrinten
   labyrinthStart: Åbn labyrinten
@@ -193,7 +193,7 @@ text:
   timeout: Tiden er gået
   softTimerHint: Tiden giver kun bonus og gør aldrig et svar forkert.
   speedBonusEarned: Hurtighedsbonus +{value}%
-  damageAbsorbed: 'Blokeret: {value}'
+  damageAbsorbed: "Blokeret: {value}"
   weakHit: Lille træffer!
   normalHit: Godt ramt!
   bigHit: Stærkt slag!
@@ -277,7 +277,7 @@ text:
   labyrinthTreasureEventBody: Skatten åbner, når alle runer er fundet.
   labyrinthLogStarted: Helten går ind i lysruinerne.
   labyrinthLogMoved: Et nyt rum kommer frem af tågen.
-  labyrinthLogCache: 'Kiste fundet: {coins} mønter venter i skatten.'
+  labyrinthLogCache: "Kiste fundet: {coins} mønter venter i skatten."
   labyrinthLogHealing: Kilden giver et hjerte tilbage.
   labyrinthLogHealingFull: Kilden gemmes, til du mangler et hjerte.
   labyrinthLogReveal: Obelisken lyser en del af kortet op.
@@ -287,17 +287,37 @@ text:
   labyrinthLogGuardianEncounter: Den sidste vogter vågner.
   labyrinthLogMonsterEncounter: En vogter kommer frem.
   labyrinthLogCorrect: Rigtigt svar! Vejen åbner.
-  labyrinthLogWrong: 'Forkert svar: du mister {hearts} hjerter.'
-  labyrinthLogRuneCollected: 'Rune fundet: {focus}.'
+  labyrinthLogWrong: "Forkert svar: du mister {hearts} hjerter."
+  labyrinthLogRuneCollected: "Rune fundet: {focus}."
   labyrinthLogTrapCleared: Fælden er klaret.
   labyrinthLogMonsterCleared: Vogteren er besejret.
   labyrinthLogGuardianDefeated: Den sidste vogter falder, og skatten er fri.
   labyrinthRunCoins: +{coins} fundne mønter
   labyrinthBonusCoins: Skatten indeholder også {coins} mønter!
-  labyrinthBonusItem: 'Du fandt: {item}!'
+  labyrinthBonusItem: "Du fandt: {item}!"
   labyrinthNoBonus: Den vigtigste belønning er det, du har lært.
   labyrinthContinue: Fortsæt eventyret
   labyrinthDoorNeeds: Sten, som døren kræver
   labyrinthRunInProgress: En ekspedition er allerede i gang
   labyrinthDoorLockedTitle: Døren er låst
   labyrinthDoorLockedBody: Gennemfør de viste træninger for at få de manglende sten.
+  parentProgress: Fremskridt for voksne
+  parentArea: Voksenområde
+  progressIntro: Et overblik over det materiale, barnet har mødt. Det er støtte til samtale og ikke en karakter.
+  progressLetters: Bogstaver
+  progressWords: Ord
+  progressReading: Læsning
+  progressMath: Matematik
+  currentChapterActivity: Træninger i dette kapitel
+  suggestedReview: Forslag til kort repetition
+  noUrgentReview: Der er ingen tydelige svage områder lige nu.
+  progressNotGrade: Mestring beregnes ud fra gentagne svar. Læs gerne sammen og brug visningen som inspiration.
+  sentenceGuardian: Sætningsvogteren
+  lakeFrog: Søfrøen
+  aaKeeper: Å-vogteren
+  messageMage: Beskedmagikeren
+  storyOwl: Historieuglen
+  twentyDragon: Tyve-dragen
+  gardenTroll: Havetrolden
+  inkWizard: Blækmagikeren
+  bookDragon: Bogdragen

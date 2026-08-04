@@ -17,6 +17,7 @@ export function loadModularPack(packDir) {
   const letters = parseJsonl(readOptional(join(packDir, files.letters || "dictionary/letters.jsonl"))).map((item) => normalizeLetter(item, sourceLanguage));
   const grammarItems = parseJsonl(readOptional(join(packDir, files.sentences || "dictionary/sentences.jsonl"))).map((item) => normalizeGrammar(item, sourceLanguage));
   const mathProblems = parseJsonl(readOptional(join(packDir, files.math_problems || "curriculum/math-problems.jsonl"))).map(normalizeMathProblem);
+  const readingProblems = parseJsonl(readOptional(join(packDir, files.reading_problems || "curriculum/reading-problems.jsonl"))).map(normalizeReadingProblem);
   return {
     pack_id: meta.pack_id,
     version: meta.version,
@@ -35,6 +36,7 @@ export function loadModularPack(packDir) {
     letters,
     grammar_items: grammarItems,
     math_problems: mathProblems,
+    reading_problems: readingProblems,
     story: storyDoc,
     ui_text: uiDoc.text || {},
     controlled_tags: tagsDoc.controlled_tags || [],
@@ -188,6 +190,10 @@ function normalizeLetter(letter, sourceLanguage) {
 
 function normalizeMathProblem(problem) {
   return { ...problem, operands: Array.isArray(problem.operands) ? problem.operands.map(Number) : undefined, result: Number(problem.result), tags: Array.isArray(problem.tags) ? problem.tags : [], review_status: problem.review_status || "draft" };
+}
+
+function normalizeReadingProblem(problem) {
+  return { ...problem, options: Array.isArray(problem.options) ? problem.options.map(String) : undefined, words: Array.isArray(problem.words) ? problem.words.map(String) : undefined, audio: Array.isArray(problem.audio) ? problem.audio : [], tags: Array.isArray(problem.tags) ? problem.tags : [], review_status: problem.review_status || "draft" };
 }
 
 function normalizeGrammar(grammar, sourceLanguage) {

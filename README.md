@@ -334,15 +334,17 @@ npm run assets:generate-realistic
 
 For hand-edited art, edit files under `asset-packs/cc0-pixel-v10/` and then run `npm run assets:sync` only.
 
-## Danish Foundations Phase A
+## Danish Foundations — Phases C and D
 
-This monorepo now includes a separate Danish early-literacy and mathematics prototype:
+This monorepo includes a separate Danish early-literacy and mathematics application:
 
 ```text
 apps/danish-foundations/
 packages/foundations-engine/
 content-packs/da-foundations/
 ```
+
+The current Danish course contains 14 chapters, 25 introductory graphemes, 127 words, 75 reading tasks, and 196 mathematics tasks through numbers and operations to 20. It also includes narrated pre-reader instructions, three labyrinth bands, scalable enemies, offline support, and a parent progress summary.
 
 Run it locally with:
 
@@ -352,10 +354,10 @@ npm run check:danish
 npm run dev:danish
 ```
 
-The development server uses `http://localhost:5174`. Build the GitHub Pages version with:
+Open `http://127.0.0.1:5174/`. Build the GitHub Pages version with:
 
 ```bash
 GITHUB_PAGES=true GITHUB_PAGES_BASE=/danish-foundations/ npm run build:danish
 ```
 
-See `docs/DANISH_FOUNDATIONS_PHASE_A.md` for the prototype scope and limitations.
+See `docs/DANISH_FOUNDATIONS_PHASE_CD.md` and `docs/DANISH_AUDIO_GENERATION.md`.

@@ -1,6 +1,6 @@
 {
   "name": "hero-language-camp",
-  "version": "0.16.0-phase-b",
+  "version": "0.18.0-phase-d",
   "private": true,
   "type": "module",
   "description": "Open-source gamified learning prototype for low-resource and community languages.",
@@ -56,7 +56,8 @@
     "check:danish": "npm run validate:danish && npm run validate:danish:curriculum && npm --workspace @hero-lang/foundations-engine run typecheck && npm --workspace @hero-lang/danish-foundations run typecheck",
     "validate:danish:curriculum": "node tools/validate-danish-foundations.mjs content-packs/da-foundations",
     "content:audio:danish:plan": "node tools/generate-danish-audio.mjs content-packs/da-foundations --plan",
-    "content:audio:danish": "node tools/generate-danish-audio.mjs content-packs/da-foundations"
+    "content:audio:danish": "node tools/generate-danish-audio.mjs content-packs/da-foundations",
+    "content:expand:danish": "python3 tools/expand-danish-phase-cd.py"
   },
   "engines": {
     "node": ">=20.19.0",

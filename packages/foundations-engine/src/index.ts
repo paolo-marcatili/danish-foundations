@@ -2,6 +2,7 @@ import type {
   ActivityType,
   AudioReference,
   FoundationsMathProblem,
+  FoundationsReadingProblem,
   GrammarItem,
   LanguagePack,
   LearningItem,
@@ -64,7 +65,7 @@ const FOCUS_STAT: Record<TrainingFocus, HeroStatKey> = {
   pronunciation: "stamina"
 };
 
-const NUMBER_WORDS = ["nul", "en", "to", "tre", "fire", "fem", "seks", "syv", "otte", "ni", "ti"] as const;
+const NUMBER_WORDS = ["nul", "en", "to", "tre", "fire", "fem", "seks", "syv", "otte", "ni", "ti", "elleve", "tolv", "tretten", "fjorten", "femten", "seksten", "sytten", "atten", "nitten", "tyve"] as const;
 
 export function hasEligibleQuestion(
   pack: LanguagePack,
@@ -72,10 +73,10 @@ export function hasEligibleQuestion(
   selection: QuestionSelectionOptions = {}
 ): boolean {
   if (focus === "vocabulary") return filterLetters(pack.letters ?? [], selection).length >= 2;
-  if (focus === "comprehension") return filterItems(pack.items, selection).length >= 1;
+  if (focus === "comprehension") return filterItems(pack.items, selection).length >= 1 || filterReadingProblems(pack.reading_problems ?? [], selection).length >= 1;
   const domains = focus === "grammar"
     ? new Set(["counting", "number_match", "number_order", "comparison"])
-    : new Set(["addition", "subtraction"]);
+    : new Set(["addition", "subtraction", "number_bond", "story_problem"]);
   return filterMathProblems(pack.math_problems ?? [], selection).some((problem) => domains.has(problem.domain));
 }
 
@@ -182,14 +183,28 @@ function getReadingQuestion(
   selection: QuestionSelectionOptions
 ): TrainingQuestion {
   const items = filterItems(pack.items, selection);
-  if (items.length === 0) throw new Error("No Danish reading words are available.");
+  const readingProblems = filterReadingProblems(pack.reading_problems ?? [], selection);
+  const stage = selection.stage ?? 0;
+  const readingProblemChance = stage >= 10 ? 0.72 : stage >= 5 ? 0.58 : 0;
+
+  if (readingProblems.length > 0 && (items.length === 0 || Math.random() < readingProblemChance)) {
+    const problem = chooseCurriculumValue(
+      readingProblems,
+      selection,
+      (entry) => entry.tags,
+      (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0
+    );
+    return readingProblemQuestion(problem, language);
+  }
+
+  if (items.length === 0) throw new Error("No Danish reading material is available.");
   const item = chooseCurriculumValue(
     items,
     selection,
     (entry) => entry.tags,
     (entry) => state.mastery_by_item[entry.id]?.mastery ?? 0
   );
-  const buildWord = Math.random() < 0.48 && (item.graphemes?.length ?? 0) >= 2;
+  const buildWord = Math.random() < (stage >= 10 ? 0.62 : 0.48) && (item.graphemes?.length ?? 0) >= 2;
 
   if (buildWord) {
     const correctLetters = item.graphemes ?? [...item.target];
@@ -253,6 +268,91 @@ function getReadingQuestion(
   };
 }
 
+function readingProblemQuestion(problem: FoundationsReadingProblem, language: string): TrainingQuestion {
+  const grammar = readingProblemToGrammar(problem, language);
+  const instruction = getLocalizedText(problem.prompt, language, "Læs og vælg det rigtige svar.");
+  const fallbackOptions = problem.options?.length ? problem.options : [problem.answer];
+  let prompt = problem.text;
+  let promptHint = instruction;
+  let options: AnswerOption[] = shuffle([...new Set([problem.answer, ...fallbackOptions])]).map((value) => ({ id: optionId(value), label: value }));
+  let activity: ActivityType = "select_target";
+  let variant: QuestionVariant = "target_to_base";
+  let correctOptionId = optionId(problem.answer);
+  let expectedAnswerLength: number | undefined;
+  let autoPlayTarget = false;
+  let targetAudioText = problem.text;
+
+  if (problem.domain === "sentence_picture") {
+    activity = "image_match";
+    variant = "target_to_visual";
+    promptHint = "Læs sætningen. Tryk på højttaleren, hvis du vil have hjælp.";
+  } else if (problem.domain === "sentence_order") {
+    activity = "sentence_order";
+    variant = "sentence_tap_order";
+    const correctWords = problem.words?.length ? problem.words : problem.answer.replace(/[.!?]$/u, "").split(/\s+/);
+    const decoyPool = ["og", "ikke", "er", "har", "på", "med"].filter((word) => !correctWords.includes(word));
+    options = shuffle([
+      ...correctWords.map((label, index) => ({ id: `${problem.id}-${index}`, label })),
+      ...shuffle(decoyPool).slice(0, correctWords.length >= 5 ? 2 : 1).map((label, index) => ({ id: `${problem.id}-decoy-${index}`, label, is_hard_distractor: true }))
+    ]);
+    correctOptionId = correctWords.join(" ");
+    expectedAnswerLength = correctWords.length;
+    prompt = problem.image ?? "🧩";
+    promptHint = "Byg sætningen, du hører.";
+    autoPlayTarget = true;
+    targetAudioText = problem.answer;
+  } else if (problem.domain === "missing_letter") {
+    prompt = `${problem.image ?? "✏️"}   ${problem.text}`;
+    promptHint = "Vælg det bogstav, der mangler.";
+    targetAudioText = problem.text.replace("_", problem.answer);
+  } else if (problem.domain === "missing_word") {
+    promptHint = "Vælg det ord, der passer i den tomme plads.";
+  } else if (problem.domain === "mini_story") {
+    activity = "select_translation";
+    variant = "base_to_target";
+    promptHint = "Læs historien. Tryk på højttaleren, hvis du vil høre den som hjælp.";
+    autoPlayTarget = false;
+    targetAudioText = problem.text;
+  }
+
+  return {
+    id: `foundations:reading:${problem.id}:${Date.now()}`,
+    kind: "grammar",
+    activity_type: activity,
+    skill: "comprehension",
+    stat: FOCUS_STAT.comprehension,
+    variant,
+    grammar,
+    prompt,
+    prompt_hint: promptHint,
+    options,
+    correct_option_id: correctOptionId,
+    correct_answer_label: problem.answer,
+    expected_answer_length: expectedAnswerLength,
+    answer_explanation: { target: problem.answer, translation: problem.domain === "mini_story" ? instruction : problem.text.replace("___", problem.answer).replace("_", problem.answer) },
+    ...narratedQuestion(problem.domain === "mini_story" ? `Læs den lille historie. ${instruction}` : instruction),
+    auto_play_target_audio: autoPlayTarget,
+    allow_target_audio_before_answer: problem.domain !== "missing_word",
+    target_audio_text: targetAudioText,
+    target_audio_lang: "da-DK",
+    audio: problem.audio?.length ? problem.audio : browserSpeech(targetAudioText, `reading-${problem.id}`)
+  };
+}
+
+function readingProblemToGrammar(problem: FoundationsReadingProblem, language: string): GrammarItem {
+  return {
+    id: problem.id,
+    prompt: problem.prompt,
+    target_sentence: problem.answer,
+    translation: getLocalizedText(problem.prompt, language, problem.text),
+    translations: problem.prompt,
+    distractors: (problem.options ?? []).filter((value) => value !== problem.answer),
+    tags: problem.tags,
+    audio: problem.audio ?? [],
+    review_status: problem.review_status
+  };
+}
+
 function getNumberQuestion(
   pack: LanguagePack,
   state: LearnerState,
@@ -278,7 +378,7 @@ function getOperationQuestion(
   selection: QuestionSelectionOptions
 ): TrainingQuestion {
   const candidates = filterMathProblems(pack.math_problems ?? [], selection)
-    .filter((problem) => problem.domain === "addition" || problem.domain === "subtraction");
+    .filter((problem) => ["addition", "subtraction", "number_bond", "story_problem"].includes(problem.domain));
   if (candidates.length === 0) throw new Error("No arithmetic problems are available.");
   const problem = chooseCurriculumValue(
     candidates,
@@ -333,6 +433,25 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
     correctAnswerLabel = answer === "left" ? "Flest til venstre" : answer === "right" ? "Flest til højre" : "Lige mange";
     explanationTarget = `${left} ${comparisonSymbol(result)} ${right}`;
     answerAudioText = answer === "left" ? "Der er flest til venstre." : answer === "right" ? "Der er flest til højre." : "Der er lige mange.";
+  } else if (problem.domain === "number_bond") {
+    const [known = 0] = problem.operands ?? [];
+    const whole = problem.whole ?? known + result;
+    prompt = `${known}  +  ?  =  ${whole}`;
+    promptHint = "Find den manglende talven.";
+    explanationTarget = `${known} + ${result} = ${whole}`;
+    answerAudioText = `${numberWord(known)} og ${numberWord(result)} bliver ${numberWord(whole)}.`;
+  } else if (problem.domain === "story_problem") {
+    const [left = 0, right = 0] = problem.operands ?? [];
+    const operation = problem.operation ?? (left - right === result ? "subtraction" : "addition");
+    const sign = operation === "addition" ? "+" : "−";
+    prompt = `${instruction}\n${makeObjects(object, left)} ${sign} ${makeObjects(object, right)}`;
+    promptHint = "Find de vigtige tal, og vælg svaret.";
+    activity = "visual_match";
+    variant = "target_to_visual";
+    explanationTarget = `${left} ${sign} ${right} = ${result}`;
+    answerAudioText = operation === "addition"
+      ? `${numberWord(left)} plus ${numberWord(right)} er ${numberWord(result)}.`
+      : `${numberWord(left)} minus ${numberWord(right)} er ${numberWord(result)}.`;
   } else {
     const [left = 0, right = 0] = problem.operands ?? [];
     const sign = problem.domain === "addition" ? "+" : "−";
@@ -379,9 +498,13 @@ function mathProblemToGrammar(problem: FoundationsMathProblem, language: string)
     ? `${left} + ${right} = ${problem.result}`
     : problem.domain === "subtraction"
       ? `${left} − ${right} = ${problem.result}`
-      : problem.domain === "comparison"
-        ? `${left} ${comparisonSymbol(problem.result)} ${right}`
-        : String(problem.result);
+      : problem.domain === "number_bond"
+        ? `${left} + ${problem.result} = ${problem.whole ?? Number(left) + problem.result}`
+        : problem.domain === "story_problem"
+          ? `${left} ${problem.operation === "subtraction" ? "−" : "+"} ${right} = ${problem.result}`
+          : problem.domain === "comparison"
+            ? `${left} ${comparisonSymbol(problem.result)} ${right}`
+            : String(problem.result);
   return {
     id: problem.id,
     prompt: problem.prompt,
@@ -426,6 +549,10 @@ function filterItems(items: LearningItem[], selection: QuestionSelectionOptions)
 }
 
 function filterMathProblems(problems: FoundationsMathProblem[], selection: QuestionSelectionOptions): FoundationsMathProblem[] {
+  return problems.filter((problem) => matchesStage(problem.tags, selection.stage));
+}
+
+function filterReadingProblems(problems: FoundationsReadingProblem[], selection: QuestionSelectionOptions): FoundationsReadingProblem[] {
   return problems.filter((problem) => matchesStage(problem.tags, selection.stage));
 }
 
