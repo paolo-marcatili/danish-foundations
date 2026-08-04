@@ -1,13 +1,17 @@
-Danish Foundations workspace resolution fix
+Danish Foundations Phase E.1 - no answer gating
 
-The Phase C+D archive accidentally set packages/foundations-engine to version 0.18.0,
-while apps/danish-foundations depends on version 0.2.0. npm therefore attempted to
-fetch a private package from npmjs.org.
+Changes:
+- Narration starts automatically but never disables answer controls.
+- Visual and auditory questions can be answered immediately.
+- The replay button remains optional.
+- The fight speed-bonus timer may still wait for initial audio; correctness never does.
 
 Apply from the repository root:
 
-  unzip -o ~/Downloads/danish-foundations-phase-cd-workspace-fix.zip -d .
-  npm install
+  unzip -o ~/Downloads/danish-foundations-phase-e1-no-answer-gating.zip -d .
   npm run check:danish
-
-The corrected local package version is 0.2.0, matching the workspace dependency.
+  GITHUB_PAGES=true GITHUB_PAGES_BASE=/danish-foundations/ npm run build:danish
+  git add apps/web/src/components/QuestionCard.tsx apps/danish-foundations/src/App.tsx
+  git commit -m "Allow answers during Danish narration"
+  git push origin main
+  git push danish main
