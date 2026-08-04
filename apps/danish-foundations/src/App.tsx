@@ -306,8 +306,8 @@ export default function App() {
   useEffect(() => {
     resetLearningAudioState();
     if (!currentQuestion || !audioOn) return;
-    // The shared QuestionCard owns narrated Danish tasks so it can keep answers
-    // disabled until the complete instruction/target sequence has finished.
+    // The shared QuestionCard owns narrated Danish tasks. Narration starts
+    // automatically, but it never blocks the child from answering.
     if (currentQuestion.auto_narrate) return () => resetLearningAudioState();
     if (currentQuestion.activity_type === "listen_and_choose" || currentQuestion.activity_type === "repeat_after_me") {
       const handle = window.setTimeout(() => {

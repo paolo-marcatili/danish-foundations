@@ -67,7 +67,9 @@ export function QuestionCard({
   const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
   const tapOrderReady = selectedChips.length === expectedAnswerLength;
   const waitingForNarration = Boolean(question.requires_audio_before_answer) && !audioStarted;
-  const answerDisabled = disabled || waitingForNarration;
+  // Narration is guidance, never a gate. A child may answer as soon as the
+  // question appears, even while audio is playing or if playback fails.
+  const answerDisabled = disabled;
 
   useEffect(() => {
     instructionPlaybackSerial.current += 1;
