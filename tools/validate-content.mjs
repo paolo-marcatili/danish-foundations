@@ -110,9 +110,11 @@ function validateLanguagePack(value) {
     for (const field of ["id", "domain", "review_status"]) requireString(problem, `${path}.${field}`, errors, field);
     if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
     mathIds.add(problem.id);
-    if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction", "number_bond", "story_problem"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
+    if (!["counting", "number_match", "number_order", "comparison", "addition", "subtraction", "number_bond", "story_problem", "shape", "pattern", "sorting", "measurement"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
     if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
     if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
+    if (problem.options !== undefined && (!Array.isArray(problem.options) || problem.options.some((entry) => typeof entry !== "string" || !entry.trim()))) errors.push(`${path}.options must contain non-empty strings.`);
+    if (["shape", "pattern", "sorting", "measurement"].includes(problem.domain) && (!problem.answer || !problem.options?.includes(problem.answer))) errors.push(`${path}.answer must be included in options.`);
     if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
     else for (const tag of problem.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`${path} uses uncontrolled tag: ${tag}`);
   }
@@ -124,11 +126,22 @@ function validateLanguagePack(value) {
     for (const field of ["id", "domain", "text", "answer", "review_status"]) requireString(problem, `${path}.${field}`, errors, field);
     if (readingIds.has(problem.id)) errors.push(`Duplicate reading problem id: ${problem.id}`);
     readingIds.add(problem.id);
-    if (!["sentence_picture", "sentence_order", "missing_word", "missing_letter", "mini_story"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
+    if (!["sentence_picture", "sentence_order", "missing_word", "missing_letter", "mini_story", "initial_sound", "final_sound", "rhyme", "syllable_count"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
     if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
     if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
     else { for (const tag of problem.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`${path} uses uncontrolled tag: ${tag}`); validateCurriculumTags(problem, path, errors); }
     if (problem.options !== undefined && (!Array.isArray(problem.options) || problem.options.some((entry) => typeof entry !== "string" || !entry.trim()))) errors.push(`${path}.options must contain non-empty strings.`);
+  }
+
+  const instructionIds = new Set();
+  for (const [index, instruction] of (value.foundations_instructions ?? []).entries()) {
+    const path = `foundations_instructions[${index}]`;
+    if (!isObject(instruction)) { errors.push(`${path} must be an object.`); continue; }
+    for (const field of ["id", "review_status"]) requireString(instruction, `${path}.${field}`, errors, field);
+    if (instructionIds.has(instruction.id)) errors.push(`Duplicate foundations instruction id: ${instruction.id}`);
+    instructionIds.add(instruction.id);
+    if (!isObject(instruction.text)) errors.push(`${path}.text must be localized text.`);
+    if (!Array.isArray(instruction.tags)) errors.push(`${path}.tags must be an array.`);
   }
 
   for (const [index, level] of (value.levels ?? []).entries()) {

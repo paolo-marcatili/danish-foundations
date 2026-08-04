@@ -52,6 +52,8 @@ export function QuestionCard({
   const showInstructionAudioButton = Boolean(question.instruction_audio_text || question.instruction_audio?.length);
   const showTargetAudioButton = question.allow_target_audio_before_answer !== false
     && (question.activity_type === "listen_and_choose" || Boolean(question.audio?.length) || Boolean(question.target_audio_text));
+  const useSingleAudioControl = Boolean(question.single_audio_control);
+  const showSingleReplayButton = useSingleAudioControl && (showInstructionAudioButton || showTargetAudioButton || Boolean(question.secondary_audio?.length));
   const isTapOrder = question.variant === "sentence_tap_order";
   const [selectedChips, setSelectedChips] = useState<AnswerOption[]>([]);
   const [audioStarted, setAudioStarted] = useState(false);
@@ -80,7 +82,7 @@ export function QuestionCard({
 
     if (!question.auto_narrate) return;
     const handle = window.setTimeout(() => {
-      void playInstructionAudio();
+      void playInstructionAudio(false);
     }, 120);
     return () => window.clearTimeout(handle);
   }, [question.id]);
@@ -110,7 +112,7 @@ export function QuestionCard({
   }
 
 
-  async function playInstructionAudio() {
+  async function playInstructionAudio(isReplay = false) {
     if (instructionAudioPlaying) return;
     void unlockAudio();
     const serial = ++instructionPlaybackSerial.current;
@@ -129,7 +131,7 @@ export function QuestionCard({
           question.instruction_audio_lang ?? question.target_audio_lang ?? "da-DK"
         );
       }
-      if (question.auto_play_target_audio) {
+      if (question.auto_play_target_audio || (isReplay && question.replay_target_audio)) {
         targetPlayed = await playLearningAudio(
           question.audio,
           question.target_audio_text,
@@ -204,10 +206,21 @@ export function QuestionCard({
         />
       ) : null}
 
-      {showInstructionAudioButton || showTargetAudioButton || question.secondary_audio?.length ? (
+      {showSingleReplayButton ? (
+        <div className="question-audio-actions question-audio-actions-single">
+          <button
+            type="button"
+            className="audio-button instruction-audio-button"
+            disabled={instructionAudioPlaying || audioPlaying}
+            onClick={() => void playInstructionAudio(true)}
+          >
+            🔊 {t(language, "listenAgain")}
+          </button>
+        </div>
+      ) : showInstructionAudioButton || showTargetAudioButton || question.secondary_audio?.length ? (
         <div className="question-audio-actions">
           {showInstructionAudioButton ? (
-            <button type="button" className="audio-button instruction-audio-button" disabled={instructionAudioPlaying} onClick={() => void playInstructionAudio()}>
+            <button type="button" className="audio-button instruction-audio-button" disabled={instructionAudioPlaying} onClick={() => void playInstructionAudio(true)}>
               🔊 {t(language, "playInstruction")}
             </button>
           ) : null}
@@ -229,7 +242,7 @@ export function QuestionCard({
           ) : null}
         </div>
       ) : null}
-      {waitingForNarration ? <p className="audio-required-hint">🔊 {t(language, "listenBeforeAnswer")}</p> : null}
+      {waitingForNarration ? <p className="audio-required-hint">🔊 {t(language, "narrationPlaying")}</p> : null}
       {narrationFailed ? <p className="audio-required-hint audio-retry-hint">{t(language, "narrationRetryHint")}</p> : null}
 
       <div className={question.kind === "letter" ? "prompt letter-prompt" : "prompt"} lang={targetLanguage}>

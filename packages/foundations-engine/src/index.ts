@@ -75,7 +75,7 @@ export function hasEligibleQuestion(
   if (focus === "vocabulary") return filterLetters(pack.letters ?? [], selection).length >= 2;
   if (focus === "comprehension") return filterItems(pack.items, selection).length >= 1 || filterReadingProblems(pack.reading_problems ?? [], selection).length >= 1;
   const domains = focus === "grammar"
-    ? new Set(["counting", "number_match", "number_order", "comparison"])
+    ? new Set(["counting", "number_match", "number_order", "comparison", "shape", "pattern", "sorting", "measurement"])
     : new Set(["addition", "subtraction", "number_bond", "story_problem"]);
   return filterMathProblems(pack.math_problems ?? [], selection).some((problem) => domains.has(problem.domain));
 }
@@ -117,7 +117,7 @@ function getLetterQuestion(
 
   if (useInitialSound) {
     const exampleWord = example?.target ?? letter.example_word ?? lowercase;
-    const instruction = `Lyt til ordet ${exampleWord}. Hvilket bogstav hører du først?`;
+    const instruction = "Lyt til ordet. Hvilket bogstav hører du først?";
     const options = makeLetterOptions(letter, letters, (entry) => entry.lowercase ?? entry.character);
     return {
       id: `foundations:letter-sound:${letter.id}:${Date.now()}`,
@@ -136,18 +136,15 @@ function getLetterQuestion(
         target: `${uppercase} ${lowercase}`,
         translation: `Ordet ${exampleWord} begynder med ${lowercase}. Bogstavet hedder ${letterName}.`
       },
-      ...narratedQuestion(instruction),
+      ...narratedQuestion(pack, "instruction_letter_initial", instruction, { requireTarget: true }),
       auto_play_target_audio: true,
       target_audio_text: exampleWord,
       target_audio_lang: "da-DK",
-      audio: example?.audio?.length ? example.audio : browserSpeech(exampleWord, `example-${letter.id}`),
-      secondary_audio: letter.audio?.length ? letter.audio : browserSpeech(letterName, `name-${letter.id}`),
-      secondary_audio_text: letterName,
-      secondary_audio_label_key: "playLetterName"
+      audio: example?.audio?.length ? example.audio : browserSpeech(exampleWord, `example-${letter.id}`)
     };
   }
 
-  const instruction = `Find det lille bogstav, der passer til det store bogstav ${letterName}.`;
+  const instruction = "Find det lille bogstav, der passer.";
   const options = makeLetterOptions(letter, letters, (entry) => entry.lowercase ?? entry.character);
   return {
     id: `foundations:letter-case:${letter.id}:${Date.now()}`,
@@ -166,13 +163,10 @@ function getLetterQuestion(
       target: `${uppercase} ${lowercase}`,
       translation: `Det store ${uppercase} og det lille ${lowercase} er det samme bogstav.`
     },
-    ...narratedQuestion(instruction),
+    ...narratedQuestion(pack, "instruction_letter_case", instruction),
     target_audio_text: letterName,
     target_audio_lang: "da-DK",
-    audio: letter.audio?.length ? letter.audio : browserSpeech(letterName, `name-${letter.id}`),
-    secondary_audio: example?.audio,
-    secondary_audio_text: example?.target,
-    secondary_audio_label_key: "playExampleWord"
+    audio: letter.audio?.length ? letter.audio : browserSpeech(letterName, `name-${letter.id}`)
   };
 }
 
@@ -194,7 +188,7 @@ function getReadingQuestion(
       (entry) => entry.tags,
       (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0
     );
-    return readingProblemQuestion(problem, language);
+    return readingProblemQuestion(pack, problem, language);
   }
 
   if (items.length === 0) throw new Error("No Danish reading material is available.");
@@ -232,7 +226,7 @@ function getReadingQuestion(
         target: item.target,
         translation: getLocalizedText(item.translations, language, item.translation)
       },
-      ...narratedQuestion("Byg ordet, du hører."),
+      ...narratedQuestion(pack, "instruction_build_word", "Byg ordet, du hører.", { requireTarget: true }),
       auto_play_target_audio: true,
       target_audio_text: item.target,
       target_audio_lang: "da-DK",
@@ -261,14 +255,14 @@ function getReadingQuestion(
       target: item.target,
       translation: getLocalizedText(item.translations, language, item.translation)
     },
-    ...narratedQuestion("Se på billedet. Hvilket ord passer?"),
+    ...narratedQuestion(pack, "instruction_picture_word", "Se på billedet. Hvilket ord passer?"),
     target_audio_text: item.target,
     target_audio_lang: "da-DK",
     audio: item.audio?.length ? item.audio : browserSpeech(item.target, `word-${item.id}`)
   };
 }
 
-function readingProblemQuestion(problem: FoundationsReadingProblem, language: string): TrainingQuestion {
+function readingProblemQuestion(pack: LanguagePack, problem: FoundationsReadingProblem, language: string): TrainingQuestion {
   const grammar = readingProblemToGrammar(problem, language);
   const instruction = getLocalizedText(problem.prompt, language, "Læs og vælg det rigtige svar.");
   const fallbackOptions = problem.options?.length ? problem.options : [problem.answer];
@@ -280,12 +274,17 @@ function readingProblemQuestion(problem: FoundationsReadingProblem, language: st
   let correctOptionId = optionId(problem.answer);
   let expectedAnswerLength: number | undefined;
   let autoPlayTarget = false;
+  let replayTarget = false;
+  let requiresTarget = false;
   let targetAudioText = problem.text;
+  let instructionId = problem.instruction_id;
 
   if (problem.domain === "sentence_picture") {
     activity = "image_match";
     variant = "target_to_visual";
-    promptHint = "Læs sætningen. Tryk på højttaleren, hvis du vil have hjælp.";
+    instructionId ??= "instruction_sentence_picture";
+    promptHint = "Læs sætningen. Hør den kun som hjælp.";
+    replayTarget = true;
   } else if (problem.domain === "sentence_order") {
     activity = "sentence_order";
     variant = "sentence_tap_order";
@@ -299,20 +298,50 @@ function readingProblemQuestion(problem: FoundationsReadingProblem, language: st
     expectedAnswerLength = correctWords.length;
     prompt = problem.image ?? "🧩";
     promptHint = "Byg sætningen, du hører.";
+    instructionId ??= "instruction_sentence_order";
     autoPlayTarget = true;
+    requiresTarget = true;
     targetAudioText = problem.answer;
   } else if (problem.domain === "missing_letter") {
     prompt = `${problem.image ?? "✏️"}   ${problem.text}`;
     promptHint = "Vælg det bogstav, der mangler.";
+    instructionId ??= "instruction_missing_letter";
     targetAudioText = problem.text.replace("_", problem.answer);
   } else if (problem.domain === "missing_word") {
     promptHint = "Vælg det ord, der passer i den tomme plads.";
+    instructionId ??= "instruction_missing_word";
   } else if (problem.domain === "mini_story") {
     activity = "select_translation";
     variant = "base_to_target";
-    promptHint = "Læs historien. Tryk på højttaleren, hvis du vil høre den som hjælp.";
+    promptHint = "Læs historien. Hør den kun som hjælp.";
+    instructionId ??= "instruction_read_story";
     autoPlayTarget = false;
+    replayTarget = true;
     targetAudioText = problem.text;
+  } else if (problem.domain === "initial_sound" || problem.domain === "final_sound") {
+    activity = "listen_and_choose";
+    variant = "letter_sound";
+    prompt = problem.image ?? "👂";
+    promptHint = problem.domain === "initial_sound" ? "Find den første lyd." : "Find den sidste lyd.";
+    instructionId ??= problem.domain === "initial_sound" ? "instruction_letter_initial" : "instruction_letter_final";
+    autoPlayTarget = true;
+    requiresTarget = true;
+  } else if (problem.domain === "rhyme") {
+    activity = "listen_and_choose";
+    variant = "audio_to_base";
+    prompt = problem.image ?? "🎵";
+    promptHint = "Vælg det ord, der rimer.";
+    instructionId ??= "instruction_rhyme";
+    autoPlayTarget = true;
+    requiresTarget = true;
+  } else if (problem.domain === "syllable_count") {
+    activity = "listen_and_choose";
+    variant = "audio_to_base";
+    prompt = problem.image ?? "👏";
+    promptHint = "Klap ordet, og vælg antallet af stavelser.";
+    instructionId ??= "instruction_syllables";
+    autoPlayTarget = true;
+    requiresTarget = true;
   }
 
   return {
@@ -329,10 +358,16 @@ function readingProblemQuestion(problem: FoundationsReadingProblem, language: st
     correct_option_id: correctOptionId,
     correct_answer_label: problem.answer,
     expected_answer_length: expectedAnswerLength,
-    answer_explanation: { target: problem.answer, translation: problem.domain === "mini_story" ? instruction : problem.text.replace("___", problem.answer).replace("_", problem.answer) },
-    ...narratedQuestion(problem.domain === "mini_story" ? `Læs den lille historie. ${instruction}` : instruction),
+    answer_explanation: {
+      target: problem.domain === "initial_sound" || problem.domain === "final_sound" || problem.domain === "rhyme" || problem.domain === "syllable_count"
+        ? problem.text
+        : problem.answer,
+      translation: problem.domain === "mini_story" ? instruction : problem.text.replace("___", problem.answer).replace("_", problem.answer)
+    },
+    ...narratedQuestion(pack, instructionId, instruction, { audio: problem.prompt_audio, requireTarget: requiresTarget }),
     auto_play_target_audio: autoPlayTarget,
-    allow_target_audio_before_answer: problem.domain !== "missing_word",
+    replay_target_audio: replayTarget || autoPlayTarget,
+    allow_target_audio_before_answer: replayTarget || autoPlayTarget,
     target_audio_text: targetAudioText,
     target_audio_lang: "da-DK",
     audio: problem.audio?.length ? problem.audio : browserSpeech(targetAudioText, `reading-${problem.id}`)
@@ -360,7 +395,7 @@ function getNumberQuestion(
   selection: QuestionSelectionOptions
 ): TrainingQuestion {
   const candidates = filterMathProblems(pack.math_problems ?? [], selection)
-    .filter((problem) => ["counting", "number_match", "number_order", "comparison"].includes(problem.domain));
+    .filter((problem) => ["counting", "number_match", "number_order", "comparison", "shape", "pattern", "sorting", "measurement"].includes(problem.domain));
   if (candidates.length === 0) throw new Error("No counting problems are available.");
   const problem = chooseCurriculumValue(
     candidates,
@@ -368,7 +403,7 @@ function getNumberQuestion(
     (entry) => entry.tags,
     (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0
   );
-  return mathQuestion(problem, "grammar", language);
+  return mathQuestion(pack, problem, "grammar", language);
 }
 
 function getOperationQuestion(
@@ -386,10 +421,10 @@ function getOperationQuestion(
     (entry) => entry.tags,
     (entry) => state.mastery_by_grammar[entry.id]?.mastery ?? 0
   );
-  return mathQuestion(problem, "pronunciation", language);
+  return mathQuestion(pack, problem, "pronunciation", language);
 }
 
-function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, language: string): TrainingQuestion {
+function mathQuestion(pack: LanguagePack, problem: FoundationsMathProblem, focus: TrainingFocus, language: string): TrainingQuestion {
   const grammar = mathProblemToGrammar(problem, language);
   const result = problem.result;
   const object = problem.object ?? "●";
@@ -433,6 +468,20 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
     correctAnswerLabel = answer === "left" ? "Flest til venstre" : answer === "right" ? "Flest til højre" : "Lige mange";
     explanationTarget = `${left} ${comparisonSymbol(result)} ${right}`;
     answerAudioText = answer === "left" ? "Der er flest til venstre." : answer === "right" ? "Der er flest til højre." : "Der er lige mange.";
+  } else if (["shape", "pattern", "sorting", "measurement"].includes(problem.domain)) {
+    const answer = problem.answer ?? String(problem.result);
+    const choices = problem.options?.length ? problem.options : [answer];
+    prompt = problem.domain === "pattern"
+      ? (problem.sequence?.join("  ") ?? "🔴  🔵  🔴  🔵  ?")
+      : problem.object ?? (problem.sequence?.join("  ") ?? "👀");
+    promptHint = instruction;
+    options = shuffle([...new Set([answer, ...choices])]).map((value) => ({ id: optionId(value), label: value }));
+    correctOptionId = optionId(answer);
+    correctAnswerLabel = answer;
+    explanationTarget = answer;
+    answerAudioText = "Se det rigtige svar på skærmen.";
+    activity = "visual_match";
+    variant = "target_to_visual";
   } else if (problem.domain === "number_bond") {
     const [known = 0] = problem.operands ?? [];
     const whole = problem.whole ?? known + result;
@@ -484,7 +533,7 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
       target: explanationTarget,
       translation: instruction
     },
-    ...narratedQuestion(instruction, problem.audio),
+    ...narratedQuestion(pack, problem.instruction_id, instruction, { audio: problem.audio }),
     allow_target_audio_before_answer: false,
     target_audio_text: answerAudioText,
     target_audio_lang: "da-DK",
@@ -494,6 +543,7 @@ function mathQuestion(problem: FoundationsMathProblem, focus: TrainingFocus, lan
 
 function mathProblemToGrammar(problem: FoundationsMathProblem, language: string): GrammarItem {
   const [left, right] = problem.operands ?? [];
+  const awarenessAnswer = problem.answer ?? String(problem.result);
   const equation = problem.domain === "addition"
     ? `${left} + ${right} = ${problem.result}`
     : problem.domain === "subtraction"
@@ -504,31 +554,51 @@ function mathProblemToGrammar(problem: FoundationsMathProblem, language: string)
           ? `${left} ${problem.operation === "subtraction" ? "−" : "+"} ${right} = ${problem.result}`
           : problem.domain === "comparison"
             ? `${left} ${comparisonSymbol(problem.result)} ${right}`
-            : String(problem.result);
+            : ["shape", "pattern", "sorting", "measurement"].includes(problem.domain)
+              ? awarenessAnswer
+              : String(problem.result);
+  const distractors = ["shape", "pattern", "sorting", "measurement"].includes(problem.domain)
+    ? (problem.options ?? []).filter((value) => value !== awarenessAnswer)
+    : numericOptions(problem.result, problem.number_range?.min ?? 0, problem.number_range?.max ?? 10)
+      .filter((value) => value !== problem.result)
+      .map(String);
   return {
     id: problem.id,
     prompt: problem.prompt,
     target_sentence: equation,
     translation: getLocalizedText(problem.prompt, language, equation),
     translations: problem.prompt,
-    distractors: numericOptions(problem.result, problem.number_range?.min ?? 0, problem.number_range?.max ?? 10)
-      .filter((value) => value !== problem.result)
-      .map(String),
+    distractors,
     tags: problem.tags,
     audio: problem.audio ?? [],
     review_status: problem.review_status
   };
 }
 
-function narratedQuestion(instruction: string, audio?: AudioReference[]): Pick<TrainingQuestion,
-  "instruction_audio_text" | "instruction_audio_lang" | "instruction_audio" | "auto_narrate" | "requires_audio_before_answer"
+function narratedQuestion(
+  pack: LanguagePack,
+  instructionId: string | undefined,
+  fallbackText: string,
+  options: { audio?: AudioReference[]; requireTarget?: boolean } = {}
+): Pick<TrainingQuestion,
+  "instruction_audio_text" | "instruction_audio_lang" | "instruction_audio" | "auto_narrate" | "single_audio_control" | "requires_audio_before_answer"
 > {
+  const stored = instructionId
+    ? pack.foundations_instructions?.find((instruction) => instruction.id === instructionId)
+    : undefined;
+  const instructionText = stored ? getLocalizedText(stored.text, "da", fallbackText) : fallbackText;
+  const audio = options.audio?.length
+    ? options.audio
+    : stored?.audio?.length
+      ? stored.audio
+      : browserSpeech(instructionText, `instruction-${instructionId ?? hashText(instructionText)}`);
   return {
-    instruction_audio_text: instruction,
+    instruction_audio_text: instructionText,
     instruction_audio_lang: "da-DK",
-    instruction_audio: audio?.length ? audio : browserSpeech(instruction, `instruction-${hashText(instruction)}`),
+    instruction_audio: audio,
     auto_narrate: true,
-    requires_audio_before_answer: true
+    single_audio_control: true,
+    requires_audio_before_answer: Boolean(options.requireTarget)
   };
 }
 

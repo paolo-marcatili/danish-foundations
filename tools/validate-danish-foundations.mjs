@@ -31,7 +31,7 @@ for (const required of [..."abcdefghijklmnopqrstuvy", "æ", "ø", "å"]) {
 if (lettersByCharacter.size < 25) errors.push("Phase D must contain at least 25 introduced graphemes.");
 
 const itemsById = new Map((pack.items ?? []).map((item) => [item.id, item]));
-if ((pack.items ?? []).length < 100) errors.push("Phase D should contain at least 100 reading words.");
+if ((pack.items ?? []).length < 180) errors.push("Phase E should contain at least 180 reading words.");
 for (const item of pack.items ?? []) {
   const itemStage = stageOf(item.tags);
   if (itemStage === undefined) errors.push(`${item.id}: missing controlled stage tag.`);
@@ -64,16 +64,17 @@ for (const problem of pack.reading_problems ?? []) {
   const stage = stageOf(problem.tags);
   if (stage === undefined) errors.push(`${problem.id}: missing controlled stage tag.`);
   if (!problem.text || !problem.answer || !problem.prompt?.da) errors.push(`${problem.id}: incomplete reading task.`);
-  if (["sentence_picture", "missing_word", "missing_letter", "mini_story"].includes(problem.domain)) {
+  if (["sentence_picture", "missing_word", "missing_letter", "mini_story", "initial_sound", "final_sound", "rhyme", "syllable_count"].includes(problem.domain)) {
     if (!Array.isArray(problem.options) || !problem.options.includes(problem.answer) || new Set(problem.options).size < 3) errors.push(`${problem.id}: needs at least three unique options including the answer.`);
   }
+  if (["initial_sound", "final_sound", "rhyme", "syllable_count"].includes(problem.domain) && !problem.instruction_id) errors.push(`${problem.id}: phonological-awareness tasks need a reusable instruction id.`);
   if (problem.domain === "sentence_order") {
     const words = problem.words ?? problem.answer.replace(/[.!?]$/u, "").split(/\s+/);
     if (words.length < 3) errors.push(`${problem.id}: sentence-order activity is too short.`);
   }
 }
-for (const required of ["sentence_picture", "sentence_order", "missing_word", "missing_letter", "mini_story"]) if (!readingDomains.has(required)) errors.push(`Missing reading domain: ${required}.`);
-if ((pack.reading_problems ?? []).length < 60) errors.push("Phase D should contain at least 60 structured reading tasks.");
+for (const required of ["sentence_picture", "sentence_order", "missing_word", "missing_letter", "mini_story", "initial_sound", "final_sound", "rhyme", "syllable_count"]) if (!readingDomains.has(required)) errors.push(`Missing reading domain: ${required}.`);
+if ((pack.reading_problems ?? []).length < 140) errors.push("Phase E should contain at least 140 structured reading tasks.");
 
 const mathIds = new Set();
 const mathDomains = new Set();
@@ -109,9 +110,20 @@ for (const problem of pack.math_problems ?? []) {
     const expected = problem.operation === "subtraction" ? left - right : left + right;
     if (!Number.isFinite(left) || !Number.isFinite(right) || expected !== problem.result || problem.result < 0) errors.push(`${problem.id}: story-problem operation does not match the result.`);
   }
+  if (["shape", "pattern", "sorting", "measurement"].includes(problem.domain)) {
+    if (!problem.answer || !Array.isArray(problem.options) || !problem.options.includes(problem.answer) || new Set(problem.options).size < 3) errors.push(`${problem.id}: awareness activity needs at least three unique visual options including the answer.`);
+    if (problem.domain === "pattern" && (!Array.isArray(problem.sequence) || problem.sequence.length < 4)) errors.push(`${problem.id}: pattern activity needs a visible sequence.`);
+  }
 }
-for (const required of ["counting", "number_match", "number_order", "comparison", "addition", "subtraction", "number_bond", "story_problem"]) if (!mathDomains.has(required)) errors.push(`Missing math domain: ${required}.`);
-if ((pack.math_problems ?? []).length < 150) errors.push("Phase D should contain at least 150 mathematics tasks.");
+for (const required of ["counting", "number_match", "number_order", "comparison", "addition", "subtraction", "number_bond", "story_problem", "shape", "pattern", "sorting", "measurement"]) if (!mathDomains.has(required)) errors.push(`Missing math domain: ${required}.`);
+if ((pack.math_problems ?? []).length < 240) errors.push("Phase E should contain at least 240 mathematics tasks.");
+
+const instructions = pack.foundations_instructions ?? [];
+if (instructions.length < 20) errors.push("Phase E should provide at least 20 reusable narrated instructions.");
+const instructionIds = new Set(instructions.map((entry) => entry.id));
+for (const problem of [...(pack.reading_problems ?? []), ...(pack.math_problems ?? [])]) {
+  if (problem.instruction_id && !instructionIds.has(problem.instruction_id)) errors.push(`${problem.id}: unknown instruction id ${problem.instruction_id}.`);
+}
 
 const levels = pack.levels ?? [];
 for (let expected = 0; expected <= 13; expected += 1) {
@@ -131,4 +143,4 @@ if (errors.length) {
   process.exit(1);
 }
 for (const warning of warnings) console.warn(`Warning: ${warning}`);
-console.log(`Danish foundations Phase C+D curriculum passed: ${lettersByCharacter.size} graphemes, ${pack.items.length} words, ${pack.reading_problems?.length ?? 0} reading tasks, ${pack.math_problems?.length ?? 0} math problems, ${levels.length} levels.`);
+console.log(`Danish foundations Phase E curriculum passed: ${lettersByCharacter.size} graphemes, ${pack.items.length} words, ${pack.reading_problems?.length ?? 0} reading tasks, ${pack.math_problems?.length ?? 0} math problems, ${instructions.length} reusable instructions, ${levels.length} levels.`);

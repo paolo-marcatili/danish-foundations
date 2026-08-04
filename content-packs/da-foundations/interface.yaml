@@ -108,6 +108,7 @@ text:
   questionAudio: Lyd
   playInstruction: Hør opgaven
   listenBeforeAnswer: Lyt til opgaven først.
+  narrationPlaying: Lytter...
   narrationRetryHint: Oplæsningen kunne ikke starte. Tryk på Hør opgaven igen.
   playLetterName: Hør bogstavets navn
   playExampleWord: Hør eksempelordet

@@ -18,6 +18,7 @@ export function loadModularPack(packDir) {
   const grammarItems = parseJsonl(readOptional(join(packDir, files.sentences || "dictionary/sentences.jsonl"))).map((item) => normalizeGrammar(item, sourceLanguage));
   const mathProblems = parseJsonl(readOptional(join(packDir, files.math_problems || "curriculum/math-problems.jsonl"))).map(normalizeMathProblem);
   const readingProblems = parseJsonl(readOptional(join(packDir, files.reading_problems || "curriculum/reading-problems.jsonl"))).map(normalizeReadingProblem);
+  const foundationsInstructions = parseJsonl(readOptional(join(packDir, files.instructions || "curriculum/instructions.jsonl"))).map(normalizeFoundationsInstruction);
   return {
     pack_id: meta.pack_id,
     version: meta.version,
@@ -37,6 +38,7 @@ export function loadModularPack(packDir) {
     grammar_items: grammarItems,
     math_problems: mathProblems,
     reading_problems: readingProblems,
+    foundations_instructions: foundationsInstructions,
     story: storyDoc,
     ui_text: uiDoc.text || {},
     controlled_tags: tagsDoc.controlled_tags || [],
@@ -189,11 +191,15 @@ function normalizeLetter(letter, sourceLanguage) {
 }
 
 function normalizeMathProblem(problem) {
-  return { ...problem, operands: Array.isArray(problem.operands) ? problem.operands.map(Number) : undefined, result: Number(problem.result), tags: Array.isArray(problem.tags) ? problem.tags : [], review_status: problem.review_status || "draft" };
+  return { ...problem, operands: Array.isArray(problem.operands) ? problem.operands.map(Number) : undefined, result: Number(problem.result), options: Array.isArray(problem.options) ? problem.options.map(String) : undefined, sequence: Array.isArray(problem.sequence) ? problem.sequence.map(String) : undefined, audio: Array.isArray(problem.audio) ? problem.audio : [], tags: Array.isArray(problem.tags) ? problem.tags : [], review_status: problem.review_status || "draft" };
 }
 
 function normalizeReadingProblem(problem) {
-  return { ...problem, options: Array.isArray(problem.options) ? problem.options.map(String) : undefined, words: Array.isArray(problem.words) ? problem.words.map(String) : undefined, audio: Array.isArray(problem.audio) ? problem.audio : [], tags: Array.isArray(problem.tags) ? problem.tags : [], review_status: problem.review_status || "draft" };
+  return { ...problem, options: Array.isArray(problem.options) ? problem.options.map(String) : undefined, words: Array.isArray(problem.words) ? problem.words.map(String) : undefined, audio: Array.isArray(problem.audio) ? problem.audio : [], prompt_audio: Array.isArray(problem.prompt_audio) ? problem.prompt_audio : [], tags: Array.isArray(problem.tags) ? problem.tags : [], review_status: problem.review_status || "draft" };
+}
+
+function normalizeFoundationsInstruction(instruction) {
+  return { ...instruction, text: instruction.text || {}, audio: Array.isArray(instruction.audio) ? instruction.audio : [], tags: Array.isArray(instruction.tags) ? instruction.tags : [], review_status: instruction.review_status || "draft" };
 }
 
 function normalizeGrammar(grammar, sourceLanguage) {

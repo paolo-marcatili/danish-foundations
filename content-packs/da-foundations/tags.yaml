@@ -77,3 +77,31 @@ controlled_tags:
     label: Talvenner
   - id: "math:story_problem"
     label: Regnehistorie
+  - id: "topic:expanded-reading"
+    label: Udvidet læsning
+  - id: "reading:initial_sound"
+    label: Første lyd
+  - id: "reading:final_sound"
+    label: Sidste lyd
+  - id: "reading:rhyme"
+    label: Rim
+  - id: "reading:syllable_count"
+    label: Stavelser
+  - id: "math:shape"
+    label: Former
+  - id: "math:pattern"
+    label: Mønstre
+  - id: "math:sorting"
+    label: Sortering
+  - id: "math:measurement"
+    label: Måling
+  - id: "instruction:literacy"
+    label: Læseinstruktion
+  - id: "instruction:reading"
+    label: Læseopgave
+  - id: "instruction:phonology"
+    label: Lydopgave
+  - id: "instruction:math"
+    label: Matematikopgave
+  - id: "instruction:math-awareness"
+    label: Matematisk opmærksomhed

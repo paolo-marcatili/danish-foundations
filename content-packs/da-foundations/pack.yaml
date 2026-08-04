@@ -1,5 +1,5 @@
 pack_id: da-foundations
-version: 0.4.0
+version: 0.5.0
 subject: foundations
 title: Ord- og Talheltene
 description: Dansk læsestart og matematik gennem 0. klasse og begyndelsen af 1. klasse.
@@ -41,3 +41,4 @@ files:
   sentences: dictionary/sentences.jsonl
   math_problems: curriculum/math-problems.jsonl
   reading_problems: curriculum/reading-problems.jsonl
+  instructions: curriculum/instructions.jsonl

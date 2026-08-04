@@ -132,8 +132,12 @@ export interface TrainingQuestion {
   instruction_audio?: AudioReference[];
   /** Automatically attempt to narrate the task when the question appears. */
   auto_narrate?: boolean;
+  /** Use one linear replay control instead of separate instruction/target buttons. */
+  single_audio_control?: boolean;
   /** Play target audio immediately after the spoken instruction. */
   auto_play_target_audio?: boolean;
+  /** Include target/story audio when the learner presses the single replay control. */
+  replay_target_audio?: boolean;
   /** Keep answers disabled until the first required narration attempt finishes. */
   requires_audio_before_answer?: boolean;
   /** Hide answer-revealing target audio until feedback is shown. */

@@ -78,7 +78,9 @@ jobs:
           mkdir -p danish-audio-update/content-packs/da-foundations/audio
           cp content-packs/da-foundations/dictionary/letters.jsonl danish-audio-update/content-packs/da-foundations/dictionary/
           cp content-packs/da-foundations/dictionary/words.jsonl danish-audio-update/content-packs/da-foundations/dictionary/
+          cp content-packs/da-foundations/curriculum/instructions.jsonl danish-audio-update/content-packs/da-foundations/curriculum/
           cp content-packs/da-foundations/curriculum/math-problems.jsonl danish-audio-update/content-packs/da-foundations/curriculum/
+          cp content-packs/da-foundations/curriculum/reading-problems.jsonl danish-audio-update/content-packs/da-foundations/curriculum/
           cp -R content-packs/da-foundations/audio/auto-neural danish-audio-update/content-packs/da-foundations/audio/
           cat > danish-audio-update/AUDIO_GENERATION.txt <<REPORT
           Scope: $AUDIO_SCOPE

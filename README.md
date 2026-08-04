@@ -360,4 +360,4 @@ Open `http://127.0.0.1:5174/`. Build the GitHub Pages version with:
 GITHUB_PAGES=true GITHUB_PAGES_BASE=/danish-foundations/ npm run build:danish
 ```
 
-See `docs/DANISH_FOUNDATIONS_PHASE_CD.md` and `docs/DANISH_AUDIO_GENERATION.md`.
+See `docs/DANISH_FOUNDATIONS_PHASE_CD.md`, `docs/DANISH_FOUNDATIONS_PHASE_E.md`, and `docs/DANISH_AUDIO_GENERATION.md`.

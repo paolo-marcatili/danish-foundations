@@ -1,89 +1,104 @@
-# Danish neural audio generation
+# Danish neural audio generation and integration
 
-The Phase C+D app works immediately with an installed Danish browser voice. For consistent pronunciation and reliable offline playback, generate fixed Danish neural MP3 files after reviewing a small sample.
+The Danish app works with a device `da-DK` voice, but fixed MP3 files provide more consistent pronunciation and reliable offline playback.
 
-## What the generator covers
+## What the core workflow generates
 
-The default `core` scope includes:
-
-- all introduced Danish letter **names**;
-- all staged Danish words;
-- the complete spoken prompts for structured mathematics problems;
-- the complete sentence, word-building, and mini-story reading prompts.
-
-It deliberately does **not** synthesize isolated phonemes such as `/s/` or `/m/`. Speech engines often turn isolated phonemes into letter names or unnatural sounds. Those should be short human recordings reviewed by a Danish early-literacy teacher.
-
-Inspect the exact number of planned files without using an Azure credential:
+Run the plan without using Azure credits:
 
 ```bash
 npm run content:audio:danish:plan
 ```
 
-For the smaller review sample:
+The plan includes:
+
+- reusable child-facing instructions;
+- Danish letter names;
+- every staged core word;
+- complete mathematics prompts;
+- reading targets and stories;
+- the spoken comprehension question for every mini-story.
+
+Isolated phonemes are intentionally excluded. Short sounds such as `/s/` and `/m/` should be recorded by a Danish speaker and added to each letter's `sound_audio` field.
+
+## 1. Add Azure credentials to GitHub
+
+Open the `danish-foundations` repository:
+
+1. **Settings**
+2. **Secrets and variables**
+3. **Actions**
+4. Add `AZURE_SPEECH_KEY`
+5. Add `AZURE_SPEECH_REGION`, for example `westeurope`
+
+## 2. Generate a review sample
+
+Open **Actions → Generate Danish neural audio → Run workflow**.
+
+Choose:
+
+- Scope: `sample`
+- Voice: `da-DK-ChristelNeural`
+- Rate: `-6%`
+
+Download the `danish-neural-audio-sample` artifact. Listen for natural Danish stress, number pronunciation, letter names and question intonation.
+
+## 3. Generate the complete core set
+
+Run the workflow again with scope `core`. Download `danish-neural-audio-core.zip`.
+
+## 4. Integrate the artifact safely
+
+Extract the artifact to a temporary folder:
 
 ```bash
-node tools/generate-danish-audio.mjs content-packs/da-foundations --plan --sample
+mkdir -p /tmp/danish-audio-update
+unzip -o ~/Downloads/danish-neural-audio-core.zip -d /tmp/danish-audio-update
 ```
 
-## Generate through GitHub Actions
-
-1. In Azure, create an Azure AI Speech resource.
-2. Copy the resource key and region identifier.
-3. In the GitHub repository open **Settings → Secrets and variables → Actions**.
-4. Add repository secrets named:
-   - `AZURE_SPEECH_KEY`
-   - `AZURE_SPEECH_REGION`
-5. Open **Actions → Generate Danish neural audio → Run workflow**.
-6. Run `sample` first, normally with `da-DK-ChristelNeural` at `-6%`.
-7. Download the `danish-neural-audio-sample` artifact.
-8. Extract it into the repository root and review it with a native Danish speaker.
-9. After approval, run the workflow again with `core`.
-10. Extract the core artifact, run `npm run check:danish`, commit, and push.
-
-The next Danish Pages build automatically includes the generated MP3 files in its offline audio package.
-
-## Generate locally
-
-Set the credentials in the current shell:
+From the monorepo root, run:
 
 ```bash
-export AZURE_SPEECH_KEY="..."
-export AZURE_SPEECH_REGION="westeurope"
-export AZURE_SPEECH_VOICE="da-DK-ChristelNeural"
-export AZURE_SPEECH_RATE="-6%"
-```
-
-Generate a sample:
-
-```bash
-node tools/generate-danish-audio.mjs content-packs/da-foundations --sample --force
-```
-
-Generate the full staged set:
-
-```bash
-node tools/generate-danish-audio.mjs content-packs/da-foundations --force
-```
-
-Validate and build:
-
-```bash
+npm run content:audio:danish:integrate -- /tmp/danish-audio-update
+npm run content:sync-danish
 npm run check:danish
-GITHUB_PAGES=true GITHUB_PAGES_BASE=/danish-foundations/ npm run build:danish
 ```
 
-## Review checklist
+The integration command copies both the MP3 files and all updated metadata files, including:
 
-Review at least:
+- `curriculum/instructions.jsonl`
+- `curriculum/reading-problems.jsonl`
+- `curriculum/math-problems.jsonl`
+- `dictionary/letters.jsonl`
+- `dictionary/words.jsonl`
 
-- every letter name;
-- vowel quality in short words;
-- Danish stød where relevant;
-- compound and function words;
-- number words and arithmetic sentences;
-- question intonation;
-- whether `-6%` sounds clear without becoming unnaturally slow.
+This avoids the common failure mode where MP3 files are copied without the references that make the app use them.
 
-The current plan contains 423 files: 25 letter names, 127 words, 196 mathematics prompts, and 75 reading prompts.
+## 5. Test locally
 
-Keep generated entries marked `draft` until pronunciation has been reviewed. Human recordings are preserved when the generator updates metadata.
+```bash
+npm run dev:danish
+```
+
+Test one question from each area and verify the Network panel loads files from:
+
+```text
+/content-packs/da-foundations/audio/auto-neural/
+```
+
+Then test offline after the audio package reports complete.
+
+## 6. Review status
+
+Generated entries remain `draft`. After listening, keep a list of files that require regeneration or replacement. Do not mark the whole set approved solely because generation completed.
+
+## 7. Commit and deploy
+
+```bash
+git add content-packs/da-foundations apps/danish-foundations/public/content-packs/da-foundations
+git commit -m "Add Danish neural audio"
+git push origin main
+git push danish main
+```
+
+The GitHub Pages build will include the fixed MP3 files in the offline audio cache.

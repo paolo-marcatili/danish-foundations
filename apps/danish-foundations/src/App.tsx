@@ -99,6 +99,7 @@ import lettersJsonl from "../../../content-packs/da-foundations/dictionary/lette
 import sentencesJsonl from "../../../content-packs/da-foundations/dictionary/sentences.jsonl?raw";
 import mathProblemsJsonl from "../../../content-packs/da-foundations/curriculum/math-problems.jsonl?raw";
 import readingProblemsJsonl from "../../../content-packs/da-foundations/curriculum/reading-problems.jsonl?raw";
+import instructionsJsonl from "../../../content-packs/da-foundations/curriculum/instructions.jsonl?raw";
 import { ParentProgressPanel } from "./components/ParentProgressPanel";
 import { useOfflineState } from "../../web/src/offline";
 import "../../web/src/App.css";
@@ -116,7 +117,8 @@ const starterPack = buildLanguagePackFromSources({
   lettersJsonl,
   sentencesJsonl,
   mathProblemsJsonl,
-  readingProblemsJsonl
+  readingProblemsJsonl,
+  instructionsJsonl
 });
 
 interface FeedbackState {
@@ -467,7 +469,7 @@ export default function App() {
       statCap: settings.debugBypass ? Number.POSITIVE_INFINITY : getLevelStatCap(learnerState.level, pack)
     });
     playAnswerAudio(result, false);
-    const answerPlayback = playSubmittedAnswerAudio(trainingSession.question);
+    const answerPlayback = result.correct ? Promise.resolve(false) : playSubmittedAnswerAudio(trainingSession.question);
     triggerAction(result.correct ? getTrainingAction(trainingSession.focus) : randomFailAction());
 
     const answeredSession: TrainingSession = {
@@ -664,7 +666,7 @@ export default function App() {
     answered = appendLabyrinthLog(answered, result.correct ? "labyrinthLogCorrect" : "labyrinthLogWrong", result.correct ? {} : { hearts: heartLoss }, result.correct ? "success" : "danger");
 
     playAnswerAudio(result, false);
-    const answerPlayback = playSubmittedAnswerAudio(question);
+    const answerPlayback = result.correct ? Promise.resolve(false) : playSubmittedAnswerAudio(question);
     triggerAction(result.correct && focus ? getTrainingAction(focus) : randomFailAction());
     // Keep the short feedback state in memory only. The last stable question
     // remains in local storage, so closing the app during this pause cannot
@@ -853,7 +855,7 @@ export default function App() {
 
     setLearnerState(result.updated_state);
     playAnswerAudio(result, true);
-    const answerPlayback = playSubmittedAnswerAudio(fightSession.question);
+    const answerPlayback = result.correct ? Promise.resolve(false) : playSubmittedAnswerAudio(fightSession.question);
     triggerAction(result.correct ? getCorrectFightAction(fightSession.question.skill) : randomFailAction(true));
 
     setFightSession({
