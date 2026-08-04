@@ -1,0 +1,5 @@
+Scope: all
+Voice: hy-AM-AnahitNeural
+Rate: -8%
+Generated: 2026-08-03T14:47:48Z
+MP3 files: 949

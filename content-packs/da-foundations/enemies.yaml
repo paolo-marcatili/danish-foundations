@@ -1,0 +1,17 @@
+enemies:
+  - id: number_goblin
+    level: 0
+    name_key: numberGoblin
+    max_energy: 75
+    reward_coins: 35
+    preferred_focus: grammar
+    sprite: goblin
+    sprite_row: 0
+    visual_variant: chalk
+    scale: 1
+    tint: "#d7ef8a"
+    semantic_tags:
+      - "encounter:starter"
+    skill_weaknesses:
+      - precision
+      - defense

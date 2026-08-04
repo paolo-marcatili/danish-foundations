@@ -26,6 +26,9 @@
       ],
       "@hero-lang/learning-engine": [
         "packages/learning-engine/src/index.ts"
+      ],
+      "@hero-lang/foundations-engine": [
+        "packages/foundations-engine/src/index.ts"
       ]
     }
   }

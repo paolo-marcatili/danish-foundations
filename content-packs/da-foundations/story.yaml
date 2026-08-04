@@ -1,0 +1,56 @@
+title:
+  da: Ord- og Talheltene
+  it: Gli eroi delle parole e dei numeri
+opening:
+  da: I hvert kapitel hjælper helten med at få bogstaver og tal tilbage til kongeriget.
+  it: In ogni capitolo l’eroe aiuta a riportare lettere e numeri nel regno.
+milestones: []
+chapters:
+  - id: chapter_0_light_gate
+    minimum_level: 0
+    title:
+      da: Kapitel 0 · Lysets port
+      it: Capitolo 0 · La porta della luce
+    summary:
+      da: Lyt til de første bogstavlyde, byg små ord og tæl fra 0 til 5.
+      it: Ascolta i primi suoni, costruisci parole brevi e conta da 0 a 5.
+    fiction:
+      da: 'En morgen er skiltene ved Lysets Port blevet helt tomme. Solvogteren kan ikke læse vejen, og hans fem lyssten ligger hulter til bulter. Helten må vække bogstaverne s, o, l, m og a og tælle stenene, før porten kan åbnes.'
+      it: 'Una mattina i cartelli della Porta della Luce sono diventati vuoti. Il guardiano non riesce più a leggere la strada e le sue cinque pietre luminose sono sparse. L’eroe deve risvegliare le lettere s, o, l, m e a e contare le pietre per aprire la porta.'
+    lesson:
+      title:
+        da: Bogstaver bliver til ord, og tal fortæller hvor mange
+        it: Le lettere formano parole e i numeri indicano una quantità
+      objectives:
+        - da: Genkende de store og små former af S, O, L, M og A.
+          it: Riconoscere le forme maiuscole e minuscole di S, O, L, M e A.
+        - da: Lytte efter den første lyd og bygge ordene sol og lam.
+          it: Ascoltare il primo suono e costruire le parole sol e lam.
+        - da: Koble mængder fra 0 til 5 med de rigtige tal.
+          it: Collegare quantità da 0 a 5 con il numero corretto.
+        - da: Lægge små grupper sammen og tage en lille gruppe væk.
+          it: Sommare piccoli gruppi e sottrarre una piccola quantità.
+      explanation:
+        da: "Et bogstav har et navn og en lyd. Når vi sætter lydene s-o-l sammen, får vi ordet sol. Når vi tæller, peger vi på én ting ad gangen. Tallet 4 betyder altid fire ting, uanset om det er æbler, prikker eller lyssten. Plus samler grupper. Minus tager noget væk."
+        it: "Una lettera ha un nome e un suono. Unendo i suoni s-o-l otteniamo la parola sol. Quando contiamo, indichiamo un oggetto alla volta. Il numero 4 indica sempre quattro elementi, siano essi mele, punti o pietre luminose. Il più unisce gruppi; il meno toglie elementi."
+      examples:
+        - target: S s · O o · L l
+          translation:
+            da: Store og små bogstaver hører sammen.
+            it: Le lettere maiuscole e minuscole corrispondono.
+        - target: s · o · l → sol
+          translation:
+            da: Lydene kan sættes sammen til et ord.
+            it: I suoni possono essere uniti per formare una parola.
+        - target: ● ● ● + ● = 4
+          translation:
+            da: Tre og én mere er fire.
+            it: Tre più uno fa quattro.
+      common_mistakes:
+        - da: Tæl langsomt og rør hver ting én gang, så du ikke tæller den samme to gange.
+          it: Conta lentamente e indica ogni oggetto una sola volta.
+        - da: Bogstavnavnet og bogstavlyden er ikke altid helt det samme.
+          it: Il nome della lettera e il suo suono non sono sempre identici.
+    mission:
+      da: Tænd de fem lyssten, læs skiltet SOL og hjælp vogteren med at tælle dem.
+      it: Accendi le cinque pietre, leggi la parola SOL e aiuta il guardiano a contarle.

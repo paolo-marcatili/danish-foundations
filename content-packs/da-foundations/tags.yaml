@@ -1,0 +1,25 @@
+controlled_tags:
+  - id: stage:0
+    label: Første kapitel
+  - id: tier:core
+    label: Kernestof
+  - id: literacy:letter-name
+    label: Bogstavnavn
+  - id: literacy:letter-sound
+    label: Bogstavlyd
+  - id: literacy:decodable
+    label: Lydret ord
+  - id: topic:first-words
+    label: Første ord
+  - id: math:counting
+    label: Tælling
+  - id: math:number-match
+    label: Tal og mængde
+  - id: math:number-order
+    label: Talrække
+  - id: math:addition
+    label: Plus
+  - id: math:subtraction
+    label: Minus
+  - id: encounter:starter
+    label: Startområde

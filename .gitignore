@@ -40,3 +40,10 @@ ios/
 
 # Original family lesson documents may contain personal details.
 content-packs/hy-eastern-it/sources/private-archive-docx/
+
+# Danish Phase A app reuses generated copies of the shared assets and pack.
+apps/danish-foundations/public/assets/
+apps/danish-foundations/public/audio/
+apps/danish-foundations/public/icons/
+apps/danish-foundations/public/content-packs/
+apps/danish-foundations/public/manifest.webmanifest

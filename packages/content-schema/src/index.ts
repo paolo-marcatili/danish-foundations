@@ -1,7 +1,7 @@
 export type ReviewStatus = "draft" | "needs_native_speaker_review" | "approved";
 export type TranslationReviewStatus = "needs_review" | "reviewed";
 
-export type LearningSubject = "language" | "mental_math" | "other";
+export type LearningSubject = "language" | "mental_math" | "foundations" | "other";
 
 export type ActivityType =
   | "select_translation"
@@ -85,6 +85,13 @@ export interface LearningItem {
   phonetic_distractors?: string[];
   syllables?: string[];
   aliases?: string[];
+  /** Ordered graphemes used by early-reading activities. */
+  graphemes?: string[];
+  /** Optional phoneme labels for literacy content. */
+  phonemes?: string[];
+  /** Child-facing visual; emoji and public asset URLs are both supported. */
+  image?: string;
+  decodability?: "regular" | "high_frequency" | "extension";
   transliterations?: string[];
   meanings?: string[];
   source?: string;
@@ -113,6 +120,22 @@ export interface LetterItem {
   example_word?: string;
   source?: string;
   source_location?: string;
+  review_status: ReviewStatus;
+}
+
+
+export type FoundationsMathDomain = "counting" | "number_match" | "number_order" | "addition" | "subtraction";
+
+export interface FoundationsMathProblem {
+  id: string;
+  domain: FoundationsMathDomain;
+  prompt: LocalizedText;
+  operands?: number[];
+  result: number;
+  number_range?: { min: number; max: number };
+  representation?: "objects" | "dots" | "numeral" | "number_line";
+  object?: string;
+  tags: string[];
   review_status: ReviewStatus;
 }
 
@@ -356,6 +379,7 @@ export interface PackFileMap {
   words?: string;
   letters?: string;
   sentences?: string;
+  math_problems?: string;
 }
 
 export interface LanguagePack {
@@ -377,6 +401,7 @@ export interface LanguagePack {
   items: LearningItem[];
   letters?: LetterItem[];
   grammar_items?: GrammarItem[];
+  math_problems?: FoundationsMathProblem[];
   story?: StoryArc;
   ui_text?: Record<string, string>;
   controlled_tags?: ControlledTag[];
@@ -402,6 +427,7 @@ export interface ModularPackSources {
   wordsJsonl: string;
   lettersJsonl?: string;
   sentencesJsonl?: string;
+  mathProblemsJsonl?: string;
 }
 
 export interface ValidationResult {
@@ -424,6 +450,7 @@ export function buildLanguagePackFromSources(sources: ModularPackSources): Langu
   const items = parseJsonl<LearningItem>(sources.wordsJsonl).map((item) => normalizeItem(item, sourceLanguage));
   const letters = parseJsonl<LetterItem>(sources.lettersJsonl ?? "").map((letter) => normalizeLetter(letter, sourceLanguage));
   const grammarItems = parseJsonl<GrammarItem>(sources.sentencesJsonl ?? "").map((grammar) => normalizeGrammar(grammar, sourceLanguage));
+  const mathProblems = parseJsonl<FoundationsMathProblem>(sources.mathProblemsJsonl ?? "").map(normalizeMathProblem);
   const lessons = createLessonsFromItems(items, letters, grammarItems);
 
   return {
@@ -443,6 +470,7 @@ export function buildLanguagePackFromSources(sources: ModularPackSources): Langu
     items,
     letters,
     grammar_items: grammarItems,
+    math_problems: mathProblems,
     story: normalizeStory(storyDoc, sourceLanguage),
     ui_text: isObject(interfaceDoc.text) ? stringRecord(interfaceDoc.text) : {},
     controlled_tags: Array.isArray(tagsDoc.controlled_tags) ? tagsDoc.controlled_tags as ControlledTag[] : [],
@@ -719,6 +747,24 @@ export function validateLanguagePack(pack: unknown): ValidationResult {
     }
   }
 
+  if (Array.isArray(pack.math_problems)) {
+    const mathIds = new Set<string>();
+    for (const [index, problem] of pack.math_problems.entries()) {
+      const path = `math_problems[${index}]`;
+      if (!isObject(problem)) { errors.push(`${path} must be an object.`); continue; }
+      requireString(problem, "id", errors, path);
+      if (typeof problem.id === "string") {
+        if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
+        mathIds.add(problem.id);
+      }
+      if (!["counting", "number_match", "number_order", "addition", "subtraction"].includes(String(problem.domain))) errors.push(`${path}.domain is unsupported.`);
+      if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
+      if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
+      if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
+      if (problem.review_status !== "approved") warnings.push(`${path} is not approved yet: ${String(problem.id ?? "unknown id")}`);
+    }
+  }
+
   if (Array.isArray(pack.lessons)) {
     for (const [index, lesson] of pack.lessons.entries()) {
       if (!isObject(lesson)) { errors.push(`lessons[${index}] must be an object.`); continue; }
@@ -938,6 +984,16 @@ function normalizeGrammar(grammar: GrammarItem, sourceLanguage: string): Grammar
     tags: Array.isArray(grammar.tags) ? grammar.tags : [],
     audio: Array.isArray(grammar.audio) ? grammar.audio : [],
     review_status: grammar.review_status ?? "draft"
+  };
+}
+
+function normalizeMathProblem(problem: FoundationsMathProblem): FoundationsMathProblem {
+  return {
+    ...problem,
+    operands: Array.isArray(problem.operands) ? problem.operands.map(Number) : undefined,
+    result: Number(problem.result),
+    tags: Array.isArray(problem.tags) ? problem.tags : [],
+    review_status: problem.review_status ?? "draft"
   };
 }
 

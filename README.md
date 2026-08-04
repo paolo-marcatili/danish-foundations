@@ -333,3 +333,29 @@ npm run assets:generate-realistic
 ```
 
 For hand-edited art, edit files under `asset-packs/cc0-pixel-v10/` and then run `npm run assets:sync` only.
+
+## Danish Foundations Phase A
+
+This monorepo now includes a separate Danish early-literacy and mathematics prototype:
+
+```text
+apps/danish-foundations/
+packages/foundations-engine/
+content-packs/da-foundations/
+```
+
+Run it locally with:
+
+```bash
+npm install
+npm run check:danish
+npm run dev:danish
+```
+
+The development server uses `http://localhost:5174`. Build the GitHub Pages version with:
+
+```bash
+GITHUB_PAGES=true GITHUB_PAGES_BASE=/danish-foundations/ npm run build:danish
+```
+
+See `docs/DANISH_FOUNDATIONS_PHASE_A.md` for the prototype scope and limitations.

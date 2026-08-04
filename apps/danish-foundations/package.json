@@ -1,0 +1,30 @@
+{
+  "name": "@hero-lang/danish-foundations",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:public": "node ../../tools/prepare-danish-public.mjs",
+    "dev": "npm run prepare:public && vite",
+    "build": "npm run prepare:public && node ../../tools/sync-content-pack.mjs ../../content-packs/da-foundations public/content-packs/da-foundations && tsc --noEmit -p tsconfig.json && vite build && node ../../tools/generate-offline-service-worker.mjs dist danish-foundations-",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "dev:lan": "npm run prepare:public && vite --host 0.0.0.0",
+    "preview:lan": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@hero-lang/content-schema": "0.2.0",
+    "@hero-lang/foundations-engine": "0.1.0",
+    "@hero-lang/learning-engine": "0.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "phaser": "^3.90.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@vitejs/plugin-react": "^6.0.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.4"
+  }
+}

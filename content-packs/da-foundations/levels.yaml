@@ -1,0 +1,53 @@
+levels:
+  - number: 0
+    title: Lysets port
+    stat_cap: 5
+    content_tags:
+      - "stage:0"
+    theme:
+      da: Bogstaver, lyde og mængder fra 0 til 5
+      it: Lettere, suoni e quantità da 0 a 5
+    learning_goal:
+      da: Genkend s, o, l, m og a; læs de første ord; tæl og regn med små mængder.
+      it: Riconoscere s, o, l, m e a; leggere le prime parole; contare e calcolare piccole quantità.
+    chapter_id: chapter_0_light_gate
+    unlock_requires:
+      completed_training_sessions: 4
+      answered_fight_questions: 8
+      min_stats:
+        strength: 1
+        defense: 1
+        precision: 1
+        stamina: 1
+    fight:
+      min_questions: 8
+      at_min_questions: 8
+      timer_seconds: 20
+      max_questions: 16
+      max_mistakes_to_win: 8
+  - number: 1
+    title: Mere kommer snart
+    stat_cap: 8
+    content_tags:
+      - "stage:0"
+    theme:
+      da: Gentagelse og fri træning i prototypen
+      it: Ripasso e allenamento libero nel prototipo
+    learning_goal:
+      da: Gentag de kendte bogstaver, ord og tal.
+      it: Ripassare lettere, parole e numeri già incontrati.
+    chapter_id: chapter_0_light_gate
+    unlock_requires:
+      completed_training_sessions: 6
+      answered_fight_questions: 10
+      min_stats:
+        strength: 2
+        defense: 2
+        precision: 2
+        stamina: 2
+    fight:
+      min_questions: 10
+      at_min_questions: 10
+      timer_seconds: 20
+      max_questions: 18
+      max_mistakes_to_win: 8

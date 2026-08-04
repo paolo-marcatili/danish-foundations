@@ -25,7 +25,7 @@ if (result.warnings.length > 0) {
 }
 
 if (!result.ok) process.exit(1);
-console.log(`Content validation passed: ${pack.pack_id} (${pack.items.length} words, ${pack.grammar_items?.length ?? 0} sentences, ${pack.letters?.length ?? 0} letters)`);
+console.log(`Content validation passed: ${pack.pack_id} (${pack.items.length} words, ${pack.grammar_items?.length ?? 0} sentences, ${pack.letters?.length ?? 0} letters, ${pack.math_problems?.length ?? 0} math problems)`);
 
 function validateLanguagePack(value) {
   const errors = [];
@@ -101,6 +101,20 @@ function validateLanguagePack(value) {
       }
     }
     if (grammar.review_status !== "approved") warnings.push(`grammar_items[${index}] is not approved yet: ${grammar.id}`);
+  }
+
+  const mathIds = new Set();
+  for (const [index, problem] of (value.math_problems ?? []).entries()) {
+    const path = `math_problems[${index}]`;
+    if (!isObject(problem)) { errors.push(`${path} must be an object.`); continue; }
+    for (const field of ["id", "domain", "review_status"]) requireString(problem, `${path}.${field}`, errors, field);
+    if (mathIds.has(problem.id)) errors.push(`Duplicate math problem id: ${problem.id}`);
+    mathIds.add(problem.id);
+    if (!["counting", "number_match", "number_order", "addition", "subtraction"].includes(problem.domain)) errors.push(`${path}.domain is unsupported.`);
+    if (!isObject(problem.prompt)) errors.push(`${path}.prompt must be localized text.`);
+    if (!Number.isFinite(problem.result)) errors.push(`${path}.result must be a number.`);
+    if (!Array.isArray(problem.tags)) errors.push(`${path}.tags must be an array.`);
+    else for (const tag of problem.tags) if (tagSet.size && !tagSet.has(tag)) warnings.push(`${path} uses uncontrolled tag: ${tag}`);
   }
 
   for (const [index, level] of (value.levels ?? []).entries()) {

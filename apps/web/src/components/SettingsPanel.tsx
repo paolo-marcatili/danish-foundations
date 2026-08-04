@@ -16,6 +16,7 @@ interface SettingsPanelProps {
   onActiveProfileChange: (profileId: string) => void;
   onResetProgress: () => void;
   onOpenDictionary: () => void;
+  showContentEditor?: boolean;
   onClose: () => void;
 }
 
@@ -55,6 +56,7 @@ export function SettingsPanel({
   onActiveProfileChange,
   onResetProgress,
   onOpenDictionary,
+  showContentEditor = true,
   onClose
 }: SettingsPanelProps) {
   const activeProfile = profiles.find((profile) => profile.id === activeProfileId) ?? profiles[0];
@@ -181,7 +183,9 @@ export function SettingsPanel({
       </div>
 
       <div className="settings-actions">
-        <button type="button" className="primary-button" onClick={onOpenDictionary}>🛠️ {t(language, "editDictionary")}</button>
+        {showContentEditor ? (
+          <button type="button" className="primary-button" onClick={onOpenDictionary}>🛠️ {t(language, "editDictionary")}</button>
+        ) : null}
         <button type="button" className="ghost-button danger-text" onClick={onResetProgress}>{t(language, "resetProgress")}</button>
         <button type="button" className="ghost-button" onClick={onClose}>{t(language, "close")}</button>
       </div>

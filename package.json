@@ -1,6 +1,6 @@
 {
   "name": "hero-language-camp",
-  "version": "0.14.0",
+  "version": "0.15.0-phase-a",
   "private": true,
   "type": "module",
   "description": "Open-source gamified learning prototype for low-resource and community languages.",
@@ -47,7 +47,14 @@
     "content:sync-web": "node tools/sync-content-pack.mjs content-packs/hy-eastern-it",
     "content:audio:plan": "node tools/generate-automated-audio.mjs content-packs/hy-eastern-it --plan",
     "content:audit-italian": "node tools/audit-italian-content.mjs content-packs/hy-eastern-it",
-    "content:lint-italian": "node tools/lint-italian-content.mjs content-packs/hy-eastern-it"
+    "content:lint-italian": "node tools/lint-italian-content.mjs content-packs/hy-eastern-it",
+    "dev:danish": "npm --workspace @hero-lang/danish-foundations run dev",
+    "build:danish": "npm --workspace @hero-lang/danish-foundations run build",
+    "preview:danish": "npm --workspace @hero-lang/danish-foundations run preview",
+    "dev:danish:lan": "npm --workspace @hero-lang/danish-foundations run dev:lan",
+    "validate:danish": "node tools/validate-content.mjs content-packs/da-foundations",
+    "check:danish": "npm run validate:danish && npm run validate:danish:curriculum && npm --workspace @hero-lang/foundations-engine run typecheck && npm --workspace @hero-lang/danish-foundations run typecheck",
+    "validate:danish:curriculum": "node tools/validate-danish-foundations.mjs content-packs/da-foundations"
   },
   "engines": {
     "node": ">=20.19.0",

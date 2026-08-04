@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AnswerOption, TrainingQuestion } from "@hero-lang/learning-engine";
 import { playLearningAudio, unlockAudio } from "../audio";
 import { t } from "../i18n";
@@ -48,21 +48,16 @@ export function QuestionCard({
   audioHasStarted = false
 }: QuestionCardProps) {
   const showTimer = mode === "fight" && timerSeconds > 0;
-  const targetLanguage = question.target_audio_lang?.split("-")[0] ?? (/^[\u0530-\u058F]/.test(question.prompt) ? "hy" : undefined);
   const showAudioButton = question.activity_type === "listen_and_choose" || Boolean(question.audio?.length);
   const isTapOrder = question.variant === "sentence_tap_order";
   const [selectedChips, setSelectedChips] = useState<AnswerOption[]>([]);
   const [audioStarted, setAudioStarted] = useState(false);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [secondaryAudioPlaying, setSecondaryAudioPlaying] = useState(false);
-  const audioPlaybackSerial = useRef(0);
-  const secondaryPlaybackSerial = useRef(0);
   const expectedAnswerLength = question.expected_answer_length ?? question.options.length;
   const tapOrderReady = selectedChips.length === expectedAnswerLength;
 
   useEffect(() => {
-    audioPlaybackSerial.current += 1;
-    secondaryPlaybackSerial.current += 1;
     setSelectedChips([]);
     setAudioPlaying(false);
     setSecondaryAudioPlaying(false);
@@ -92,34 +87,26 @@ export function QuestionCard({
   function playQuestionAudio() {
     if (audioPlaying) return;
     void unlockAudio();
-    const serial = ++audioPlaybackSerial.current;
     const wasReadyForAnswer = audioStarted;
     const playbackStartedAt = performance.now();
     setAudioPlaying(true);
-    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM")
-      .then((played) => {
-        if (serial !== audioPlaybackSerial.current) return;
-        if (played && !wasReadyForAnswer) {
-          setAudioStarted(true);
-          onAudioStarted?.();
-        } else if (played && wasReadyForAnswer) {
-          onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
-        }
-      })
-      .finally(() => {
-        if (serial === audioPlaybackSerial.current) setAudioPlaying(false);
-      });
+    void playLearningAudio(question.audio, question.target_audio_text, question.target_audio_lang ?? "hy-AM").then((played) => {
+      setAudioPlaying(false);
+      if (played && !wasReadyForAnswer) {
+        setAudioStarted(true);
+        onAudioStarted?.();
+      } else if (played && wasReadyForAnswer) {
+        onAudioReplayCompleted?.(Math.max(0, performance.now() - playbackStartedAt));
+      }
+    });
   }
 
   function playSecondaryAudio() {
     if (secondaryAudioPlaying || !question.secondary_audio?.length) return;
     void unlockAudio();
-    const serial = ++secondaryPlaybackSerial.current;
     setSecondaryAudioPlaying(true);
     void playLearningAudio(question.secondary_audio, question.secondary_audio_text, question.target_audio_lang ?? "hy-AM")
-      .finally(() => {
-        if (serial === secondaryPlaybackSerial.current) setSecondaryAudioPlaying(false);
-      });
+      .finally(() => setSecondaryAudioPlaying(false));
   }
 
   return (
@@ -161,14 +148,14 @@ export function QuestionCard({
         </div>
       ) : null}
 
-      <div className={question.kind === "letter" ? "prompt letter-prompt" : "prompt"} lang={targetLanguage}>
-        <FitText text={question.prompt} lang={targetLanguage} maxRem={question.kind === "letter" ? 5.6 : 3.2} minRem={question.kind === "letter" ? 2.1 : 1.05} />
+      <div className={question.kind === "letter" ? "prompt letter-prompt" : "prompt"} lang="hy">
+        <FitText text={question.prompt} lang="hy" maxRem={question.kind === "letter" ? 5.6 : 3.2} minRem={question.kind === "letter" ? 2.1 : 1.05} />
       </div>
       <p className="prompt-hint">{getPromptHint(question, language)}</p>
 
       {isTapOrder ? (
         <div className="tap-order-area">
-          <div className="tap-order-answer" lang={targetLanguage} aria-live="polite">
+          <div className="tap-order-answer" lang="hy" aria-live="polite">
             {selectedChips.length > 0 ? (
               <div className="tap-order-selected-list">
                 {selectedChips.map((chip) => (
@@ -200,7 +187,7 @@ export function QuestionCard({
                   disabled={disabled || used || selectedChips.length >= expectedAnswerLength}
                   onClick={() => handleChipTap(option)}
                 >
-                  <FitText text={option.label} lang={targetLanguage} maxRem={1.02} minRem={0.62} />
+                  <FitText text={option.label} lang="hy" maxRem={1.02} minRem={0.62} />
                 </button>
               );
             })}
@@ -261,7 +248,7 @@ export function QuestionCard({
           {!feedback.correct ? <span>{t(language, "answerIs")}: {feedback.correctAnswer}</span> : <span>{feedback.correctAnswer}</span>}
           {question.answer_explanation ? (
             <div className="answer-explanation">
-              <div className="answer-explanation-target" lang={targetLanguage}>{question.answer_explanation.target}</div>
+              <div className="answer-explanation-target" lang="hy">{question.answer_explanation.target}</div>
               {question.answer_explanation.transliteration ? (
                 <div className="answer-explanation-row">
                   <span>{t(language, "pronunciationLabel")}</span>
@@ -278,7 +265,7 @@ export function QuestionCard({
                 <div className="answer-glosses" aria-label={t(language, "wordByWord") }>
                   {question.answer_explanation.word_glosses.map((gloss) => (
                     <span key={`${gloss.target}:${gloss.translation}`} className="answer-gloss">
-                      <b lang={targetLanguage}>{gloss.target}</b>
+                      <b lang="hy">{gloss.target}</b>
                       <span>{gloss.translation}</span>
                     </span>
                   ))}

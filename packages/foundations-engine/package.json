@@ -1,0 +1,19 @@
+{
+  "name": "@hero-lang/foundations-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@hero-lang/content-schema": "0.2.0",
+    "@hero-lang/learning-engine": "0.2.0"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,42 @@
+pack_id: da-foundations
+version: 0.1.0
+subject: foundations
+title: Ord- og Talheltene
+description: En teknisk prototype til dansk læsestart og matematik for børn omkring 6 år.
+language:
+  name_english: Danish
+  name_native: Dansk
+  bcp47: da-DK
+  variety: Standard Danish
+  script: Latn
+  direction: ltr
+  orthography: standard
+base_language:
+  code: da
+  name_english: Danish
+  name_native: Dansk
+  is_default: true
+target_language: da-DK
+age_band: 5-7
+capabilities:
+  human_audio: false
+  tts: available
+  asr: none
+  pronunciation_scoring: none
+  ipa: partial
+  transliteration: false
+  morphology: none
+review_status: draft
+license: CC-BY-4.0
+files:
+  interface: interface.yaml
+  tags: tags.yaml
+  tasks: tasks.yaml
+  levels: levels.yaml
+  enemies: enemies.yaml
+  story: story.yaml
+  labyrinths: labyrinths.yaml
+  words: dictionary/words.jsonl
+  letters: dictionary/letters.jsonl
+  sentences: dictionary/sentences.jsonl
+  math_problems: curriculum/math-problems.jsonl

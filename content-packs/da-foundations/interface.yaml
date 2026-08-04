@@ -1,0 +1,294 @@
+text:
+  appTitle: Ord- og Talheltene
+  appSubtitle: Læs, tæl og regn i et lille pixel-eventyr.
+  landingEyebrow: Dansk læringsprototype
+  landingTitle: Lysets port
+  landingBody: Hjælp helten med bogstaver, ord og tal.
+  chooseLanguage: Sprog
+  train: Træn
+  fight: Kæmp
+  shopButton: Rygsæk
+  close: Luk
+  backHome: Tilbage
+  chooseTraining: Vælg træning
+  trainingMenuTitle: Hvad vil du øve?
+  training: Træning
+  fightTitle: Udfordring
+  question: Opgave
+  of: af
+  listen: Lyt
+  listenAndRepeat: Lyt
+  correct: Rigtigt!
+  wrong: Prøv igen næste gang
+  nextAuto: Næste...
+  continueButton: Fortsæt
+  sessionComplete: Træningen er færdig
+  fightWon: Trolden er besejret!
+  fightLost: Vi øver lidt mere.
+  hero: Helt
+  enemy: Modstander
+  energy: Energi
+  level: Kapitel
+  xp: Erfaring
+  coins: Mønter
+  mastery: Øvelse
+  path: Sti
+  strength: Bogstavkraft
+  defense: Læseskjold
+  precision: Talblik
+  stamina: Regnekraft
+  power: Bogstavkraft
+  shield: Læseskjold
+  accuracy: Talblik
+  strategy: Regnekraft
+  vocabulary: Bogstaver
+  comprehension: Ord og læsning
+  listening: Ord og læsning
+  grammar: Tal og tælling
+  pronunciation: Plus og minus
+  letters: Bogstaver
+  story: Historie og lektion
+  nextTask: Næste opgave
+  soundOn: Lyd til
+  soundOff: Lyd fra
+  settings: Indstillinger
+  settingsTitle: Indstillinger
+  settingsProfiles: Børneprofiler
+  appearance: Udseende
+  heroSpriteSet: Heltens figur
+  heroSpriteHint: Flere figurer kan tilføjes senere.
+  debugMode: Vis tekniske oplysninger
+  debugBypassMode: Spring udviklingslåse over
+  developerLayout: Skærmtest
+  developerLayoutHint: Bruges af voksne til at kontrollere layout på forskellige skærme.
+  viewportPreset: Skærmstørrelse
+  showDeviceFrame: Vis enhedsramme
+  hideDeviceFrame: Skjul enhedsramme
+  deviceSimulationToolbar: Værktøjer til skærmtest
+  deviceSimulationActive: Skærmtest er aktiv
+  exitDeviceSimulation: Afslut skærmtest
+  pathShape: Sti
+  renderer: Grafikmotor
+  testMode: Testtilstand
+  activeHero: Aktiv helt
+  addHero: Tilføj helt
+  newHeroName: Nyt navn
+  heroName: Heltens navn
+  settingsGame: Spil og lyd
+  targetLanguage: Læringspakke
+  audioMode: Oplæsning
+  audioHumanOnly: Kun optagede stemmer
+  audioHumanAndAuto: Optagede og automatiske stemmer
+  audioHumanOnlyHint: Vælg automatiske stemmer i denne prototype for at høre dansk oplæsning.
+  speedBonusSetting: Hastighedsbonus i kampe
+  editDictionary: Redigér indhold
+  resetProgress: Nulstil fremskridt
+  resetConfirm: Nulstil
+  saved: Gemt
+  vocabularyTitle: Bogstaver → Bogstavkraft
+  vocabularyShort: Bogstaver
+  vocabularyBody: Lyt til bogstavlyde og match store og små bogstaver.
+  comprehensionTitle: Ord → Læseskjold
+  comprehensionShort: Ord
+  comprehensionBody: Match billeder og ord, og byg korte ord med bogstavbrikker.
+  grammarTitle: Tal → Talblik
+  grammarShort: Tal
+  grammarBody: Tæl ting, match tal og mængder, og find tallet i rækken.
+  pronunciationTitle: Plus og minus → Regnekraft
+  pronunciationShort: Regn
+  pronunciationBody: Læg små grupper sammen og tag ting væk.
+  vocabularyChallenge: Bogstavporten
+  shieldChallenge: Ordbroen
+  runeChallenge: Talrunen
+  echoChallenge: Regnekrystallen
+  wordStone: Bogstavsten
+  echoStone: Læsesten
+  runeStone: Talsten
+  crystalStone: Regnesten
+  questionAudio: Lyd
+  playLetterAudio: Hør bogstavet
+  playLetterSound: Hør lyden
+  playTargetAudio: Hør ordet
+  listenAgain: Hør igen
+  answerIs: Svar
+  meaningLabel: Forklaring
+  pronunciationLabel: Lyd
+  wordByWord: Dele
+  chooseMeaning: Vælg det rigtige svar.
+  comprehensionHint: Lyt og vælg.
+  pronunciationHint: Byg ordet eller vælg den rigtige lyd.
+  grammarHint: Tæl og vælg det rigtige tal.
+  letterHint: Lyt og find bogstavet.
+  tapWordsInOrder: Tryk på bogstaverne i den rigtige rækkefølge.
+  wordsSelected: "{selected} af {total} brikker"
+  undoWord: Fortryd
+  removeWord: Fjern
+  resetOrder: Start forfra
+  checkAnswer: Tjek
+  trainHint: 8 korte opgaver. Du kan tage dig god tid.
+  fightHint: Hurtige svar giver en bonus, men tiden gør aldrig et svar forkert.
+  speedBonus: Bonusmåler
+  listenToStartBonus: Lyt først
+  statCapReached: Du har nået kapitlets maksimum.
+  packWarning: "Teknisk prototype: indholdet skal testes med et barn og en dansk lærer."
+  levelGate: Træn alle fire områder før kapitlets kamp.
+  numberGoblin: Taltrolden
+  requirementTrainingSessions: Træninger
+  requirementFightQuestions: Kampopgaver
+  requirementsMet: Klar
+  needsTraining: Mere træning
+  trainMore: Træn først
+  monsterNeeds: Før kampen
+  labyrinthTitle: Lyslabyrinten
+  labyrinthShort: Labyrint
+  labyrinthBody: Brug træningssten til at åbne en kort labyrint med bogstaver og tal.
+  labyrinthLocked: Døren mangler træningssten.
+  labyrinthResume: Fortsæt labyrinten
+  labyrinthStart: Åbn labyrinten
+  labyrinthPause: Pause
+  labyrinthExit: Tilbage
+  labyrinthHearts: Hjerter
+  labyrinthQuestions: Opgaver
+  labyrinthComplete: Labyrinten er gennemført!
+  installApp: Installér app
+  installTitle: Installér Ord- og Talheltene
+  installIosSteps: Brug Del-knappen i Safari, vælg Føj til hjemmeskærm, og slå Åbn som webapp til.
+  offlinePreparing: Gør klar til offline brug
+  offlineReady: Klar offline
+  offlineRetry: Prøv igen
+  offlineMode: Offline
+  offlineUpdate: Opdatér app
+  storyOpen: Åbn kapitlet
+  storyClose: Luk bogen
+  shop: Rygsæk
+  shopIntro: Belønninger kommer i senere prototyper.
+  buy: Køb
+  owned: Ejet
+  needCoins: Ikke nok mønter
+  reward: Belønning
+  admin: Indhold
+  adminTitle: Indholdsredigering
+  currentChapter: Aktuelt kapitel
+  previousChapter: Tidligere kapitel
+  openChapterReader: Åbn historie og lektion
+  readChapter: Læs
+  chapterReaderTitle: Kapitelbogen
+  chapterStory: Historie
+  chapterLesson: Lektion
+  chapterMission: Mission
+  chapterObjectives: Det øver vi
+  chapterMistakes: Husk
+  watchOut: Pas på
+  mistakes: Fejl
+  statCap: Kapitelgrænse
+  timeout: Tiden er gået
+  softTimerHint: Tiden giver kun bonus og gør aldrig et svar forkert.
+  speedBonusEarned: Hurtighedsbonus +{value}%
+  damageAbsorbed: 'Blokeret: {value}'
+  weakHit: Lille træffer!
+  normalHit: Godt ramt!
+  bigHit: Stærkt slag!
+  preciseHit: Præcist slag!
+  blockedHit: Modstanderen blokerer!
+  monsterHit: Modstanderen rammer!
+  heroBlocked: Helten blokerer!
+  fightLockedTitle: Taltrolden venter
+  fightLockedBody: Øv lidt mere i de fire træningsområder, før kampen åbner.
+  fightMistakeHint: Tag dig god tid. Et forkert svar giver en forklaring og en ny chance senere.
+  switchHero: Skift helt
+  profileSwitcherTitle: Vælg helt
+  profileSwitcherBody: Hver helt har sit eget gemte fremskridt.
+  storyProgress: Historiens fremskridt
+  sayItLike: Det lyder sådan
+  installAppTitle: Sæt appen på hjemmeskærmen
+  installGenericBody: Installér appen, så den åbner i fuld skærm og er nem at bruge offline.
+  installIosStep1: Åbn siden i Safari.
+  installIosStep2: Tryk på Del-knappen.
+  installIosStep3: Vælg Føj til hjemmeskærm.
+  installIosStep4: Slå Åbn som webapp til, og tryk Tilføj.
+  offlineAppPreparing: Henter appen til offline brug
+  offlineAudioPreparing: Henter lydpakken
+  languagePack: Læringspakke
+  graphicsPack: Udseende
+  nextShopUnlock: Flere ting kommer i et senere kapitel.
+  labyrinthTraining: Blandet træning
+  labyrinthThemeName: Lysruinerne
+  labyrinthGoal: Find de fire runer, og nå frem til skattekisten.
+  labyrinthShowMiniMap: Vis minikort
+  labyrinthHideMiniMap: Skjul minikort
+  labyrinthAutosave: Labyrinten gemmes automatisk
+  labyrinthRuneEncounter: Runens prøve
+  labyrinthMonsterEncounter: En vogter spærrer vejen
+  labyrinthTrapEncounter: En talfælde
+  labyrinthGuardianEncounter: Skattens vogter
+  labyrinthTreasureLocked: Find først alle fire runer.
+  labyrinthRuneFound: Rune fundet! Fortsæt med at udforske.
+  labyrinthTrapCleared: Fælden er klaret.
+  labyrinthMonsterCleared: Vogteren er besejret.
+  labyrinthCacheFound: Du fandt mønter, som bliver dine, når ekspeditionen er færdig.
+  labyrinthHealingFound: Kilden giver et hjerte tilbage.
+  labyrinthHealingFull: Du har alle hjerter. Kilden kan bruges senere.
+  labyrinthRevealFound: Obelisken viser flere rum.
+  labyrinthFailedTitle: Ekspeditionen er slut
+  labyrinthFailedBody: Du løb tør for hjerter. Det, du øvede, bliver stadig husket.
+  labyrinthCompleteTitle: Skatten er fundet!
+  labyrinthCompleteBody: Alle fire evner stiger, og ekspeditionen tæller som en træning.
+  labyrinthAudioUnavailable: Slå automatiske danske stemmer til for at bruge alle opgaver.
+  labyrinthNotAvailable: Labyrinten er ikke tilgængelig endnu.
+  labyrinthNewRun: Ny ekspedition
+  labyrinthAbandon: Forlad ekspeditionen
+  labyrinthAbandonConfirm: Vil du forlade labyrinten? Den aktuelle ekspedition går tabt.
+  labyrinthRunes: Fundne runer
+  labyrinthChoosePath: Vælg et rum ved siden af
+  labyrinthFogHint: Tågen letter, mens du går.
+  labyrinthMoveHere: Gå til dette rum
+  labyrinthMapLabel: Kort over lyslabyrinten
+  labyrinthKeyboardHint: Brug piletaster, WASD eller tryk på et oplyst rum.
+  labyrinthPanelTabs: Labyrintpaneler
+  labyrinthEvent: Begivenhed
+  labyrinthStoryLog: Eventyrbog
+  labyrinthLogEmpty: Bogen fyldes, mens du udforsker.
+  labyrinthCurrentEvent: Lige nu
+  labyrinthExplorePromptTitle: Vælg det næste rum
+  labyrinthExplorePromptBody: Brug piletaster, WASD eller tryk på et oplyst rum.
+  labyrinthPathEventTitle: En lysende gang
+  labyrinthPathEventBody: Stien fortsætter mellem gamle sten og glødende tegn.
+  labyrinthEntranceEventTitle: Indgangen
+  labyrinthEntranceEventBody: Eventyret begynder her. Fire runer åbner skatten.
+  labyrinthMonsterEventBody: En vogter spærrer vejen. Løs opgaven for at gå videre.
+  labyrinthTrapEventBody: En fælde vågner. Et forkert svar koster ekstra hjerter.
+  labyrinthRuneEventBody: Runen prøver en af de fire færdigheder.
+  labyrinthCacheEventTitle: Skjult kiste
+  labyrinthCacheEventBody: Kisten kan indeholde mønter til den endelige skat.
+  labyrinthHealingEventTitle: Helbredende kilde
+  labyrinthHealingEventBody: Kilden kan give et hjerte tilbage og kan gemmes til senere.
+  labyrinthRevealEventTitle: Kortobelisk
+  labyrinthRevealEventBody: Obelisken fjerner tåge og viser nye rum.
+  labyrinthTreasureEventTitle: Skattekammeret
+  labyrinthTreasureEventBody: Skatten åbner, når alle runer er fundet.
+  labyrinthLogStarted: Helten går ind i lysruinerne.
+  labyrinthLogMoved: Et nyt rum kommer frem af tågen.
+  labyrinthLogCache: 'Kiste fundet: {coins} mønter venter i skatten.'
+  labyrinthLogHealing: Kilden giver et hjerte tilbage.
+  labyrinthLogHealingFull: Kilden gemmes, til du mangler et hjerte.
+  labyrinthLogReveal: Obelisken lyser en del af kortet op.
+  labyrinthLogTreasureLocked: Der mangler stadig runer.
+  labyrinthLogRuneEncounter: En rune udfordrer helten.
+  labyrinthLogTrapEncounter: En fælde udløses.
+  labyrinthLogGuardianEncounter: Den sidste vogter vågner.
+  labyrinthLogMonsterEncounter: En vogter kommer frem.
+  labyrinthLogCorrect: Rigtigt svar! Vejen åbner.
+  labyrinthLogWrong: 'Forkert svar: du mister {hearts} hjerter.'
+  labyrinthLogRuneCollected: 'Rune fundet: {focus}.'
+  labyrinthLogTrapCleared: Fælden er klaret.
+  labyrinthLogMonsterCleared: Vogteren er besejret.
+  labyrinthLogGuardianDefeated: Den sidste vogter falder, og skatten er fri.
+  labyrinthRunCoins: +{coins} fundne mønter
+  labyrinthBonusCoins: Skatten indeholder også {coins} mønter!
+  labyrinthBonusItem: 'Du fandt: {item}!'
+  labyrinthNoBonus: Den vigtigste belønning er det, du har lært.
+  labyrinthContinue: Fortsæt eventyret
+  labyrinthDoorNeeds: Sten, som døren kræver
+  labyrinthRunInProgress: En ekspedition er allerede i gang
+  labyrinthDoorLockedTitle: Døren er låst
+  labyrinthDoorLockedBody: Gennemfør de viste træninger for at få de manglende sten.
